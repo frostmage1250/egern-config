@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from build_egern import (  # noqa: E402
     parse_domain_list,
     parse_ip_list,
+    real_ip_domains,
     render_policy_groups,
     render_rules,
     source_path,
@@ -32,6 +33,18 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertTrue(result["no_resolve"])
         self.assertEqual(result["ip_cidr_set"], ["1.1.1.0/24"])
         self.assertEqual(result["ip_cidr6_set"], ["2001:db8::/32"])
+
+    def test_real_ip_domains_merge_sets_without_disabling_fake_ip(self):
+        result = real_ip_domains([
+            {"domain_set": ["private.local"]},
+            {"domain_wildcard_set": ["*", "*.lan"]},
+            {"domain_suffix_set": ["example.cn"]},
+        ])
+        self.assertNotIn("*", result)
+        self.assertIn("private.local", result)
+        self.assertIn("*.lan", result)
+        self.assertIn("example.cn", result)
+        self.assertIn("*.example.cn", result)
 
     def test_bett_source_comes_from_bundle_path_not_mrs_bytes(self):
         provider = {
