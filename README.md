@@ -25,7 +25,7 @@ future node changes continue to flow into 台湾、新加坡、日本、美国�
 The generator reads the current Mihomo script on every run and preserves its rule
 order, policies, region filters, service groups, DNS choices, Fake-IP exclusions,
 and Hosts mappings. Mihomo's `fakeip_filter` is expanded into Egern's
-`real_ip_domains`. MESL private DNS is used only as Egern
+`real_ip_domains` together with Mihomo's `private` and `geolocation-cn` exclusions. A bare `*` is intentionally omitted because Egern would treat it as every domain and disable Fake-IP globally. MESL private DNS is used only as Egern
 `proxy_nameservers`, while normal DNS forwarding stays separate.
 
 The only deliberate platform mapping is that Mihomo's IPv4/IPv6-preferred DIRECT
