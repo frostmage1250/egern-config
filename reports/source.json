@@ -19,7 +19,7 @@
     "BettRules text sources are converted directly to Egern native YAML; MRS is not converted."
   ],
   "mihomo_script": {
-    "commit": "861fc5c44f520e9fe8b0b41359e7cb89f30451b9",
+    "commit": "d686bca77bd12cc2023c2150e7263d2336055985",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
