@@ -258,11 +258,17 @@ def render_rules(
     return rules
 
 
-def real_ip_domains(rule: dict[str, Any]) -> list[str]:
-    result = list(rule.get("domain_set", []))
-    for value in rule.get("domain_suffix_set", []):
-        result.extend([value, f"*.{value}"])
-    result.extend(rule.get("domain_wildcard_set", []))
+def real_ip_domains(rule_sets: list[dict[str, Any]]) -> list[str]:
+    """Translate Mihomo Fake-IP exclusions without broadening a bare '*' in Egern."""
+    result: list[str] = []
+    for rule in rule_sets:
+        result.extend(rule.get("domain_set", []))
+        for value in rule.get("domain_suffix_set", []):
+            result.extend([value, f"*.{value}"])
+        result.extend(
+            value for value in rule.get("domain_wildcard_set", [])
+            if value != "*"
+        )
     return unique(result)
 
 
@@ -325,6 +331,8 @@ def validate_profile(
             raise BuildError(f"Flower host mapping missing: {hostname}")
     if not profile.get("real_ip_domains"):
         raise BuildError("Fake-IP exclusions were not migrated to real_ip_domains")
+    if "*" in profile["real_ip_domains"]:
+        raise BuildError("Bare '*' would disable Egern Fake-IP globally")
 
 
 def write_or_check(path: Path, content: str, check: bool) -> bool:
@@ -391,7 +399,11 @@ def main() -> int:
             "hijack_dns": ["*:53"],
             "block_quic": False,
             "close_connections_on_policy_change": True,
-            "real_ip_domains": real_ip_domains(generated[fakeip_name]),
+            "real_ip_domains": real_ip_domains([
+                generated[provider_files["private"]],
+                generated[fakeip_name],
+                generated[provider_files["geolocation-cn"]],
+            ]),
             "dns": {
                 "bootstrap": ["system"],
                 "upstreams": {"Foreign": nameservers(model)},
@@ -462,7 +474,8 @@ def main() -> int:
             },
             "migration_boundaries": [
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
-                "Mihomo fakeip_filter is expanded into Egern real_ip_domains.",
+                "Mihomo private, fakeip_filter, and geolocation-cn are expanded into Egern real_ip_domains.",
+                "The bare Mihomo '*' filter is omitted because Egern would interpret it as all domains and disable Fake-IP globally.",
                 "BettRules text sources are converted directly to Egern native YAML; MRS is not converted.",
             ],
         }
