@@ -323,11 +323,12 @@
     }
   ],
   "policy_groups": 16,
-  "profile_sha256": "039682540a1114313d9362a391fa46f9f59f2ef39e7490f5716e538b0a2f6525",
+  "profile_sha256": "84cc42bdf6a71b8deb2e70ed154e107e1ba55244e11c3ed08c6dcca3cd5b5e6c",
   "real_ip_domains": 10952,
   "routing_rules": 34,
   "schema_version": 1,
   "subscription": {
+    "default_proxy_group": "Proxy",
     "group": "订阅",
     "reason": "Subscription credentials must not be committed to a public repository.",
     "urls_published": false

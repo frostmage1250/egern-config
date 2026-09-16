@@ -6,6 +6,8 @@ hijack_dns:
 - '*:53'
 block_quic: false
 close_connections_on_policy_change: true
+default_subscription_group: 订阅
+default_proxy_group: Proxy
 real_ip_domains:
 - instant.arubanetworks.com
 - setmeup.arubanetworks.com
