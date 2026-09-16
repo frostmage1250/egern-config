@@ -15,7 +15,8 @@
   },
   "migration_boundaries": [
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
-    "Mihomo fakeip_filter is expanded into Egern real_ip_domains.",
+    "Mihomo private, fakeip_filter, and geolocation-cn are expanded into Egern real_ip_domains.",
+    "The bare Mihomo '*' filter is omitted because Egern would interpret it as all domains and disable Fake-IP globally.",
     "BettRules text sources are converted directly to Egern native YAML; MRS is not converted."
   ],
   "mihomo_script": {
@@ -322,8 +323,8 @@
     }
   ],
   "policy_groups": 16,
-  "profile_sha256": "b7deaa8d612a6faba072f744b4c926a93c2b99deca513e0c19da5423e2fb2d40",
-  "real_ip_domains": 152,
+  "profile_sha256": "039682540a1114313d9362a391fa46f9f59f2ef39e7490f5716e538b0a2f6525",
+  "real_ip_domains": 10952,
   "routing_rules": 34,
   "schema_version": 1,
   "subscription": {
