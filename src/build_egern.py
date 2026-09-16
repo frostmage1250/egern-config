@@ -147,8 +147,6 @@ def referenced_providers(model: dict[str, Any]) -> list[str]:
         parts = rule.split(",")
         if parts[0] == "RULE-SET" and len(parts) >= 3:
             result.append(parts[1])
-    if "fakeip_filter" in model["providers"]:
-        result.append("fakeip_filter")
     return unique(result)
 
 
@@ -258,20 +256,6 @@ def render_rules(
     return rules
 
 
-def real_ip_domains(rule_sets: list[dict[str, Any]]) -> list[str]:
-    """Translate Mihomo Fake-IP exclusions without broadening a bare '*' in Egern."""
-    result: list[str] = []
-    for rule in rule_sets:
-        result.extend(rule.get("domain_set", []))
-        for value in rule.get("domain_suffix_set", []):
-            result.extend([value, f"*.{value}"])
-        result.extend(
-            value for value in rule.get("domain_wildcard_set", [])
-            if value != "*"
-        )
-    return unique(result)
-
-
 def nameservers(model: dict[str, Any]) -> list[str]:
     result: list[str] = []
     for value in model.get("dns", {}).get("nameserver", []):
@@ -333,10 +317,6 @@ def validate_profile(
     for hostname, target in FLOWER_HOSTS.items():
         if dns["hosts"].get(hostname) != target:
             raise BuildError(f"Flower host mapping missing: {hostname}")
-    if not profile.get("real_ip_domains"):
-        raise BuildError("Fake-IP exclusions were not migrated to real_ip_domains")
-    if "*" in profile["real_ip_domains"]:
-        raise BuildError("Bare '*' would disable Egern Fake-IP globally")
 
 
 def write_or_check(path: Path, content: str, check: bool) -> bool:
@@ -393,10 +373,6 @@ def main() -> int:
 
         groups, filters = render_policy_groups(model)
         rules = render_rules(model, provider_files)
-        fakeip_name = provider_files.get("fakeip_filter")
-        if not fakeip_name:
-            raise BuildError("Mihomo fakeip_filter provider is required")
-
         profile = {
             "auto_update": {"url": f"{RAW_BASE}/Profile.yaml", "interval": 86400},
             "ipv6": True,
@@ -405,11 +381,6 @@ def main() -> int:
             "close_connections_on_policy_change": True,
             "default_subscription_group": "订阅",
             "default_proxy_group": "Proxy",
-            "real_ip_domains": real_ip_domains([
-                generated[provider_files["private"]],
-                generated[fakeip_name],
-                generated[provider_files["geolocation-cn"]],
-            ]),
             "dns": {
                 "bootstrap": ["system"],
                 "upstreams": {"Foreign": nameservers(model)},
@@ -470,7 +441,6 @@ def main() -> int:
             "profile_sha256": hashlib.sha256(profile_text.encode("utf-8")).hexdigest(),
             "policy_groups": len(groups),
             "routing_rules": len(rules),
-            "real_ip_domains": len(profile["real_ip_domains"]),
             "native_rule_sets": source_records,
             "group_filters": filters,
             "subscription": {
@@ -481,8 +451,7 @@ def main() -> int:
             },
             "migration_boundaries": [
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
-                "Mihomo private, fakeip_filter, and geolocation-cn are expanded into Egern real_ip_domains.",
-                "The bare Mihomo '*' filter is omitted because Egern would interpret it as all domains and disable Fake-IP globally.",
+                "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
                 "BettRules text sources are converted directly to Egern native YAML; MRS is not converted.",
             ],
         }
@@ -494,8 +463,7 @@ def main() -> int:
             raise BuildError("Generated files are out of date: " + ", ".join(changed))
         print(
             f"Generated {len(groups)} policy groups, {len(rules)} routing rules, "
-            f"{len(generated)} native Egern rule sets, and "
-            f"{len(profile['real_ip_domains'])} real-IP domains."
+            f"{len(generated)} native Egern rule sets."
         )
         return 0
     except (BuildError, OSError, ValueError, KeyError, json.JSONDecodeError, yaml.YAMLError) as exc:
