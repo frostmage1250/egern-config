@@ -15,8 +15,7 @@
   },
   "migration_boundaries": [
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
-    "Mihomo private, fakeip_filter, and geolocation-cn are expanded into Egern real_ip_domains.",
-    "The bare Mihomo '*' filter is omitted because Egern would interpret it as all domains and disable Fake-IP globally.",
+    "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
     "BettRules text sources are converted directly to Egern native YAML; MRS is not converted."
   ],
   "mihomo_script": {
@@ -311,20 +310,10 @@
       "source_path": "geo/geoip/private.list",
       "source_sha256": "06ae700eaba0fb7b812e699acf3e9fe8167344443ecc7fcfad0ca54c90ad100c",
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/5bcda4b9ddec7711071defa1ff0ec591995bf0aa/geo/geoip/private.list"
-    },
-    {
-      "behavior": "domain",
-      "entries": 121,
-      "output": "rules/fakeip-filter.yaml",
-      "provider": "fakeip_filter",
-      "source_path": "geo/geosite/fakeip-filter.list",
-      "source_sha256": "7afd7d46a11b04e915183f14e9109f2a2d160fe37971049dda62e4bfbb64746c",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/5bcda4b9ddec7711071defa1ff0ec591995bf0aa/geo/geosite/fakeip-filter.list"
     }
   ],
   "policy_groups": 16,
-  "profile_sha256": "84cc42bdf6a71b8deb2e70ed154e107e1ba55244e11c3ed08c6dcca3cd5b5e6c",
-  "real_ip_domains": 10952,
+  "profile_sha256": "83eee9aa8e47db3e4a5333cd61c94b78c8b99dd90a30bd752b0444c60addb6b1",
   "routing_rules": 34,
   "schema_version": 1,
   "subscription": {
