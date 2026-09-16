@@ -15,10 +15,12 @@ to an Egern profile.
 ## Subscription setup
 
 Subscription credentials are deliberately not committed to this public repository.
-After importing `Profile.yaml` into Egern, open the **订阅** policy group and add
-the airport subscription URL there. Region groups flatten and filter that group, so
-future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点 and
-低倍率节点 automatically.
+After importing `Profile.yaml` into Egern, use Egern's **Add Subscription**
+command and enter the airport URL. The profile sets `default_subscription_group`
+to **订阅** and `default_proxy_group` to **Proxy**, so the private URL remains in
+Egern instead of the public repository. Region groups flatten and filter **订阅**,
+so future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点
+and 低倍率节点 automatically.
 
 ## Migration behavior
 

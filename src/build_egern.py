@@ -312,6 +312,10 @@ def validate_profile(
                 raise BuildError(f"Group {group['name']} references undefined policy {policy}")
     if profile["policy_groups"][names.index("订阅")]["select"].get("urls") != []:
         raise BuildError("Public profile must not contain subscription credentials")
+    if profile.get("default_subscription_group") != "订阅":
+        raise BuildError("Egern subscriptions must default to the 订阅 group")
+    if profile.get("default_proxy_group") != "Proxy":
+        raise BuildError("Egern proxies must default to the Proxy group")
     for index, wrapper in enumerate(profile["rules"]):
         kind, value = next(iter(wrapper.items()))
         policy = value["policy"]
@@ -399,6 +403,8 @@ def main() -> int:
             "hijack_dns": ["*:53"],
             "block_quic": False,
             "close_connections_on_policy_change": True,
+            "default_subscription_group": "订阅",
+            "default_proxy_group": "Proxy",
             "real_ip_domains": real_ip_domains([
                 generated[provider_files["private"]],
                 generated[fakeip_name],
@@ -469,6 +475,7 @@ def main() -> int:
             "group_filters": filters,
             "subscription": {
                 "group": "订阅",
+                "default_proxy_group": "Proxy",
                 "urls_published": False,
                 "reason": "Subscription credentials must not be committed to a public repository.",
             },
