@@ -1,0 +1,430 @@
+auto_update:
+  url: https://raw.githubusercontent.com/frostmage1250/egern-config/main/Profile.yaml
+  interval: 86400
+ipv6: true
+hijack_dns:
+- '*:53'
+block_quic: false
+close_connections_on_policy_change: true
+real_ip_domains:
+- time-ios.apple.com
+- time1.cloud.tencent.com
+- music.163.com
+- musicapi.taihe.com
+- music.taihe.com
+- songsearch.kugou.com
+- trackercdn.kugou.com
+- api-jooxtt.sanook.com
+- api.joox.com
+- joox.com
+- y.qq.com
+- streamoc.music.tc.qq.com
+- mobileoc.music.tc.qq.com
+- isure.stream.qqmusic.qq.com
+- dl.stream.qqmusic.qq.com
+- aqqmusic.tc.qq.com
+- amobile.music.tc.qq.com
+- music.migu.cn
+- localhost.ptlogin2.qq.com
+- localhost.sec.qq.com
+- xnotify.xboxlive.com
+- proxy.golang.org
+- heartbeat.belkin.com
+- mesu.apple.com
+- swscan.apple.com
+- swquery.apple.com
+- swdownload.apple.com
+- swcdn.apple.com
+- swdist.apple.com
+- lens.l.google.com
+- na.b.g-tun.com
+- ff.dorado.sdo.com
+- shark007.net
+- Mijia Cloud
+- adguardteam.github.io
+- adrules.top
+- anti-ad.net
+- local.adguard.org
+- static.adtidy.org
+- ps.res.netease.com
+- pool.ntp.org
+- '*.pool.ntp.org'
+- msftconnecttest.com
+- '*.msftconnecttest.com'
+- msftncsi.com
+- '*.msftncsi.com'
+- kk-rays.com
+- '*.kk-rays.com'
+- steamcontent.com
+- '*.steamcontent.com'
+- srv.nintendo.net
+- '*.srv.nintendo.net'
+- cdn.nintendo.net
+- '*.cdn.nintendo.net'
+- battle.net
+- '*.battle.net'
+- battlenet.com.cn
+- '*.battlenet.com.cn'
+- wotgame.cn
+- '*.wotgame.cn'
+- wggames.cn
+- '*.wggames.cn'
+- wowsgame.cn
+- '*.wowsgame.cn'
+- wargaming.net
+- '*.wargaming.net'
+- stun.*.*
+- '*.stun.*.*'
+- stun.*.*.*
+- '*.stun.*.*.*'
+- stun.*.*.*.*
+- '*.stun.*.*.*.*'
+- stun.*.*.*.*.*
+- '*.stun.*.*.*.*.*'
+- media.dssott.com
+- '*.media.dssott.com'
+- market.xiaomi.com
+- '*.market.xiaomi.com'
+- cmbchina.com
+- '*.cmbchina.com'
+- cmbimg.com
+- '*.cmbimg.com'
+- sandai.net
+- '*.sandai.net'
+- n0808.com
+- '*.n0808.com'
+- 3gppnetwork.org
+- '*.3gppnetwork.org'
+- uu.163.com
+- '*.uu.163.com'
+- pub.3gppnetwork.org
+- '*.pub.3gppnetwork.org'
+- oray.com
+- '*.oray.com'
+- orayimg.com
+- '*.orayimg.com'
+- gcloudcs.com
+- '*.gcloudcs.com'
+- gcloudsdk.com
+- '*.gcloudsdk.com'
+- dynv6.net
+- '*.dynv6.net'
+- '*'
+- '*.lan'
+- '*.localdomain'
+- '*.example'
+- '*.invalid'
+- '*.localhost'
+- '*.test'
+- '*.local'
+- '*.home.arpa'
+- '*.direct'
+- time.*.com
+- time.*.gov
+- time.*.edu.cn
+- time.*.apple.com
+- time1.*.com
+- time2.*.com
+- time3.*.com
+- time4.*.com
+- time5.*.com
+- time6.*.com
+- time7.*.com
+- ntp.*.com
+- ntp1.*.com
+- ntp2.*.com
+- ntp3.*.com
+- ntp4.*.com
+- ntp5.*.com
+- ntp6.*.com
+- ntp7.*.com
+- '*.time.edu.cn'
+- '*.ntp.org.cn'
+- '*.music.163.com'
+- '*.126.net'
+- '*.kuwo.cn'
+- '*.y.qq.com'
+- '*.xiami.com'
+- '*.music.migu.cn'
+- localhost.*.weixin.qq.com
+- '*.n.n.srv.nintendo.net'
+- xbox.*.*.microsoft.com
+- '*.*.xboxlive.com'
+- xbox.*.microsoft.com
+- '*.linksys.com'
+- '*.linksyssmartwifi.com'
+- '*.router.asus.com'
+- '*.square-enix.com'
+- '*.finalfantasyxiv.com'
+- '*.ffxiv.com'
+- '*.ff14.sdo.com'
+- '*.mcdn.bilivideo.cn'
+dns:
+  bootstrap:
+  - system
+  upstreams:
+    Foreign:
+    - https://cloudflare-dns.com/dns-query
+    - https://dns.google/dns-query
+  forward:
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/geolocation-cn.yaml
+      value: system
+      update_interval: 86400
+  - domain_wildcard:
+      match: '*'
+      value: Foreign
+  hosts:
+    doh.pub:
+    - 1.12.12.12
+    - 120.53.53.53
+    cloudflare-dns.com:
+    - 1.1.1.1
+    - 1.0.0.1
+    dns.google:
+    - 8.8.8.8
+    - 8.8.4.4
+    11612bj3-b76c.aws-agent.biz: 06996bj6-79x5.apt-agent.com
+    b76c5sh0-fde6.aws-agent.biz: 08233sh6-12d1.apt-agent.com
+    fde63gz6-1y61.aws-agent.biz: 09571gz6-86k1.apt-agent.com
+  proxy_nameservers:
+  - https://zone.rlose.com:39933/api-query
+  - https://radar.rlose.com/api-query
+policy_groups:
+- select:
+    name: Proxy
+    policies:
+    - 订阅
+    - 台湾
+    - 新加坡
+    - 日本
+    - 美国
+    - 其他节点
+    - 低倍率节点
+- select:
+    name: 订阅
+    policies:
+    - DIRECT
+    urls: []
+    filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|使用|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
+    update_interval: 86400
+- select:
+    name: Direct
+    policies:
+    - DIRECT
+- select:
+    name: AI
+    policies:
+    - Proxy
+    - 日本
+    - 台湾
+    - 其他节点
+- select:
+    name: Google
+    policies:
+    - Proxy
+- select:
+    name: 媒体
+    policies:
+    - Proxy
+    - 低倍率节点
+- select:
+    name: Telegram
+    policies:
+    - Proxy
+    - 低倍率节点
+- select:
+    name: PikPak
+    policies:
+    - Proxy
+    - Direct
+    - 低倍率节点
+- select:
+    name: EHentai
+    policies:
+    - Proxy
+- select:
+    name: 台湾
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
+- select:
+    name: 新加坡
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
+- select:
+    name: 日本
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
+- select:
+    name: 美国
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|圣地亚哥|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
+- select:
+    name: 其他节点
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|圣地亚哥|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
+- select:
+    name: 低倍率节点
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<!\d)0\.[0-5]|(?<=[ \[\(|｜丨∣┃\-‐–—−－﹣])0[*×✕✖⨯⨉x倍])|(?:(?<=[ \[\(|｜丨∣┃\-‐–—−－﹣])[*×✕✖⨯⨉x]0(?=[ \)\]]|倍|$))|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])
+- select:
+    name: Final
+    policies:
+    - Proxy
+    - Direct
+rules:
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/games-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/steam.yaml
+    policy: Proxy
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/steam-ip.yaml
+    policy: Proxy
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple.yaml
+    policy: Proxy
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple-ip.yaml
+    policy: Proxy
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/github.yaml
+    policy: Proxy
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft.yaml
+    policy: Proxy
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft-ip.yaml
+    policy: Proxy
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/telegram.yaml
+    policy: Telegram
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/telegram-ip.yaml
+    policy: Telegram
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/youtube.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/threads.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/meta.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/facebook-ip.yaml
+    policy: 媒体
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/facebook.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/facebook-ip.yaml
+    policy: 媒体
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/twitter.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/twitter-ip.yaml
+    policy: 媒体
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/twitch.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/tiktok.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/tiktok-ip.yaml
+    policy: 媒体
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/google.yaml
+    policy: Google
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/google-ip.yaml
+    policy: Google
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/ai.yaml
+    policy: AI
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/pikpak.yaml
+    policy: PikPak
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/ehentai.yaml
+    policy: EHentai
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/geolocation-non-cn.yaml
+    policy: Proxy
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/geolocation-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn-ip.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private-ip.yaml
+    policy: Direct
+    update_interval: 86400
+- default:
+    policy: Final
