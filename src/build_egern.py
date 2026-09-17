@@ -285,7 +285,7 @@ def render_rules(
         {
             "rule_set": {
                 "match": f"{RAW_BASE}/rules/{APNS_FILENAME}",
-                "policy": "Direct",
+                "policy": "Proxy",
                 "update_interval": 86400,
                 "no_resolve": True,
             }
@@ -395,11 +395,11 @@ def render_dns_forward(
             item["update_interval"] = 86400
         forward.append({kind: item})
 
-    # User-requested APNs override is the highest-priority direct DNS rule.
+    # User-requested APNs override is the highest-priority proxied DNS rule.
     add(
         "proxy_rule_set",
         f"{RAW_BASE}/rules/{APNS_FILENAME}",
-        "system",
+        "Foreign",
     )
 
     # Preserve Mihomo nameserver-policy before its general nameserver.
@@ -484,16 +484,16 @@ def validate_profile(
     first_rule = profile["rules"][0].get("rule_set", {})
     if (
         first_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
-        or first_rule.get("policy") != "Direct"
+        or first_rule.get("policy") != "Proxy"
         or first_rule.get("no_resolve") is not True
     ):
-        raise BuildError("APNs rule set must be the first routing rule and use Direct")
+        raise BuildError("APNs rule set must be the first routing rule and use Proxy")
     first_dns_rule = profile["dns"]["forward"][0].get("proxy_rule_set", {})
     if (
         first_dns_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
-        or first_dns_rule.get("value") != "system"
+        or first_dns_rule.get("value") != "Foreign"
     ):
-        raise BuildError("APNs rule set must be the first DNS Forward rule and use system")
+        raise BuildError("APNs rule set must be the first DNS Forward rule and use Foreign")
     for group in groups:
         for policy in group.get("policies", []):
             if policy not in known:
@@ -690,7 +690,7 @@ def main() -> int:
                 "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
-                "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Direct/system DNS handling.",
+                "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
                 "BettRules text sources are converted directly to Egern native YAML; MRS is not converted.",
             ],
         }

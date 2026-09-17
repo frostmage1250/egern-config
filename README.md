@@ -30,7 +30,7 @@ The generator reads the current Mihomo script on every run and preserves its rul
 order, policies, region filters, service groups, DNS choices, and Hosts mappings.
 The requested APNs override is the sole rule inserted ahead of the Mihomo rules:
 its classical domain/IPv4/IPv6 entries are converted into `rules/apns.yaml`,
-routed through `Direct`, and placed first in DNS Forward with `system`.
+routed through `Proxy`, and placed first in DNS Forward with `Foreign`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
 Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy`
 and every explicit Direct domain rule become ordered Egern DNS Forward rules that

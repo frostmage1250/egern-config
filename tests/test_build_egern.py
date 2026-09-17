@@ -73,7 +73,7 @@ class EgernBuilderTests(unittest.TestCase):
             rules[0]["rule_set"]["match"],
             "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml",
         )
-        self.assertEqual(rules[0]["rule_set"]["policy"], "Direct")
+        self.assertEqual(rules[0]["rule_set"]["policy"], "Proxy")
         self.assertTrue(rules[0]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[1]), ["domain_suffix"])
         self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
@@ -157,7 +157,7 @@ class EgernBuilderTests(unittest.TestCase):
                 {
                     "proxy_rule_set": {
                         "match": "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml",
-                        "value": "system",
+                        "value": "Foreign",
                         "update_interval": 86400,
                     }
                 },
