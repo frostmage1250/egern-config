@@ -19,7 +19,9 @@ from build_egern import (  # noqa: E402
     render_nameserver_route_rules,
     render_policy_groups,
     render_rules,
-    source_path,
+    resolve_provider_source,
+    source_rule_count,
+    output_rule_count,
 )
 
 
@@ -37,8 +39,8 @@ class EgernBuilderTests(unittest.TestCase):
     def test_ip_source_splits_v4_and_v6_and_sets_no_resolve(self):
         result = parse_ip_list("1.1.1.1/24\n2001:db8::1/32\n")
         self.assertTrue(result["no_resolve"])
-        self.assertEqual(result["ip_cidr_set"], ["1.1.1.0/24"])
-        self.assertEqual(result["ip_cidr6_set"], ["2001:db8::/32"])
+        self.assertEqual(result["ip_cidr_set"], ["1.1.1.1/24"])
+        self.assertEqual(result["ip_cidr6_set"], ["2001:db8::1/32"])
 
     def test_classical_apns_source_becomes_one_native_mixed_rule_set(self):
         result = parse_classical_rule_list(
@@ -55,12 +57,61 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertEqual(result["ip_cidr6_set"], ["2620:149:a44::/48"])
         self.assertTrue(result["no_resolve"])
 
-    def test_bett_source_comes_from_bundle_path_not_mrs_bytes(self):
+    def test_provider_source_follows_final_url_not_bundle_path(self):
         provider = {
-            "path-in-bundle": "geo/geosite/google.mrs",
-            "url": "https://example.invalid/google.mrs",
+            "path-in-bundle": "geo/geosite/geolocation-cn.mrs",
+            "url": (
+                "https://raw.githubusercontent.com/frostmage1250/"
+                "proxy-rules-converter/main/dist/mihomo/geolocation-cn.mrs"
+            ),
         }
-        self.assertEqual(source_path(provider), "geo/geosite/google.list")
+        result = resolve_provider_source(
+            provider,
+            bett_commit="bett-commit",
+            converter_commit="converter-commit",
+        )
+        self.assertEqual(result["repository"], "frostmage1250/proxy-rules-converter")
+        self.assertEqual(result["ref"], "main")
+        self.assertEqual(result["commit"], "converter-commit")
+        self.assertEqual(result["path"], "dist/mihomo/geolocation-cn.list")
+        self.assertEqual(
+            result["url"],
+            "https://raw.githubusercontent.com/frostmage1250/"
+            "proxy-rules-converter/converter-commit/"
+            "dist/mihomo/geolocation-cn.list",
+        )
+
+    def test_bett_provider_source_uses_final_url_and_pinned_commit(self):
+        provider = {
+            "path-in-bundle": "ignored/by/source/resolver.mrs",
+            "url": (
+                "https://fastly.jsdelivr.net/gh/appshubcc/"
+                "bett-rules@meta/geo/geosite/google.mrs"
+            ),
+        }
+        result = resolve_provider_source(
+            provider,
+            bett_commit="bett-commit",
+            converter_commit="converter-commit",
+        )
+        self.assertEqual(result["repository"], "appshubcc/bett-rules")
+        self.assertEqual(result["ref"], "meta")
+        self.assertEqual(result["commit"], "bett-commit")
+        self.assertEqual(result["path"], "geo/geosite/google.list")
+
+    def test_rule_conversion_preserves_duplicates_spelling_and_count(self):
+        domain_source = "example.com\n+.example.net\n+.example.net\n"
+        domain_rule = parse_domain_list(domain_source)
+        self.assertEqual(
+            domain_rule["domain_suffix_set"],
+            ["example.net", "example.net"],
+        )
+        self.assertEqual(source_rule_count(domain_source), output_rule_count(domain_rule))
+
+        ip_source = "1.1.1.1/24\n1.1.1.1/24\n"
+        ip_rule = parse_ip_list(ip_source)
+        self.assertEqual(ip_rule["ip_cidr_set"], ["1.1.1.1/24", "1.1.1.1/24"])
+        self.assertEqual(source_rule_count(ip_source), output_rule_count(ip_rule))
 
     def test_rules_preserve_order_and_no_resolve(self):
         model = {

@@ -24,6 +24,9 @@ REPORT_PATH = ROOT / "reports" / "source.json"
 RAW_BASE = "https://raw.githubusercontent.com/frostmage1250/egern-config/main"
 MIHOMO_REPO = "frostmage1250/mihomo-script"
 BETT_REPO = "appshubcc/bett-rules"
+CONVERTER_REPO = "frostmage1250/proxy-rules-converter"
+CONVERTER_GEOLOCATION_LIST_PATH = "dist/mihomo/geolocation-cn.list"
+CONVERTER_GEOLOCATION_REPORT_PATH = "reports/geolocation-cn.json"
 APNS_REPO = "ttyyss2233/Tool"
 APNS_PATH = "shadowrocket/rules/apns.list"
 APNS_FILENAME = "apns.yaml"
@@ -69,17 +72,63 @@ def slug(name: str) -> str:
     return value
 
 
-def source_path(provider: dict[str, Any]) -> str:
-    path = provider.get("path-in-bundle")
-    if not isinstance(path, str) or not path.endswith(".mrs"):
-        url = provider.get("url", "")
-        match = re.search(r"/(geo/(?:geosite|geoip)/[^?#]+)\.mrs(?:[?#]|$)", url)
+def resolve_provider_source(
+    provider: dict[str, Any],
+    *,
+    bett_commit: str,
+    converter_commit: str,
+) -> dict[str, str]:
+    provider_url = provider.get("url")
+    if not isinstance(provider_url, str) or not provider_url:
+        raise BuildError(f"Provider has no final URL: {provider}")
+
+    parsed = urlsplit(provider_url)
+    repository: str
+    ref: str
+    mrs_path: str
+    if parsed.netloc == "fastly.jsdelivr.net":
+        match = re.fullmatch(
+            r"/gh/([^/]+/[^/@]+)@([^/]+)/(.+)\.mrs",
+            parsed.path,
+        )
         if not match:
-            raise BuildError(f"Cannot derive BettRules source from provider: {provider}")
-        path = match.group(1) + ".mrs"
-    if not path.startswith(("geo/geosite/", "geo/geoip/")):
-        raise BuildError(f"Provider is not backed by BettRules geosite/geoip: {path}")
-    return path[:-4] + ".list"
+            raise BuildError(f"Unsupported jsDelivr provider URL: {provider_url}")
+        repository, ref, mrs_path = match.groups()
+    elif parsed.netloc == "raw.githubusercontent.com":
+        match = re.fullmatch(
+            r"/([^/]+/[^/]+)/([^/]+)/(.+)\.mrs",
+            parsed.path,
+        )
+        if not match:
+            raise BuildError(f"Unsupported raw GitHub provider URL: {provider_url}")
+        repository, ref, mrs_path = match.groups()
+    else:
+        raise BuildError(f"Unsupported provider URL host: {provider_url}")
+
+    if repository == BETT_REPO and ref == "meta":
+        commit = bett_commit
+    elif repository == CONVERTER_REPO and ref == "main":
+        commit = converter_commit
+        if mrs_path != CONVERTER_GEOLOCATION_LIST_PATH.removesuffix(".list"):
+            raise BuildError(
+                f"Unsupported proxy-rules-converter provider path: {mrs_path}.mrs"
+            )
+    else:
+        raise BuildError(
+            f"Unsupported provider source {repository}@{ref}: {provider_url}"
+        )
+
+    text_path = mrs_path + ".list"
+    return {
+        "provider_url": provider_url,
+        "repository": repository,
+        "ref": ref,
+        "commit": commit,
+        "path": text_path,
+        "url": (
+            f"https://raw.githubusercontent.com/{repository}/{commit}/{text_path}"
+        ),
+    }
 
 
 def download_text(url: str) -> str:
@@ -88,6 +137,18 @@ def download_text(url: str) -> str:
         if getattr(response, "status", 200) != 200:
             raise BuildError(f"HTTP error while fetching {url}")
         return response.read().decode("utf-8-sig")
+
+
+def source_rule_count(text: str) -> int:
+    return sum(
+        1
+        for raw in text.splitlines()
+        if (line := raw.strip()) and not line.startswith(("#", ";", "//"))
+    )
+
+
+def output_rule_count(rule: dict[str, Any]) -> int:
+    return sum(len(value) for value in rule.values() if isinstance(value, list))
 
 
 def parse_domain_list(text: str) -> dict[str, Any]:
@@ -116,7 +177,7 @@ def parse_domain_list(text: str) -> dict[str, Any]:
             fields["domain_wildcard_set"].append(line)
         else:
             fields["domain_set"].append(line)
-    result = {key: unique(value) for key, value in fields.items() if value}
+    result = {key: value for key, value in fields.items() if value}
     if not result:
         raise BuildError("Domain source produced an empty rule set")
     return result
@@ -134,12 +195,12 @@ def parse_ip_list(text: str) -> dict[str, Any]:
         except ValueError as exc:
             raise BuildError(f"Invalid IP network {line!r}") from exc
         target = ipv4 if network.version == 4 else ipv6
-        target.append(str(network))
+        target.append(line)
     result: dict[str, Any] = {"no_resolve": True}
     if ipv4:
-        result["ip_cidr_set"] = unique(ipv4)
+        result["ip_cidr_set"] = ipv4
     if ipv6:
-        result["ip_cidr6_set"] = unique(ipv6)
+        result["ip_cidr6_set"] = ipv6
     if len(result) == 1:
         raise BuildError("IP source produced an empty rule set")
     return result
@@ -178,12 +239,12 @@ def parse_classical_rule_list(text: str) -> dict[str, Any]:
             if network.version != expected_version:
                 raise BuildError(f"{kind} has the wrong address family: {value!r}")
             target = "ip_cidr_set" if network.version == 4 else "ip_cidr6_set"
-            fields[target].append(str(network))
+            fields[target].append(value)
             no_resolve = no_resolve or "no-resolve" in parts[2:]
         else:
             raise BuildError(f"Unsupported classical rule: {line!r}")
     result: dict[str, Any] = {
-        key: unique(values) for key, values in fields.items() if values
+        key: values for key, values in fields.items() if values
     }
     if no_resolve:
         result["no_resolve"] = True
@@ -620,6 +681,7 @@ def main() -> int:
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--mihomo-commit", required=True)
     parser.add_argument("--bett-commit", required=True)
+    parser.add_argument("--converter-commit", required=True)
     parser.add_argument("--apns-commit", required=True)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
@@ -632,22 +694,49 @@ def main() -> int:
         provider_files: dict[str, str] = {}
         source_records: list[dict[str, Any]] = []
 
+        converter_report_url = (
+            f"https://raw.githubusercontent.com/{CONVERTER_REPO}/"
+            f"{args.converter_commit}/{CONVERTER_GEOLOCATION_REPORT_PATH}"
+        )
+        converter_report_text = download_text(converter_report_url)
+        converter_report = json.loads(converter_report_text)
+        converter_expected_entries = converter_report.get("mrs_compatible_entries")
+        converter_expected_sha256 = (
+            converter_report.get("sha256", {}).get("domain_list")
+        )
+        if (
+            not isinstance(converter_expected_entries, int)
+            or converter_expected_entries <= 0
+            or not isinstance(converter_expected_sha256, str)
+            or not re.fullmatch(r"[0-9a-f]{64}", converter_expected_sha256)
+        ):
+            raise BuildError("Invalid proxy-rules-converter geolocation-cn report")
+
         apns_url = (
             f"https://raw.githubusercontent.com/{APNS_REPO}/"
             f"{args.apns_commit}/{APNS_PATH}"
         )
         apns_source = download_text(apns_url)
         apns_rule = parse_classical_rule_list(apns_source)
+        apns_source_entries = source_rule_count(apns_source)
+        apns_output_entries = output_rule_count(apns_rule)
+        if apns_output_entries != apns_source_entries:
+            raise BuildError(
+                "APNs conversion changed the rule count: "
+                f"{apns_source_entries} -> {apns_output_entries}"
+            )
         generated[APNS_FILENAME] = apns_rule
         source_records.append({
             "provider": "apns",
             "behavior": "classical",
+            "source_repository": APNS_REPO,
+            "source_ref": "main",
+            "source_commit": args.apns_commit,
             "source_path": APNS_PATH,
             "source_url": apns_url,
             "output": f"rules/{APNS_FILENAME}",
-            "entries": sum(
-                len(value) for value in apns_rule.values() if isinstance(value, list)
-            ),
+            "source_entries": apns_source_entries,
+            "entries": apns_output_entries,
             "source_sha256": hashlib.sha256(
                 apns_source.encode("utf-8")
             ).hexdigest(),
@@ -657,9 +746,12 @@ def main() -> int:
             provider = providers.get(name)
             if provider is None:
                 raise BuildError(f"Mihomo model is missing provider {name}")
-            path = source_path(provider)
-            url = f"https://raw.githubusercontent.com/{BETT_REPO}/{args.bett_commit}/{path}"
-            source = download_text(url)
+            source_info = resolve_provider_source(
+                provider,
+                bett_commit=args.bett_commit,
+                converter_commit=args.converter_commit,
+            )
+            source = download_text(source_info["url"])
             behavior = provider.get("behavior")
             if behavior == "domain":
                 rule = parse_domain_list(source)
@@ -667,18 +759,53 @@ def main() -> int:
                 rule = parse_ip_list(source)
             else:
                 raise BuildError(f"Unsupported provider behavior {behavior!r} for {name}")
+
+            source_entries = source_rule_count(source)
+            entries = output_rule_count(rule)
+            if entries != source_entries:
+                raise BuildError(
+                    f"{name} conversion changed the rule count: "
+                    f"{source_entries} -> {entries}"
+                )
+            source_sha256 = hashlib.sha256(source.encode("utf-8")).hexdigest()
+            record: dict[str, Any] = {
+                "provider": name,
+                "behavior": behavior,
+                "provider_url": source_info["provider_url"],
+                "source_repository": source_info["repository"],
+                "source_ref": source_info["ref"],
+                "source_commit": source_info["commit"],
+                "source_path": source_info["path"],
+                "source_url": source_info["url"],
+                "output": f"rules/{slug(name)}.yaml",
+                "source_entries": source_entries,
+                "entries": entries,
+                "source_sha256": source_sha256,
+            }
+            if name == "geolocation-cn":
+                if source_info["repository"] != CONVERTER_REPO:
+                    raise BuildError(
+                        "geolocation-cn did not resolve from proxy-rules-converter"
+                    )
+                if source_info["path"] != CONVERTER_GEOLOCATION_LIST_PATH:
+                    raise BuildError(
+                        "geolocation-cn resolved to an unexpected converter path"
+                    )
+                if entries != converter_expected_entries:
+                    raise BuildError(
+                        "geolocation-cn entry count disagrees with converter report: "
+                        f"{entries} != {converter_expected_entries}"
+                    )
+                if source_sha256 != converter_expected_sha256:
+                    raise BuildError(
+                        "geolocation-cn SHA-256 disagrees with converter report"
+                    )
+                record["expected_entries"] = converter_expected_entries
+
             filename = slug(name) + ".yaml"
             provider_files[name] = filename
             generated[filename] = rule
-            source_records.append({
-                "provider": name,
-                "behavior": behavior,
-                "source_path": path,
-                "source_url": url,
-                "output": f"rules/{filename}",
-                "entries": sum(len(v) for v in rule.values() if isinstance(v, list)),
-                "source_sha256": hashlib.sha256(source.encode("utf-8")).hexdigest(),
-            })
+            source_records.append(record)
 
         groups, filters = render_policy_groups(model)
         rules = render_rules(model, provider_files)
@@ -728,7 +855,7 @@ def main() -> int:
                     (RULE_DIR / name).unlink()
 
         report_data = {
-            "schema_version": 1,
+            "schema_version": 2,
             "mihomo_script": {
                 "repository": MIHOMO_REPO,
                 "commit": args.mihomo_commit,
@@ -737,6 +864,20 @@ def main() -> int:
                 "repository": BETT_REPO,
                 "branch": "meta",
                 "commit": args.bett_commit,
+            },
+            "proxy_rules_converter": {
+                "repository": CONVERTER_REPO,
+                "branch": "main",
+                "commit": args.converter_commit,
+                "geolocation_cn": {
+                    "list_path": CONVERTER_GEOLOCATION_LIST_PATH,
+                    "report_path": CONVERTER_GEOLOCATION_REPORT_PATH,
+                    "report_url": converter_report_url,
+                    "report_sha256": hashlib.sha256(
+                        converter_report_text.encode("utf-8")
+                    ).hexdigest(),
+                    "expected_entries": converter_expected_entries,
+                },
             },
             "apns_rules": {
                 "repository": APNS_REPO,
@@ -768,7 +909,9 @@ def main() -> int:
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
                 "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
-                "BettRules text sources are converted directly to Egern native YAML; MRS is not converted.",
+                "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
+                "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",
+                "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed.",
             ],
         }
         report_text = json.dumps(report_data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
