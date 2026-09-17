@@ -18,6 +18,10 @@ dns:
     - https://dns.google/dns-query
   forward:
   - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn.yaml
       value: system
       update_interval: 86400
@@ -155,6 +159,11 @@ policy_groups:
     - Proxy
     - Direct
 rules:
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml
+    policy: Direct
+    update_interval: 86400
+    no_resolve: true
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private.yaml
     policy: Direct

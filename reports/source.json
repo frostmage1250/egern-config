@@ -1,4 +1,10 @@
 {
+  "apns_rules": {
+    "branch": "main",
+    "commit": "24ad892385d9a377ec5bd5945d0d1dc3d9681d73",
+    "path": "shadowrocket/rules/apns.list",
+    "repository": "ttyyss2233/Tool"
+  },
   "bett_rules": {
     "branch": "meta",
     "commit": "31cdfbf8a4c8016be4333800ce93c7503a6736bd",
@@ -10,7 +16,7 @@
       "223.5.5.5",
       "1.12.12.12"
     ],
-    "forward_rules": 7,
+    "forward_rules": 8,
     "proxy_nameservers": [
       "https://zone.rlose.com:39933/api-query",
       "https://radar.rlose.com/api-query"
@@ -30,6 +36,7 @@
     "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
     "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
     "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
+    "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Direct/system DNS handling.",
     "BettRules text sources are converted directly to Egern native YAML; MRS is not converted."
   ],
   "mihomo_script": {
@@ -37,6 +44,15 @@
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
+    {
+      "behavior": "classical",
+      "entries": 12,
+      "output": "rules/apns.yaml",
+      "provider": "apns",
+      "source_path": "shadowrocket/rules/apns.list",
+      "source_sha256": "ded3d82585de3d5a896c609d3d27a1935a381a5bc670f05b6b5f0dcda92cc0a4",
+      "source_url": "https://raw.githubusercontent.com/ttyyss2233/Tool/24ad892385d9a377ec5bd5945d0d1dc3d9681d73/shadowrocket/rules/apns.list"
+    },
     {
       "behavior": "domain",
       "entries": 130,
@@ -336,8 +352,8 @@
     }
   ],
   "policy_groups": 16,
-  "profile_sha256": "fe559624f24ae45d90c1fac1241512b7019dd5305cc29ce7dae61380d8dfcc40",
-  "routing_rules": 34,
+  "profile_sha256": "82ce36735f1cb64710a57977ff0432a6f6af5152437fb913322273ea9a936d4f",
+  "routing_rules": 35,
   "schema_version": 1,
   "subscription": {
     "default_proxy_group": "Proxy",
