@@ -98,6 +98,8 @@ class EgernBuilderTests(unittest.TestCase):
                 {"name": "日本", "proxies": ["__日本__"]},
                 {"name": "其他节点", "proxies": ["__其他节点__"]},
                 {"name": "低倍率节点", "proxies": ["__低倍率节点__"]},
+                {"name": "Telegram", "proxies": ["Proxy", "低倍率节点"]},
+                {"name": "媒体", "proxies": ["Proxy", "低倍率节点"]},
                 {"name": "Final", "proxies": ["Proxy", "Direct"]},
             ],
         }
@@ -110,6 +112,12 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["Direct"]["policies"], ["DIRECT"])
         self.assertEqual(by_name["日本"]["policies"], ["订阅"])
         self.assertTrue(by_name["日本"]["flatten"])
+        self.assertEqual(
+            by_name["Telegram"]["policies"], ["Proxy", "低倍率节点", "订阅"]
+        )
+        self.assertEqual(
+            by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅"]
+        )
         self.assertIn("traffic", filters["订阅"])
 
     def test_bootstrap_preserves_mihomo_default_nameserver_ips(self):

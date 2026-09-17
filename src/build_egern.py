@@ -272,6 +272,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         ]
         if name == "Direct":
             policies = ["DIRECT"]
+        if name in {"Telegram", "媒体"}:
+            policies = unique(policies + ["订阅"])
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": unique(policies)}})
@@ -504,6 +506,13 @@ def validate_profile(
         raise BuildError("Egern subscriptions must default to the 订阅 group")
     if profile.get("default_proxy_group") != "Proxy":
         raise BuildError("Egern proxies must default to the Proxy group")
+    if "auto_update" in profile:
+        raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
+    for target in ("Telegram", "媒体"):
+        if target not in names:
+            raise BuildError(f"Required policy group is missing: {target}")
+        if "订阅" not in groups[names.index(target)].get("policies", []):
+            raise BuildError(f"{target} must include the 订阅 policy group")
     for index, wrapper in enumerate(profile["rules"]):
         kind, value = next(iter(wrapper.items()))
         policy = value["policy"]
@@ -613,7 +622,6 @@ def main() -> int:
         groups, filters = render_policy_groups(model)
         rules = render_rules(model, provider_files)
         profile = {
-            "auto_update": {"url": f"{RAW_BASE}/Profile.yaml", "interval": 86400},
             "ipv6": True,
             "hijack_dns": ["*"],
             "block_quic": False,

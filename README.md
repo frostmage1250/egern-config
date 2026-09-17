@@ -12,7 +12,9 @@ to an Egern profile.
   converted.
 - `reports/source.json` records immutable upstream commits, source hashes, entry
   counts, policy counts, and the generated profile hash.
-- GitHub Actions refreshes the repository every day and can also be run manually.
+- GitHub Actions refreshes the generated repository files every day and can also
+  be run manually. The Egern profile itself deliberately has no root
+  `auto_update`; re-import it manually when you want to replace the active profile.
 
 ## Subscription setup
 
@@ -22,7 +24,10 @@ command and enter the airport URL. The profile sets `default_subscription_group`
 to **订阅** and `default_proxy_group` to **Proxy**, so the private URL remains in
 Egern instead of the public repository. Region groups flatten and filter **订阅**,
 so future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点
-and 低倍率节点 automatically.
+and 低倍率节点 automatically. Telegram and 媒体 also expose 订阅 as an
+additional selectable policy. Because a full profile replacement overwrites
+locally added subscription URLs, profile updates are manual; remote rule sets and
+the locally configured node subscription can still update independently.
 
 ## Migration behavior
 
