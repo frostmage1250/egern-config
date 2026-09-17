@@ -19,7 +19,7 @@ dns:
   forward:
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml
-      value: Foreign
+      value: system
       update_interval: 86400
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn.yaml
@@ -75,6 +75,13 @@ policy_groups:
     - 美国
     - 其他节点
     - 低倍率节点
+- fallback:
+    name: Apple Push
+    policies:
+    - Proxy
+    - DIRECT
+    interval: 60
+    timeout: 5
 - select:
     name: 订阅
     policies:
@@ -161,7 +168,7 @@ policy_groups:
 rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml
-    policy: Proxy
+    policy: Apple Push
     update_interval: 86400
     no_resolve: true
 - rule_set:
