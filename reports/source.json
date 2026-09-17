@@ -36,7 +36,7 @@
     "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
     "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
     "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
-    "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Direct/system DNS handling.",
+    "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
     "BettRules text sources are converted directly to Egern native YAML; MRS is not converted."
   ],
   "mihomo_script": {
@@ -352,7 +352,7 @@
     }
   ],
   "policy_groups": 16,
-  "profile_sha256": "82ce36735f1cb64710a57977ff0432a6f6af5152437fb913322273ea9a936d4f",
+  "profile_sha256": "a70f335904fb1c60d80380d32583bb9de7b0cd67598188e3119f3b89425a34b2",
   "routing_rules": 35,
   "schema_version": 1,
   "subscription": {
