@@ -3,19 +3,40 @@ auto_update:
   interval: 86400
 ipv6: true
 hijack_dns:
-- '*:53'
+- '*'
 block_quic: false
-close_connections_on_policy_change: true
 default_subscription_group: 订阅
 default_proxy_group: Proxy
 dns:
   bootstrap:
-  - system
+  - 114.114.114.114
+  - 223.5.5.5
+  - 1.12.12.12
   upstreams:
     Foreign:
     - https://cloudflare-dns.com/dns-query
     - https://dns.google/dns-query
   forward:
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/games-cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple-cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft-cn.yaml
+      value: system
+      update_interval: 86400
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/geolocation-cn.yaml
       value: system
