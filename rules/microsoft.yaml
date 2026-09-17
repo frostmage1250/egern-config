@@ -71,6 +71,7 @@ domain_set:
 - collaborate.download.prss.microsoft.com
 - collaborateppe.download.prss.microsoft.com
 - ctldl.windowsupdate.com
+- developer.microsoft.com
 - download.microsoft.com
 - dreamspark.download.prss.microsoft.com
 - dreamsparkuat.download.prss.microsoft.com
@@ -633,6 +634,7 @@ domain_suffix_set:
 - powerappsportals.cn
 - powerautomate.cn
 - powerbi.cn
+- sharepoint.cn
 - clarity.ms
 - microsoftads.com
 - msads.net
