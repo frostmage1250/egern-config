@@ -518,6 +518,10 @@ def validate_profile(
     dns = profile["dns"]
     if profile.get("hijack_dns") != ["*"]:
         raise BuildError("Egern DNS hijacking must cover all DNS traffic")
+    if profile.get("include_all_networks") is not True:
+        raise BuildError("Egern must include all system network traffic")
+    if profile.get("include_apns") is not True:
+        raise BuildError("Egern must include APNs traffic")
     if "close_connections_on_policy_change" in profile:
         raise BuildError("Unsourced Egern connection-closing behavior must not be enabled")
     if dns.get("bootstrap") != bootstrap_nameservers(model):
@@ -613,6 +617,8 @@ def main() -> int:
             "ipv6": True,
             "hijack_dns": ["*"],
             "block_quic": False,
+            "include_all_networks": True,
+            "include_apns": True,
             "default_subscription_group": "订阅",
             "default_proxy_group": "Proxy",
             "dns": {
