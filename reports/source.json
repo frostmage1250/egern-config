@@ -17,6 +17,7 @@
       "1.12.12.12"
     ],
     "forward_rules": 8,
+    "nameserver_route_rules": 2,
     "proxy_nameservers": [
       "https://zone.rlose.com:39933/api-query",
       "https://radar.rlose.com/api-query"
@@ -34,13 +35,14 @@
   "migration_boundaries": [
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
     "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
+    "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
     "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
     "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
     "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
     "BettRules text sources are converted directly to Egern native YAML; MRS is not converted."
   ],
   "mihomo_script": {
-    "commit": "d686bca77bd12cc2023c2150e7263d2336055985",
+    "commit": "98b90fcf5c788aab48eb64453261cd3748ea77e7",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -352,8 +354,8 @@
     }
   ],
   "policy_groups": 16,
-  "profile_sha256": "bb6cbeeae5d0bf142cd63d2a5a83318f87f6e75b9b918f6bff29571bb251fb2f",
-  "routing_rules": 35,
+  "profile_sha256": "832ca7a3fa696a8ec29a95553a7114fd769247b4f6ab85b5ac26ed8cf7a9053f",
+  "routing_rules": 37,
   "schema_version": 1,
   "subscription": {
     "default_proxy_group": "Proxy",
