@@ -5,6 +5,8 @@ ipv6: true
 hijack_dns:
 - '*'
 block_quic: false
+include_all_networks: true
+include_apns: true
 default_subscription_group: 订阅
 default_proxy_group: Proxy
 dns:
