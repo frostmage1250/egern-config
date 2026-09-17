@@ -1,6 +1,3 @@
-auto_update:
-  url: https://raw.githubusercontent.com/frostmage1250/egern-config/main/Profile.yaml
-  interval: 86400
 ipv6: true
 hijack_dns:
 - '*'
@@ -104,11 +101,13 @@ policy_groups:
     policies:
     - Proxy
     - 低倍率节点
+    - 订阅
 - select:
     name: Telegram
     policies:
     - Proxy
     - 低倍率节点
+    - 订阅
 - select:
     name: PikPak
     policies:
