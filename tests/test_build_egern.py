@@ -73,7 +73,7 @@ class EgernBuilderTests(unittest.TestCase):
             rules[0]["rule_set"]["match"],
             "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml",
         )
-        self.assertEqual(rules[0]["rule_set"]["policy"], "Apple Push")
+        self.assertEqual(rules[0]["rule_set"]["policy"], "Proxy")
         self.assertTrue(rules[0]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[1]), ["domain_suffix"])
         self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
@@ -107,15 +107,6 @@ class EgernBuilderTests(unittest.TestCase):
             for item in groups
         }
         self.assertEqual(by_name["订阅"]["urls"], [])
-        self.assertEqual(
-            by_name["Apple Push"],
-            {
-                "name": "Apple Push",
-                "policies": ["Proxy", "DIRECT"],
-                "interval": 60,
-                "timeout": 5,
-            },
-        )
         self.assertEqual(by_name["Direct"]["policies"], ["DIRECT"])
         self.assertEqual(by_name["日本"]["policies"], ["订阅"])
         self.assertTrue(by_name["日本"]["flatten"])
@@ -166,7 +157,7 @@ class EgernBuilderTests(unittest.TestCase):
                 {
                     "proxy_rule_set": {
                         "match": "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml",
-                        "value": "system",
+                        "value": "Foreign",
                         "update_interval": 86400,
                     }
                 },
