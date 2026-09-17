@@ -8,12 +8,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from build_egern import (  # noqa: E402
+    BuildError,
     bootstrap_nameservers,
+    nameservers,
     parse_classical_rule_list,
     parse_domain_list,
     parse_ip_list,
     referenced_providers,
     render_dns_forward,
+    render_nameserver_route_rules,
     render_policy_groups,
     render_rules,
     source_path,
@@ -80,6 +83,64 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertTrue(rules[3]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
+    def test_nameserver_policy_suffixes_become_explicit_routing_rules(self):
+        model = {
+            "dns": {
+                "nameserver": [
+                    "https://cloudflare-dns.com/dns-query#Proxy",
+                    "https://dns.google/dns-query#Proxy",
+                    "1.1.1.1#DIRECT",
+                ]
+            },
+            "rules": ["MATCH,Final"],
+        }
+        expected = [
+            {
+                "domain": {
+                    "match": "cloudflare-dns.com",
+                    "policy": "Proxy",
+                }
+            },
+            {
+                "domain": {
+                    "match": "dns.google",
+                    "policy": "Proxy",
+                }
+            },
+            {
+                "ip_cidr": {
+                    "match": "1.1.1.1/32",
+                    "policy": "DIRECT",
+                    "no_resolve": True,
+                }
+            },
+        ]
+        self.assertEqual(
+            nameservers(model),
+            [
+                "https://cloudflare-dns.com/dns-query",
+                "https://dns.google/dns-query",
+                "1.1.1.1",
+            ],
+        )
+        self.assertEqual(render_nameserver_route_rules(model), expected)
+        self.assertEqual(render_rules(model, {})[1:4], expected)
+
+    def test_nameserver_policy_suffix_cannot_be_silently_dropped(self):
+        with self.assertRaises(BuildError):
+            nameservers({"dns": {"nameserver": ["https://dns.example/dns-query#"]}})
+        with self.assertRaises(BuildError):
+            render_nameserver_route_rules(
+                {
+                    "dns": {
+                        "nameserver": [
+                            "https://dns.example/dns-query#Proxy",
+                            "https://dns.example/dns-query#DIRECT",
+                        ]
+                    }
+                }
+            )
+
     def test_groups_keep_subscription_private_and_region_filters_dynamic(self):
         model = {
             "regions": [
@@ -134,6 +195,10 @@ class EgernBuilderTests(unittest.TestCase):
             bootstrap_nameservers(model),
             ["114.114.114.114", "223.5.5.5", "1.12.12.12"],
         )
+        with self.assertRaises(BuildError):
+            bootstrap_nameservers(
+                {"dns": {"default-nameserver": ["1.1.1.1#Proxy"]}}
+            )
 
     def test_dns_forward_preserves_cn_policy_and_direct_domain_rules(self):
         model = {

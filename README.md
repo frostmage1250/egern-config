@@ -39,8 +39,13 @@ routed through `Proxy`, and placed first in DNS Forward with `Foreign`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
 Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy`
 and every explicit Direct domain rule become ordered Egern DNS Forward rules that
-use `system`; the foreign DNS group remains the final catch-all. No
-`real_ip_domains` field is generated; Fake-IP behavior is left to Egern's native
+use `system`; the foreign DNS group remains the final catch-all. Mihomo
+`nameserver` policy suffixes are preserved semantically: Egern receives clean
+DNS server URLs plus explicit, high-priority routing rules that bind each DNS
+server endpoint to the same policy (for example, `#Proxy` becomes
+`policy: Proxy`). Missing, conflicting, or unsupported policy mappings fail the
+build instead of being silently discarded. No `real_ip_domains` field is
+generated; Fake-IP behavior is left to Egern's native
 defaults. MESL private DNS is used only as Egern `proxy_nameservers`, while normal
 DNS forwarding stays separate. Egern cannot reproduce Mihomo's runtime
 `direct-nameserver` re-resolution when a selectable policy group is switched to

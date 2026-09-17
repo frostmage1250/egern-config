@@ -280,6 +280,61 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
     return groups, filters
 
 
+def split_nameserver_policy(value: str) -> tuple[str, str | None]:
+    raw = value.strip()
+    if not raw:
+        raise BuildError("Mihomo DNS nameserver entry is empty")
+    if "#" not in raw:
+        return raw, None
+    server, policy = (part.strip() for part in raw.rsplit("#", 1))
+    if not server or not policy:
+        raise BuildError(f"Invalid Mihomo DNS policy suffix: {value!r}")
+    return server, policy
+
+
+def nameserver_host(server: str) -> str:
+    try:
+        return str(ipaddress.ip_address(server))
+    except ValueError:
+        pass
+    host = urlsplit(server).hostname if "://" in server else urlsplit(f"//{server}").hostname
+    if not host:
+        raise BuildError(f"Cannot derive a DNS server endpoint from {server!r}")
+    return host.lower()
+
+
+def render_nameserver_route_rules(model: dict[str, Any]) -> list[dict[str, Any]]:
+    rules: list[dict[str, Any]] = []
+    seen: dict[tuple[str, str], str] = {}
+    for value in model.get("dns", {}).get("nameserver", []):
+        if not isinstance(value, str):
+            continue
+        server, policy = split_nameserver_policy(value)
+        if policy is None:
+            continue
+        host = nameserver_host(server)
+        try:
+            address = ipaddress.ip_address(host)
+        except ValueError:
+            kind = "domain"
+            match = host
+            item: dict[str, Any] = {"match": match, "policy": policy}
+        else:
+            kind = "ip_cidr" if address.version == 4 else "ip_cidr6"
+            match = f"{address}/{address.max_prefixlen}"
+            item = {"match": match, "policy": policy, "no_resolve": True}
+        key = (kind, match)
+        previous = seen.get(key)
+        if previous is not None and previous != policy:
+            raise BuildError(
+                f"Conflicting Mihomo DNS policies for {host}: {previous!r} and {policy!r}"
+            )
+        if previous is None:
+            seen[key] = policy
+            rules.append({kind: item})
+    return rules
+
+
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, str]
 ) -> list[dict[str, Any]]:
@@ -293,6 +348,7 @@ def render_rules(
             }
         }
     ]
+    rules.extend(render_nameserver_route_rules(model))
     for raw in model["rules"]:
         parts = raw.split(",")
         kind = parts[0]
@@ -326,8 +382,8 @@ def nameservers(model: dict[str, Any]) -> list[str]:
     for value in model.get("dns", {}).get("nameserver", []):
         if not isinstance(value, str):
             continue
-        server = value.rsplit("#", 1)[0].strip()
-        if server and server not in result:
+        server, _policy = split_nameserver_policy(value)
+        if server not in result:
             result.append(server)
     if not result:
         raise BuildError("Mihomo DNS model contains no nameservers")
@@ -339,9 +395,11 @@ def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
     for value in model.get("dns", {}).get("default-nameserver", []):
         if not isinstance(value, str):
             continue
-        server = value.rsplit("#", 1)[0].strip()
-        if not server:
-            continue
+        server, policy = split_nameserver_policy(value)
+        if policy not in {None, "DIRECT"}:
+            raise BuildError(
+                f"Egern bootstrap is always direct and cannot preserve {policy!r} for {value!r}"
+            )
         if "://" in server:
             host = urlsplit(server).hostname
         else:
@@ -490,6 +548,9 @@ def validate_profile(
         or first_rule.get("no_resolve") is not True
     ):
         raise BuildError("APNs rule set must be the first routing rule and use Proxy")
+    expected_nameserver_routes = render_nameserver_route_rules(model)
+    if profile["rules"][1:1 + len(expected_nameserver_routes)] != expected_nameserver_routes:
+        raise BuildError("Mihomo DNS nameserver policy suffixes were not preserved")
     first_dns_rule = profile["dns"]["forward"][0].get("proxy_rule_set", {})
     if (
         first_dns_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
@@ -691,6 +752,7 @@ def main() -> int:
             "dns": {
                 "bootstrap": profile["dns"]["bootstrap"],
                 "forward_rules": len(profile["dns"]["forward"]),
+                "nameserver_route_rules": len(render_nameserver_route_rules(model)),
                 "proxy_nameservers": profile["dns"]["proxy_nameservers"],
             },
             "subscription": {
@@ -702,6 +764,7 @@ def main() -> int:
             "migration_boundaries": [
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
+                "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
                 "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
