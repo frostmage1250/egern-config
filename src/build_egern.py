@@ -27,6 +27,7 @@ BETT_REPO = "appshubcc/bett-rules"
 APNS_REPO = "ttyyss2233/Tool"
 APNS_PATH = "shadowrocket/rules/apns.list"
 APNS_FILENAME = "apns.yaml"
+APNS_POLICY = "Apple Push"
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -275,6 +276,27 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": unique(policies)}})
+    proxy_index = next(
+        (
+            index
+            for index, wrapper in enumerate(groups)
+            if next(iter(wrapper.values()))["name"] == "Proxy"
+        ),
+        None,
+    )
+    if proxy_index is None:
+        raise BuildError("Mihomo policy groups are missing Proxy")
+    groups.insert(
+        proxy_index + 1,
+        {
+            "fallback": {
+                "name": APNS_POLICY,
+                "policies": ["Proxy", "DIRECT"],
+                "interval": 60,
+                "timeout": 5,
+            }
+        },
+    )
     return groups, filters
 
 
@@ -285,7 +307,7 @@ def render_rules(
         {
             "rule_set": {
                 "match": f"{RAW_BASE}/rules/{APNS_FILENAME}",
-                "policy": "Proxy",
+                "policy": APNS_POLICY,
                 "update_interval": 86400,
                 "no_resolve": True,
             }
@@ -395,11 +417,11 @@ def render_dns_forward(
             item["update_interval"] = 86400
         forward.append({kind: item})
 
-    # User-requested APNs override is the highest-priority proxied DNS rule.
+    # Keep APNs resolvable when its proxy policy falls back to DIRECT.
     add(
         "proxy_rule_set",
         f"{RAW_BASE}/rules/{APNS_FILENAME}",
-        "Foreign",
+        "system",
     )
 
     # Preserve Mihomo nameserver-policy before its general nameserver.
@@ -479,21 +501,34 @@ def validate_profile(
     if len(names) != len(set(names)):
         raise BuildError("Policy group names are not unique")
     known = set(names) | BUILTIN_POLICIES
+    apns_groups = [
+        wrapper["fallback"]
+        for wrapper in profile["policy_groups"]
+        if "fallback" in wrapper
+        and wrapper["fallback"].get("name") == APNS_POLICY
+    ]
+    if apns_groups != [{
+        "name": APNS_POLICY,
+        "policies": ["Proxy", "DIRECT"],
+        "interval": 60,
+        "timeout": 5,
+    }]:
+        raise BuildError("Apple Push fallback must prefer Proxy and fail over to DIRECT")
     if APNS_FILENAME not in generated:
         raise BuildError("APNs native rule set was not generated")
     first_rule = profile["rules"][0].get("rule_set", {})
     if (
         first_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
-        or first_rule.get("policy") != "Proxy"
+        or first_rule.get("policy") != APNS_POLICY
         or first_rule.get("no_resolve") is not True
     ):
-        raise BuildError("APNs rule set must be the first routing rule and use Proxy")
+        raise BuildError("APNs rule set must be first and use the Apple Push fallback")
     first_dns_rule = profile["dns"]["forward"][0].get("proxy_rule_set", {})
     if (
         first_dns_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
-        or first_dns_rule.get("value") != "Foreign"
+        or first_dns_rule.get("value") != "system"
     ):
-        raise BuildError("APNs rule set must be the first DNS Forward rule and use Foreign")
+        raise BuildError("APNs DNS must use system for DIRECT fallback availability")
     for group in groups:
         for policy in group.get("policies", []):
             if policy not in known:
@@ -690,7 +725,7 @@ def main() -> int:
                 "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
-                "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
+                "The user-requested APNs list is converted to one Egern-native rule set and placed first through Apple Push fallback: Proxy first, DIRECT second; system DNS keeps fallback resolution available.",
                 "BettRules text sources are converted directly to Egern native YAML; MRS is not converted.",
             ],
         }
