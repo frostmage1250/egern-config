@@ -8,8 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from build_egern import (  # noqa: E402
+    bootstrap_nameservers,
     parse_domain_list,
     parse_ip_list,
+    referenced_providers,
+    render_dns_forward,
     render_policy_groups,
     render_rules,
     source_path,
@@ -86,6 +89,79 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["日本"]["policies"], ["订阅"])
         self.assertTrue(by_name["日本"]["flatten"])
         self.assertIn("traffic", filters["订阅"])
+
+    def test_bootstrap_preserves_mihomo_default_nameserver_ips(self):
+        model = {
+            "dns": {
+                "default-nameserver": [
+                    "114.114.114.114#DIRECT",
+                    "tls://223.5.5.5#DIRECT",
+                    "https://1.12.12.12#DIRECT",
+                ]
+            }
+        }
+        self.assertEqual(
+            bootstrap_nameservers(model),
+            ["114.114.114.114", "223.5.5.5", "1.12.12.12"],
+        )
+
+    def test_dns_forward_preserves_cn_policy_and_direct_domain_rules(self):
+        model = {
+            "dns": {"nameserver-policy": {"rule-set:cn": ["system"]}},
+            "rules": [
+                "RULE-SET,private,Direct",
+                "RULE-SET,cn_ip,Direct",
+                "RULE-SET,google,Proxy",
+                "DOMAIN-SUFFIX,internal.example,Direct",
+                "MATCH,Final",
+            ],
+        }
+        providers = {
+            "cn": {"behavior": "domain"},
+            "private": {"behavior": "domain"},
+            "cn_ip": {"behavior": "ipcidr"},
+            "google": {"behavior": "domain"},
+        }
+        files = {
+            "cn": "cn.yaml",
+            "private": "private.yaml",
+            "cn_ip": "cn-ip.yaml",
+            "google": "google.yaml",
+        }
+        forward = render_dns_forward(model, providers, files)
+        self.assertEqual(
+            forward,
+            [
+                {
+                    "proxy_rule_set": {
+                        "match": "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn.yaml",
+                        "value": "system",
+                        "update_interval": 86400,
+                    }
+                },
+                {
+                    "proxy_rule_set": {
+                        "match": "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private.yaml",
+                        "value": "system",
+                        "update_interval": 86400,
+                    }
+                },
+                {
+                    "domain_suffix": {
+                        "match": "internal.example",
+                        "value": "system",
+                    }
+                },
+                {"domain_wildcard": {"match": "*", "value": "Foreign"}},
+            ],
+        )
+
+    def test_dns_policy_provider_is_generated_even_when_not_in_routing_rules(self):
+        model = {
+            "dns": {"nameserver-policy": {"rule-set:cn": ["system"]}},
+            "rules": ["RULE-SET,google,Proxy", "MATCH,Final"],
+        }
+        self.assertEqual(referenced_providers(model), ["google", "cn"])
 
 
 if __name__ == "__main__":

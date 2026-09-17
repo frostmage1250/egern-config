@@ -11,6 +11,7 @@ import re
 import sys
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlsplit
 from typing import Any
 
 import yaml
@@ -147,6 +148,9 @@ def referenced_providers(model: dict[str, Any]) -> list[str]:
         parts = rule.split(",")
         if parts[0] == "RULE-SET" and len(parts) >= 3:
             result.append(parts[1])
+    for key in model.get("dns", {}).get("nameserver-policy", {}):
+        if isinstance(key, str) and key.startswith("rule-set:"):
+            result.append(key.removeprefix("rule-set:"))
     return unique(result)
 
 
@@ -269,6 +273,122 @@ def nameservers(model: dict[str, Any]) -> list[str]:
     return result
 
 
+def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
+    result: list[str] = []
+    for value in model.get("dns", {}).get("default-nameserver", []):
+        if not isinstance(value, str):
+            continue
+        server = value.rsplit("#", 1)[0].strip()
+        if not server:
+            continue
+        if "://" in server:
+            host = urlsplit(server).hostname
+        else:
+            try:
+                host = str(ipaddress.ip_address(server))
+            except ValueError:
+                host = urlsplit(f"//{server}").hostname
+        if not host:
+            raise BuildError(f"Cannot derive an Egern bootstrap IP from {value!r}")
+        try:
+            address = str(ipaddress.ip_address(host))
+        except ValueError as exc:
+            raise BuildError(
+                f"Egern bootstrap only accepts IP addresses; cannot map {value!r}"
+            ) from exc
+        if address not in result:
+            result.append(address)
+    if not result:
+        raise BuildError("Mihomo DNS model contains no usable default-nameserver IPs")
+    return result
+
+
+def dns_policy_target(value: Any) -> str:
+    values = value if isinstance(value, list) else [value]
+    cleaned = [
+        item.rsplit("#", 1)[0].strip()
+        for item in values
+        if isinstance(item, str) and item.strip()
+    ]
+    if cleaned and all(item in {"system", "system://"} for item in cleaned):
+        return "system"
+    raise BuildError(
+        "Egern DNS Forward cannot preserve this Mihomo nameserver-policy target: "
+        + repr(value)
+    )
+
+
+def render_dns_forward(
+    model: dict[str, Any],
+    providers: dict[str, Any],
+    provider_files: dict[str, str],
+) -> list[dict[str, Any]]:
+    forward: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+
+    def add(kind: str, match: str, value: str) -> None:
+        key = (kind, match, value)
+        if key in seen:
+            return
+        seen.add(key)
+        item: dict[str, Any] = {"match": match, "value": value}
+        if kind == "proxy_rule_set":
+            item["update_interval"] = 86400
+        forward.append({kind: item})
+
+    # Preserve Mihomo nameserver-policy before its general nameserver.
+    for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
+        if not isinstance(key, str) or not key.startswith("rule-set:"):
+            raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
+        provider = key.removeprefix("rule-set:")
+        definition = providers.get(provider)
+        if definition is None or definition.get("behavior") != "domain":
+            raise BuildError(
+                f"DNS policy references a missing or non-domain provider: {provider}"
+            )
+        filename = provider_files.get(provider)
+        if not filename:
+            raise BuildError(f"DNS policy provider was not generated: {provider}")
+        add(
+            "proxy_rule_set",
+            f"{RAW_BASE}/rules/{filename}",
+            dns_policy_target(target),
+        )
+
+    # Egern has no policy-aware direct re-resolution. Preserve every explicit
+    # domain rule whose final Mihomo target is Direct by selecting system DNS
+    # before the foreign catch-all.
+    for raw in model["rules"]:
+        parts = raw.split(",")
+        kind = parts[0]
+        no_resolve = parts[-1] == "no-resolve"
+        policy = parts[-2] if no_resolve else parts[-1]
+        if policy not in {"DIRECT", "Direct"}:
+            continue
+        if kind == "RULE-SET" and len(parts) >= 3:
+            provider = parts[1]
+            definition = providers.get(provider)
+            if definition is None:
+                raise BuildError(f"Direct rule references missing provider: {provider}")
+            if definition.get("behavior") != "domain":
+                continue
+            filename = provider_files.get(provider)
+            if not filename:
+                raise BuildError(f"Direct DNS provider was not generated: {provider}")
+            add(
+                "proxy_rule_set",
+                f"{RAW_BASE}/rules/{filename}",
+                "system",
+            )
+        elif kind == "DOMAIN-SUFFIX" and len(parts) == 3:
+            add("domain_suffix", parts[1], "system")
+        elif kind == "DOMAIN" and len(parts) == 3:
+            add("domain", parts[1], "system")
+
+    add("domain_wildcard", "*", "Foreign")
+    return forward
+
+
 def hosts(model: dict[str, Any]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for hostname, value in model.get("hosts", {}).items():
@@ -283,7 +403,10 @@ def hosts(model: dict[str, Any]) -> dict[str, Any]:
 
 
 def validate_profile(
-    profile: dict[str, Any], generated: dict[str, dict[str, Any]]
+    profile: dict[str, Any],
+    generated: dict[str, dict[str, Any]],
+    model: dict[str, Any],
+    provider_files: dict[str, str],
 ) -> None:
     groups = [next(iter(item.values())) for item in profile["policy_groups"]]
     names = [item["name"] for item in groups]
@@ -312,6 +435,15 @@ def validate_profile(
     if list(profile["rules"][-1]) != ["default"]:
         raise BuildError("Default rule must be last")
     dns = profile["dns"]
+    if profile.get("hijack_dns") != ["*"]:
+        raise BuildError("Egern DNS hijacking must cover all DNS traffic")
+    if "close_connections_on_policy_change" in profile:
+        raise BuildError("Unsourced Egern connection-closing behavior must not be enabled")
+    if dns.get("bootstrap") != bootstrap_nameservers(model):
+        raise BuildError("Mihomo default-nameserver was not preserved as Egern bootstrap")
+    expected_forward = render_dns_forward(model, model["providers"], provider_files)
+    if dns.get("forward") != expected_forward:
+        raise BuildError("Mihomo DNS policy and Direct-domain DNS were not preserved")
     if dns.get("proxy_nameservers") != MESL_PROXY_DNS:
         raise BuildError("MESL proxy nameservers were not preserved")
     for hostname, target in FLOWER_HOSTS.items():
@@ -376,31 +508,21 @@ def main() -> int:
         profile = {
             "auto_update": {"url": f"{RAW_BASE}/Profile.yaml", "interval": 86400},
             "ipv6": True,
-            "hijack_dns": ["*:53"],
+            "hijack_dns": ["*"],
             "block_quic": False,
-            "close_connections_on_policy_change": True,
             "default_subscription_group": "订阅",
             "default_proxy_group": "Proxy",
             "dns": {
-                "bootstrap": ["system"],
+                "bootstrap": bootstrap_nameservers(model),
                 "upstreams": {"Foreign": nameservers(model)},
-                "forward": [
-                    {
-                        "proxy_rule_set": {
-                            "match": f"{RAW_BASE}/rules/{provider_files['geolocation-cn']}",
-                            "value": "system",
-                            "update_interval": 86400,
-                        }
-                    },
-                    {"domain_wildcard": {"match": "*", "value": "Foreign"}},
-                ],
+                "forward": render_dns_forward(model, providers, provider_files),
                 "hosts": hosts(model),
                 "proxy_nameservers": MESL_PROXY_DNS,
             },
             "policy_groups": groups,
             "rules": rules,
         }
-        validate_profile(profile, generated)
+        validate_profile(profile, generated, model, provider_files)
 
         yaml_options = dict(allow_unicode=True, sort_keys=False, width=1000)
         profile_text = yaml.safe_dump(profile, **yaml_options)
@@ -443,6 +565,11 @@ def main() -> int:
             "routing_rules": len(rules),
             "native_rule_sets": source_records,
             "group_filters": filters,
+            "dns": {
+                "bootstrap": profile["dns"]["bootstrap"],
+                "forward_rules": len(profile["dns"]["forward"]),
+                "proxy_nameservers": profile["dns"]["proxy_nameservers"],
+            },
             "subscription": {
                 "group": "订阅",
                 "default_proxy_group": "Proxy",
@@ -451,6 +578,8 @@ def main() -> int:
             },
             "migration_boundaries": [
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
+                "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
+                "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
                 "BettRules text sources are converted directly to Egern native YAML; MRS is not converted.",
             ],

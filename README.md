@@ -26,9 +26,16 @@ and 低倍率节点 automatically.
 
 The generator reads the current Mihomo script on every run and preserves its rule
 order, policies, region filters, service groups, DNS choices, and Hosts mappings.
-No `real_ip_domains` field is generated; Fake-IP behavior is left to Egern's
-native defaults. MESL private DNS is used only as Egern `proxy_nameservers`,
-while normal DNS forwarding stays separate.
+Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
+Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy`
+and every explicit Direct domain rule become ordered Egern DNS Forward rules that
+use `system`; the foreign DNS group remains the final catch-all. No
+`real_ip_domains` field is generated; Fake-IP behavior is left to Egern's native
+defaults. MESL private DNS is used only as Egern `proxy_nameservers`, while normal
+DNS forwarding stays separate. Egern cannot reproduce Mihomo's runtime
+`direct-nameserver` re-resolution when a selectable policy group is switched to
+Direct, so the generator preserves every statically identifiable Direct domain
+rule and records that platform boundary in `reports/source.json`.
 
 The only deliberate platform mapping is that Mihomo's IPv4/IPv6-preferred DIRECT
 pseudo-proxies become Egern's built-in `DIRECT`; Egern has no equivalent
