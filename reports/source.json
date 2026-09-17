@@ -474,13 +474,13 @@
       "output": "rules/geolocation-cn.yaml",
       "provider": "geolocation-cn",
       "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/geolocation-cn.mrs",
-      "source_commit": "64042639613d907569f07482797fe1ec5c38ea55",
+      "source_commit": "72dba13ecf0faeb7e3f9254f94b7d2eed1dfdb85",
       "source_entries": 7705,
       "source_path": "dist/mihomo/geolocation-cn.list",
       "source_ref": "main",
       "source_repository": "frostmage1250/proxy-rules-converter",
       "source_sha256": "ec5db4b576211f52e270c84016acb87d0f204407711dec23ec1f92b172cd1657",
-      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/64042639613d907569f07482797fe1ec5c38ea55/dist/mihomo/geolocation-cn.list"
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/72dba13ecf0faeb7e3f9254f94b7d2eed1dfdb85/dist/mihomo/geolocation-cn.list"
     },
     {
       "behavior": "ipcidr",
@@ -529,13 +529,13 @@
   "profile_sha256": "832ca7a3fa696a8ec29a95553a7114fd769247b4f6ab85b5ac26ed8cf7a9053f",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "64042639613d907569f07482797fe1ec5c38ea55",
+    "commit": "72dba13ecf0faeb7e3f9254f94b7d2eed1dfdb85",
     "geolocation_cn": {
       "expected_entries": 7705,
       "list_path": "dist/mihomo/geolocation-cn.list",
       "report_path": "reports/geolocation-cn.json",
       "report_sha256": "0334fb721fbb4285a9ce5339a3870b227a1f4c74663c42075b8890b809423c0b",
-      "report_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/64042639613d907569f07482797fe1ec5c38ea55/reports/geolocation-cn.json"
+      "report_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/72dba13ecf0faeb7e3f9254f94b7d2eed1dfdb85/reports/geolocation-cn.json"
     },
     "repository": "frostmage1250/proxy-rules-converter"
   },
