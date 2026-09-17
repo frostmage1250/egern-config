@@ -24,6 +24,9 @@ REPORT_PATH = ROOT / "reports" / "source.json"
 RAW_BASE = "https://raw.githubusercontent.com/frostmage1250/egern-config/main"
 MIHOMO_REPO = "frostmage1250/mihomo-script"
 BETT_REPO = "appshubcc/bett-rules"
+APNS_REPO = "ttyyss2233/Tool"
+APNS_PATH = "shadowrocket/rules/apns.list"
+APNS_FILENAME = "apns.yaml"
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -142,6 +145,53 @@ def parse_ip_list(text: str) -> dict[str, Any]:
     return result
 
 
+def parse_classical_rule_list(text: str) -> dict[str, Any]:
+    fields: dict[str, list[str]] = {
+        "domain_set": [],
+        "domain_keyword_set": [],
+        "domain_suffix_set": [],
+        "ip_cidr_set": [],
+        "ip_cidr6_set": [],
+    }
+    no_resolve = False
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith(("#", ";", "//")):
+            continue
+        parts = [part.strip() for part in line.split(",")]
+        kind = parts[0]
+        if len(parts) < 2 or not parts[1]:
+            raise BuildError(f"Invalid classical rule: {line!r}")
+        value = parts[1]
+        if kind == "DOMAIN":
+            fields["domain_set"].append(value)
+        elif kind == "DOMAIN-KEYWORD":
+            fields["domain_keyword_set"].append(value)
+        elif kind == "DOMAIN-SUFFIX":
+            fields["domain_suffix_set"].append(value)
+        elif kind in {"IP-CIDR", "IP-CIDR6"}:
+            try:
+                network = ipaddress.ip_network(value, strict=False)
+            except ValueError as exc:
+                raise BuildError(f"Invalid classical IP network {value!r}") from exc
+            expected_version = 4 if kind == "IP-CIDR" else 6
+            if network.version != expected_version:
+                raise BuildError(f"{kind} has the wrong address family: {value!r}")
+            target = "ip_cidr_set" if network.version == 4 else "ip_cidr6_set"
+            fields[target].append(str(network))
+            no_resolve = no_resolve or "no-resolve" in parts[2:]
+        else:
+            raise BuildError(f"Unsupported classical rule: {line!r}")
+    result: dict[str, Any] = {
+        key: unique(values) for key, values in fields.items() if values
+    }
+    if no_resolve:
+        result["no_resolve"] = True
+    if not result or result == {"no_resolve": True}:
+        raise BuildError("Classical source produced an empty rule set")
+    return result
+
+
 def referenced_providers(model: dict[str, Any]) -> list[str]:
     result: list[str] = []
     for rule in model["rules"]:
@@ -231,7 +281,16 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, str]
 ) -> list[dict[str, Any]]:
-    rules: list[dict[str, Any]] = []
+    rules: list[dict[str, Any]] = [
+        {
+            "rule_set": {
+                "match": f"{RAW_BASE}/rules/{APNS_FILENAME}",
+                "policy": "Direct",
+                "update_interval": 86400,
+                "no_resolve": True,
+            }
+        }
+    ]
     for raw in model["rules"]:
         parts = raw.split(",")
         kind = parts[0]
@@ -336,6 +395,13 @@ def render_dns_forward(
             item["update_interval"] = 86400
         forward.append({kind: item})
 
+    # User-requested APNs override is the highest-priority direct DNS rule.
+    add(
+        "proxy_rule_set",
+        f"{RAW_BASE}/rules/{APNS_FILENAME}",
+        "system",
+    )
+
     # Preserve Mihomo nameserver-policy before its general nameserver.
     for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
         if not isinstance(key, str) or not key.startswith("rule-set:"):
@@ -413,6 +479,21 @@ def validate_profile(
     if len(names) != len(set(names)):
         raise BuildError("Policy group names are not unique")
     known = set(names) | BUILTIN_POLICIES
+    if APNS_FILENAME not in generated:
+        raise BuildError("APNs native rule set was not generated")
+    first_rule = profile["rules"][0].get("rule_set", {})
+    if (
+        first_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
+        or first_rule.get("policy") != "Direct"
+        or first_rule.get("no_resolve") is not True
+    ):
+        raise BuildError("APNs rule set must be the first routing rule and use Direct")
+    first_dns_rule = profile["dns"]["forward"][0].get("proxy_rule_set", {})
+    if (
+        first_dns_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
+        or first_dns_rule.get("value") != "system"
+    ):
+        raise BuildError("APNs rule set must be the first DNS Forward rule and use system")
     for group in groups:
         for policy in group.get("policies", []):
             if policy not in known:
@@ -465,6 +546,7 @@ def main() -> int:
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--mihomo-commit", required=True)
     parser.add_argument("--bett-commit", required=True)
+    parser.add_argument("--apns-commit", required=True)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
@@ -475,6 +557,27 @@ def main() -> int:
         generated: dict[str, dict[str, Any]] = {}
         provider_files: dict[str, str] = {}
         source_records: list[dict[str, Any]] = []
+
+        apns_url = (
+            f"https://raw.githubusercontent.com/{APNS_REPO}/"
+            f"{args.apns_commit}/{APNS_PATH}"
+        )
+        apns_source = download_text(apns_url)
+        apns_rule = parse_classical_rule_list(apns_source)
+        generated[APNS_FILENAME] = apns_rule
+        source_records.append({
+            "provider": "apns",
+            "behavior": "classical",
+            "source_path": APNS_PATH,
+            "source_url": apns_url,
+            "output": f"rules/{APNS_FILENAME}",
+            "entries": sum(
+                len(value) for value in apns_rule.values() if isinstance(value, list)
+            ),
+            "source_sha256": hashlib.sha256(
+                apns_source.encode("utf-8")
+            ).hexdigest(),
+        })
 
         for name in wanted:
             provider = providers.get(name)
@@ -560,6 +663,12 @@ def main() -> int:
                 "branch": "meta",
                 "commit": args.bett_commit,
             },
+            "apns_rules": {
+                "repository": APNS_REPO,
+                "branch": "main",
+                "path": APNS_PATH,
+                "commit": args.apns_commit,
+            },
             "profile_sha256": hashlib.sha256(profile_text.encode("utf-8")).hexdigest(),
             "policy_groups": len(groups),
             "routing_rules": len(rules),
@@ -581,6 +690,7 @@ def main() -> int:
                 "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
+                "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Direct/system DNS handling.",
                 "BettRules text sources are converted directly to Egern native YAML; MRS is not converted.",
             ],
         }

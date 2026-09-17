@@ -44,8 +44,10 @@ jobs:
           set -euo pipefail
           mihomo_commit="$(gh api repos/frostmage1250/mihomo-script/commits/main --jq .sha)"
           bett_commit="$(gh api repos/appshubcc/bett-rules/commits/meta --jq .sha)"
+          apns_commit="$(gh api repos/ttyyss2233/Tool/commits/main --jq .sha)"
           echo "MIHOMO_COMMIT=${mihomo_commit}" >> "${GITHUB_ENV}"
           echo "BETT_COMMIT=${bett_commit}" >> "${GITHUB_ENV}"
+          echo "APNS_COMMIT=${apns_commit}" >> "${GITHUB_ENV}"
           curl --fail --location --silent --show-error             "https://raw.githubusercontent.com/frostmage1250/mihomo-script/${mihomo_commit}/mihomoScript.js"             --output "${RUNNER_TEMP}/mihomoScript.js"
 
       - name: Extract current Mihomo model
@@ -54,14 +56,14 @@ jobs:
 
       - name: Generate Egern profile and native YAML rules
         run: |
-          python src/build_egern.py             --model "${RUNNER_TEMP}/mihomo-model.json"             --mihomo-commit "${MIHOMO_COMMIT}"             --bett-commit "${BETT_COMMIT}"
+          python src/build_egern.py             --model "${RUNNER_TEMP}/mihomo-model.json"             --mihomo-commit "${MIHOMO_COMMIT}"             --bett-commit "${BETT_COMMIT}"             --apns-commit "${APNS_COMMIT}"
 
       - name: Run builder tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Verify deterministic regeneration
         run: |
-          python src/build_egern.py             --model "${RUNNER_TEMP}/mihomo-model.json"             --mihomo-commit "${MIHOMO_COMMIT}"             --bett-commit "${BETT_COMMIT}"             --check
+          python src/build_egern.py             --model "${RUNNER_TEMP}/mihomo-model.json"             --mihomo-commit "${MIHOMO_COMMIT}"             --bett-commit "${BETT_COMMIT}"             --apns-commit "${APNS_COMMIT}"             --check
           git diff --check
 
       - name: Commit generated files

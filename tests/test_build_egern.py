@@ -9,6 +9,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from build_egern import (  # noqa: E402
     bootstrap_nameservers,
+    parse_classical_rule_list,
     parse_domain_list,
     parse_ip_list,
     referenced_providers,
@@ -36,6 +37,21 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertEqual(result["ip_cidr_set"], ["1.1.1.0/24"])
         self.assertEqual(result["ip_cidr6_set"], ["2001:db8::/32"])
 
+    def test_classical_apns_source_becomes_one_native_mixed_rule_set(self):
+        result = parse_classical_rule_list(
+            "DOMAIN-SUFFIX,push.apple.com\n"
+            "DOMAIN-KEYWORD,apple.com.edgekey.net\n"
+            "IP-CIDR,17.249.0.0/16,no-resolve\n"
+            "IP-CIDR6,2620:149:a44::/48,no-resolve\n"
+        )
+        self.assertEqual(result["domain_suffix_set"], ["push.apple.com"])
+        self.assertEqual(
+            result["domain_keyword_set"], ["apple.com.edgekey.net"]
+        )
+        self.assertEqual(result["ip_cidr_set"], ["17.249.0.0/16"])
+        self.assertEqual(result["ip_cidr6_set"], ["2620:149:a44::/48"])
+        self.assertTrue(result["no_resolve"])
+
     def test_bett_source_comes_from_bundle_path_not_mrs_bytes(self):
         provider = {
             "path-in-bundle": "geo/geosite/google.mrs",
@@ -53,9 +69,15 @@ class EgernBuilderTests(unittest.TestCase):
             ]
         }
         rules = render_rules(model, {"domain": "domain.yaml", "ip": "ip.yaml"})
-        self.assertEqual(list(rules[0]), ["domain_suffix"])
-        self.assertEqual(rules[1]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[2]["rule_set"]["no_resolve"])
+        self.assertEqual(
+            rules[0]["rule_set"]["match"],
+            "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml",
+        )
+        self.assertEqual(rules[0]["rule_set"]["policy"], "Direct")
+        self.assertTrue(rules[0]["rule_set"]["no_resolve"])
+        self.assertEqual(list(rules[1]), ["domain_suffix"])
+        self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
+        self.assertTrue(rules[3]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
     def test_groups_keep_subscription_private_and_region_filters_dynamic(self):
@@ -132,6 +154,13 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertEqual(
             forward,
             [
+                {
+                    "proxy_rule_set": {
+                        "match": "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml",
+                        "value": "system",
+                        "update_interval": 86400,
+                    }
+                },
                 {
                     "proxy_rule_set": {
                         "match": "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn.yaml",

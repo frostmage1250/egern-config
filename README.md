@@ -6,8 +6,10 @@ to an Egern profile.
 
 - [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-config/main/Profile.yaml)
   is the Egern profile.
-- `rules/*.yaml` are Egern-native YAML rule sets generated directly from the text
-  sources in `appshubcc/bett-rules`; MRS files are not converted.
+- `rules/*.yaml` are Egern-native YAML rule sets generated directly from text
+  sources. Mihomo providers come from `appshubcc/bett-rules`; the APNs override
+  comes from `ttyyss2233/Tool/shadowrocket/rules/apns.list`. MRS files are not
+  converted.
 - `reports/source.json` records immutable upstream commits, source hashes, entry
   counts, policy counts, and the generated profile hash.
 - GitHub Actions refreshes the repository every day and can also be run manually.
@@ -26,6 +28,9 @@ and 低倍率节点 automatically.
 
 The generator reads the current Mihomo script on every run and preserves its rule
 order, policies, region filters, service groups, DNS choices, and Hosts mappings.
+The requested APNs override is the sole rule inserted ahead of the Mihomo rules:
+its classical domain/IPv4/IPv6 entries are converted into `rules/apns.yaml`,
+routed through `Direct`, and placed first in DNS Forward with `system`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
 Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy`
 and every explicit Direct domain rule become ordered Egern DNS Forward rules that
