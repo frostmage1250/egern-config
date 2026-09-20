@@ -21,6 +21,7 @@ domain_set:
 - ntp5.tencent.com
 - ntp6.aliyun.com
 - ntp7.aliyun.com
+- qq.ugcimg.cn
 - status.alibabacloud.com
 - time.izatcloud.net
 - time.xtracloud.net

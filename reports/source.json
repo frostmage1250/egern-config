@@ -469,18 +469,18 @@
     },
     {
       "behavior": "domain",
-      "entries": 7705,
-      "expected_entries": 7705,
+      "entries": 7706,
+      "expected_entries": 7706,
       "output": "rules/geolocation-cn.yaml",
       "provider": "geolocation-cn",
       "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/geolocation-cn.mrs",
-      "source_commit": "6ac63ecad9f5fe85434e79a5be2b1b9f2069cbeb",
-      "source_entries": 7705,
+      "source_commit": "222db40ec2b5bd00f5c51c85a425f2eef410ede8",
+      "source_entries": 7706,
       "source_path": "dist/mihomo/geolocation-cn.list",
       "source_ref": "main",
       "source_repository": "frostmage1250/proxy-rules-converter",
-      "source_sha256": "ec5db4b576211f52e270c84016acb87d0f204407711dec23ec1f92b172cd1657",
-      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/6ac63ecad9f5fe85434e79a5be2b1b9f2069cbeb/dist/mihomo/geolocation-cn.list"
+      "source_sha256": "16bbc51361685ba1c004e4e8edb751ccdf0ae2e0ba4127501cb6e3004161625e",
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/222db40ec2b5bd00f5c51c85a425f2eef410ede8/dist/mihomo/geolocation-cn.list"
     },
     {
       "behavior": "ipcidr",
@@ -529,13 +529,13 @@
   "profile_sha256": "8a30898cc6c8dbcf214f00576d82f49a1b62e414b7a3da5cfecea79a548c5b3c",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "6ac63ecad9f5fe85434e79a5be2b1b9f2069cbeb",
+    "commit": "222db40ec2b5bd00f5c51c85a425f2eef410ede8",
     "geolocation_cn": {
-      "expected_entries": 7705,
+      "expected_entries": 7706,
       "list_path": "dist/mihomo/geolocation-cn.list",
       "report_path": "reports/geolocation-cn.json",
-      "report_sha256": "0334fb721fbb4285a9ce5339a3870b227a1f4c74663c42075b8890b809423c0b",
-      "report_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/6ac63ecad9f5fe85434e79a5be2b1b9f2069cbeb/reports/geolocation-cn.json"
+      "report_sha256": "408e7790af64a04ca3c80eddf63766710b8509a7a533e37b5b4a33362d7ae51b",
+      "report_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/222db40ec2b5bd00f5c51c85a425f2eef410ede8/reports/geolocation-cn.json"
     },
     "repository": "frostmage1250/proxy-rules-converter"
   },
