@@ -40,19 +40,9 @@ MESL_PROXY_DNS = [
     "https://radar.rlose.com/api-query",
 ]
 DNS_HOST_IP_ADDITIONS = {
-    "dns.google": [
-        "2001:4860:4860::8888",
-        "2001:4860:4860::8844",
-    ],
-    "cloudflare-dns.com": [
-        "2606:4700::6810:f8f9",
-        "2606:4700::6810:f9f9",
-    ],
     "dns.alidns.com": [
         "223.5.5.5",
         "223.6.6.6",
-        "2400:3200:baba::1",
-        "2400:3200::1",
     ],
 }
 REAL_IP_DOMAINS = [
