@@ -39,6 +39,39 @@ MESL_PROXY_DNS = [
     "https://zone.rlose.com:39933/api-query",
     "https://radar.rlose.com/api-query",
 ]
+DNS_HOST_IP_ADDITIONS = {
+    "dns.google": [
+        "2001:4860:4860::8888",
+        "2001:4860:4860::8844",
+    ],
+    "cloudflare-dns.com": [
+        "2606:4700::6810:f8f9",
+        "2606:4700::6810:f9f9",
+    ],
+    "dns.alidns.com": [
+        "223.5.5.5",
+        "223.6.6.6",
+        "2400:3200:baba::1",
+        "2400:3200::1",
+    ],
+}
+REAL_IP_DOMAINS = [
+    "lancache.steamcontent.com",
+    "*.msftconnecttest.com",
+    "*.msftncsi.com",
+    "*.srv.nintendo.net",
+    "*.stun.playstation.net",
+    "xbox.*.microsoft.com",
+    "*.xboxlive.com",
+    "*.logon.battlenet.com.cn",
+    "*.logon.battle.net",
+    "stun.l.google.com",
+    "easy-login.10099.com.cn",
+    "*-update.xoyocdn.com",
+    "*.prod.cloud.netflix.com",
+    "appboot.netflix.com",
+    "*-appboot.netflix.com",
+]
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
 
 
@@ -585,6 +618,11 @@ def hosts(model: dict[str, Any]) -> dict[str, Any]:
                 result[hostname] = clean
         elif isinstance(value, str) and value:
             result[hostname] = value
+    for hostname, additions in DNS_HOST_IP_ADDITIONS.items():
+        existing = result.get(hostname, [])
+        if not isinstance(existing, list):
+            raise BuildError(f"DNS host mapping must be an IP list: {hostname}")
+        result[hostname] = unique(existing + additions)
     result.update(FLOWER_HOSTS)
     return result
 
@@ -624,10 +662,8 @@ def validate_profile(
                 raise BuildError(f"Group {group['name']} references undefined policy {policy}")
     if profile["policy_groups"][names.index("订阅")]["select"].get("urls") != []:
         raise BuildError("Public profile must not contain subscription credentials")
-    if profile.get("default_subscription_group") != "订阅":
-        raise BuildError("Egern subscriptions must default to the 订阅 group")
-    if profile.get("default_proxy_group") != "Proxy":
-        raise BuildError("Egern proxies must default to the Proxy group")
+    if "default_subscription_group" in profile or "default_proxy_group" in profile:
+        raise BuildError("Egern default group assignments must remain unset")
     if "auto_update" in profile:
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
     for target in ("Telegram", "媒体"):
@@ -647,8 +683,8 @@ def validate_profile(
     if list(profile["rules"][-1]) != ["default"]:
         raise BuildError("Default rule must be last")
     dns = profile["dns"]
-    if profile.get("hijack_dns") != ["*"]:
-        raise BuildError("Egern DNS hijacking must cover all DNS traffic")
+    if profile.get("hijack_dns") != ["*:53"]:
+        raise BuildError("Egern DNS hijacking must target port 53")
     if profile.get("include_all_networks") is not True:
         raise BuildError("Egern must include all system network traffic")
     if profile.get("include_apns") is not True:
@@ -662,6 +698,14 @@ def validate_profile(
         raise BuildError("Mihomo DNS policy and Direct-domain DNS were not preserved")
     if dns.get("proxy_nameservers") != MESL_PROXY_DNS:
         raise BuildError("MESL proxy nameservers were not preserved")
+    if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
+        raise BuildError("Repcz real-IP domain exclusions were not preserved")
+    for hostname, additions in DNS_HOST_IP_ADDITIONS.items():
+        current = dns["hosts"].get(hostname)
+        if not isinstance(current, list) or any(
+            address not in current for address in additions
+        ):
+            raise BuildError(f"Required DNS host IPs missing: {hostname}")
     for hostname, target in FLOWER_HOSTS.items():
         if dns["hosts"].get(hostname) != target:
             raise BuildError(f"Flower host mapping missing: {hostname}")
@@ -811,12 +855,11 @@ def main() -> int:
         rules = render_rules(model, provider_files)
         profile = {
             "ipv6": True,
-            "hijack_dns": ["*"],
+            "hijack_dns": ["*:53"],
             "block_quic": False,
             "include_all_networks": True,
             "include_apns": True,
-            "default_subscription_group": "订阅",
-            "default_proxy_group": "Proxy",
+            "real_ip_domains": REAL_IP_DOMAINS,
             "dns": {
                 "bootstrap": bootstrap_nameservers(model),
                 "upstreams": {"Foreign": nameservers(model)},
@@ -898,7 +941,8 @@ def main() -> int:
             },
             "subscription": {
                 "group": "订阅",
-                "default_proxy_group": "Proxy",
+                "default_subscription_group": None,
+                "default_proxy_group": None,
                 "urls_published": False,
                 "reason": "Subscription credentials must not be committed to a public repository.",
             },
@@ -907,7 +951,7 @@ def main() -> int:
                 "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
                 "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
-                "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
+                "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
                 "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
                 "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",

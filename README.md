@@ -19,10 +19,11 @@ to an Egern profile.
 ## Subscription setup
 
 Subscription credentials are deliberately not committed to this public repository.
-After importing `Profile.yaml` into Egern, use Egern's **Add Subscription**
-command and enter the airport URL. The profile sets `default_subscription_group`
-to **订阅** and `default_proxy_group` to **Proxy**, so the private URL remains in
-Egern instead of the public repository. Region groups flatten and filter **订阅**,
+After importing `Profile.yaml` into Egern, add the private subscription URL
+to the **订阅** policy group. The profile leaves `default_subscription_group` and
+`default_proxy_group` unset, so select the desired group when adding a
+subscription or proxy. The private URL remains in Egern instead of this public
+repository. Region groups flatten and filter **订阅**,
 so future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点
 and 低倍率节点 automatically. Telegram and 媒体 also expose 订阅 as an
 additional selectable policy. Because a full profile replacement overwrites
@@ -44,10 +45,12 @@ use `system`; the foreign DNS group remains the final catch-all. Mihomo
 DNS server URLs plus explicit, high-priority routing rules that bind each DNS
 server endpoint to the same policy (for example, `#Proxy` becomes
 `policy: Proxy`). Missing, conflicting, or unsupported policy mappings fail the
-build instead of being silently discarded. No `real_ip_domains` field is
-generated; Fake-IP behavior is left to Egern's native
-defaults. MESL private DNS is used only as Egern `proxy_nameservers`, while normal
-DNS forwarding stays separate. Egern cannot reproduce Mihomo's runtime
+build instead of being silently discarded. The generated `real_ip_domains`
+list mirrors [Repcz's Egern profile](https://github.com/Repcz/Tool/blob/X/Egern/Egern.yaml);
+other Fake-IP behavior follows Egern defaults. DNS hijacking targets port 53.
+The existing DNS Hosts mappings are preserved, with AliDNS IPv4/IPv6 addresses
+and Repcz's Google and Cloudflare IPv6 addresses added. MESL private DNS is
+used only as Egern `proxy_nameservers`, while normal DNS forwarding stays separate. Egern cannot reproduce Mihomo's runtime
 `direct-nameserver` re-resolution when a selectable policy group is switched to
 Direct, so the generator preserves every statically identifiable Direct domain
 rule and records that platform boundary in `reports/source.json`.
