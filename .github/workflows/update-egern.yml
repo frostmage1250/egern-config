@@ -9,8 +9,8 @@ on:
       - "tests/**"
       - "requirements.txt"
   schedule:
-    # 03:17 Asia/Shanghai every day.
-    - cron: "17 19 * * *"
+    # Every 6 hours, after the converter (UTC).
+    - cron: "17 1,7,13,19 * * *"
 
 permissions:
   contents: write

@@ -7,12 +7,13 @@ to an Egern profile.
 - [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-config/main/Profile.yaml)
   is the Egern profile.
 - `rules/*.yaml` are Egern-native YAML rule sets generated directly from text
-  sources. Mihomo providers come from `appshubcc/bett-rules`; the APNs override
-  comes from `ttyyss2233/Tool/shadowrocket/rules/apns.list`. MRS files are not
-  converted.
+  sources. Most Mihomo providers come from `appshubcc/bett-rules`; `geolocation-cn`
+  follows the Mihomo provider URL into `frostmage1250/proxy-rules-converter`.
+  The APNs override comes from `ttyyss2233/Tool/shadowrocket/rules/apns.list`.
+  MRS files are not converted.
 - `reports/source.json` records immutable upstream commits, source hashes, entry
   counts, policy counts, and the generated profile hash.
-- GitHub Actions refreshes the generated repository files every day and can also
+- GitHub Actions refreshes the generated repository files every six hours and can also
   be run manually. The Egern profile itself deliberately has no root
   `auto_update`; re-import it manually when you want to replace the active profile.
 
@@ -20,9 +21,8 @@ to an Egern profile.
 
 Subscription credentials are deliberately not committed to this public repository.
 After importing `Profile.yaml` into Egern, add the private subscription URL
-to the **订阅** policy group. The profile leaves `default_subscription_group` and
-`default_proxy_group` unset, so select the desired group when adding a
-subscription or proxy. The private URL remains in Egern instead of this public
+to the **订阅** policy group. The profile sets `default_subscription_group` to **订阅** and
+`default_proxy_group` to **Proxy**. The private URL remains in Egern instead of this public
 repository. Region groups flatten and filter **订阅**,
 so future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点
 and 低倍率节点 automatically. Telegram and 媒体 also expose 订阅 as an
