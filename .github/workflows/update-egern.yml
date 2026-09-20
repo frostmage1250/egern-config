@@ -9,7 +9,7 @@ on:
       - "tests/**"
       - "requirements.txt"
   schedule:
-    # Every 6 hours, after the converter (UTC).
+    # Every 6 hours, 54 minutes after the converter (UTC).
     - cron: "17 1,7,13,19 * * *"
 
 permissions:
