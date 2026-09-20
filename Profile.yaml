@@ -1,11 +1,25 @@
 ipv6: true
 hijack_dns:
-- '*'
+- '*:53'
 block_quic: false
 include_all_networks: true
 include_apns: true
-default_subscription_group: 订阅
-default_proxy_group: Proxy
+real_ip_domains:
+- lancache.steamcontent.com
+- '*.msftconnecttest.com'
+- '*.msftncsi.com'
+- '*.srv.nintendo.net'
+- '*.stun.playstation.net'
+- xbox.*.microsoft.com
+- '*.xboxlive.com'
+- '*.logon.battlenet.com.cn'
+- '*.logon.battle.net'
+- stun.l.google.com
+- easy-login.10099.com.cn
+- '*-update.xoyocdn.com'
+- '*.prod.cloud.netflix.com'
+- appboot.netflix.com
+- '*-appboot.netflix.com'
 dns:
   bootstrap:
   - 114.114.114.114
@@ -54,9 +68,18 @@ dns:
     cloudflare-dns.com:
     - 1.1.1.1
     - 1.0.0.1
+    - 2606:4700::6810:f8f9
+    - 2606:4700::6810:f9f9
     dns.google:
     - 8.8.8.8
     - 8.8.4.4
+    - 2001:4860:4860::8888
+    - 2001:4860:4860::8844
+    dns.alidns.com:
+    - 223.5.5.5
+    - 223.6.6.6
+    - 2400:3200:baba::1
+    - 2400:3200::1
     11612bj3-b76c.aws-agent.biz: 06996bj6-79x5.apt-agent.com
     b76c5sh0-fde6.aws-agent.biz: 08233sh6-12d1.apt-agent.com
     fde63gz6-1y61.aws-agent.biz: 09571gz6-86k1.apt-agent.com

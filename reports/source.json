@@ -7,7 +7,7 @@
   },
   "bett_rules": {
     "branch": "meta",
-    "commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+    "commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
     "repository": "appshubcc/bett-rules"
   },
   "dns": {
@@ -37,7 +37,7 @@
     "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
     "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
     "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
-    "Mihomo fakeip_filter is intentionally left to Egern native Fake-IP handling.",
+    "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
     "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
     "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
     "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",
@@ -67,13 +67,13 @@
       "output": "rules/private.yaml",
       "provider": "private",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/private.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 130,
       "source_path": "geo/geosite/private.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "9caf8f67450f6ff72fde0d2aec4d425238b88e371628011e51aab9185b0da73e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/private.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/private.list"
     },
     {
       "behavior": "domain",
@@ -81,13 +81,13 @@
       "output": "rules/games-cn.yaml",
       "provider": "games_cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/category-games@cn.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 37,
       "source_path": "geo/geosite/category-games@cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "8eedd81803c2abd4d2fad341923a629079f2a586b0d7704b2ad720387be5d827",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/category-games@cn.list"
+      "source_sha256": "f4641e9d83c09406dd4c9272be6ad3acf3cf021d51041ec303bd177b207e1704",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/category-games@cn.list"
     },
     {
       "behavior": "domain",
@@ -95,13 +95,13 @@
       "output": "rules/steam.yaml",
       "provider": "steam",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/steam.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 60,
       "source_path": "geo/geosite/steam.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "63e7cfe27eedb6660abd763618129cf46e3a39ebf436886bfb8a8eedde5b49bb",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/steam.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/steam.list"
     },
     {
       "behavior": "ipcidr",
@@ -109,13 +109,13 @@
       "output": "rules/steam-ip.yaml",
       "provider": "steam_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/steam.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 35,
       "source_path": "geo/geoip/steam.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "ad3b1ef3c38de732e01d671c96a9854691a5f1f50f1d490fd243cff954419ac4",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/steam.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/steam.list"
     },
     {
       "behavior": "domain",
@@ -123,13 +123,13 @@
       "output": "rules/apple-cn.yaml",
       "provider": "apple_cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/apple@cn.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 296,
       "source_path": "geo/geosite/apple@cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "c56be7e1d0c5952abdcc9a9e5279629ef1327c75614bc2b370b443e773113206",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/apple@cn.list"
+      "source_sha256": "d30f8dc64e8a46f66bb2573c0af68f6886b8afb4e81846ea30659f71063f705d",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/apple@cn.list"
     },
     {
       "behavior": "domain",
@@ -137,13 +137,13 @@
       "output": "rules/apple.yaml",
       "provider": "apple",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/apple.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 1792,
       "source_path": "geo/geosite/apple.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "2fed07f57e565963735ad1cb5dd2e939ac27c107944f6cc6e2863893eff95c42",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/apple.list"
+      "source_sha256": "11b57ede92ddeb55595bebdf7335aa99e5a3fdbd05ee82d12a85b7bea0854a4b",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/apple.list"
     },
     {
       "behavior": "ipcidr",
@@ -151,13 +151,13 @@
       "output": "rules/apple-ip.yaml",
       "provider": "apple_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/apple.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 170,
       "source_path": "geo/geoip/apple.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "3bba389552ac5b045f81e688b0518e0a3067f1352df8f208aee2e6960adf799d",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/apple.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/apple.list"
     },
     {
       "behavior": "domain",
@@ -165,13 +165,13 @@
       "output": "rules/microsoft-cn.yaml",
       "provider": "microsoft_cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/microsoft@cn.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 189,
       "source_path": "geo/geosite/microsoft@cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "a2a50c22fb8a12439e8f6de2af90d870cbcee97195659f435971dda039e02269",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/microsoft@cn.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/microsoft@cn.list"
     },
     {
       "behavior": "domain",
@@ -179,13 +179,13 @@
       "output": "rules/github.yaml",
       "provider": "github",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/github.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 64,
       "source_path": "geo/geosite/github.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "f5d67e6e0c8799bd292c8a012d579c8af37ee6a0af771299dd6500db4d1202fd",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/github.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/github.list"
     },
     {
       "behavior": "domain",
@@ -193,13 +193,13 @@
       "output": "rules/microsoft.yaml",
       "provider": "microsoft",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/microsoft.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 748,
       "source_path": "geo/geosite/microsoft.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "10a17a3311433f880bb72ddc3545b5fc1387cba0bffe56c1cfd88b6d1e5f0d79",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/microsoft.list"
+      "source_sha256": "4c1a5b063ebdccb85680c7c0bc4cd5ed5f12d49eaeffee655c7ce35610c5618d",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/microsoft.list"
     },
     {
       "behavior": "ipcidr",
@@ -207,13 +207,13 @@
       "output": "rules/microsoft-ip.yaml",
       "provider": "microsoft_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/microsoft.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 1060,
       "source_path": "geo/geoip/microsoft.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "47a722d5b0a7f39aba49e42e15578707bfbcc3265f7ad5cf490aa25a942a7a2e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/microsoft.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/microsoft.list"
     },
     {
       "behavior": "domain",
@@ -221,13 +221,13 @@
       "output": "rules/telegram.yaml",
       "provider": "telegram",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/telegram.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 21,
       "source_path": "geo/geosite/telegram.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "2448b2699519cd258b10232fcacd01e89b7db04c8ce7fc860a4962518370a329",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/telegram.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/telegram.list"
     },
     {
       "behavior": "ipcidr",
@@ -235,13 +235,13 @@
       "output": "rules/telegram-ip.yaml",
       "provider": "telegram_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/telegram.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 12,
       "source_path": "geo/geoip/telegram.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "271a96cc22155f8aefbe0b282384b611c4e2d17b87e264bb6e0b6e94c019407a",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/telegram.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/telegram.list"
     },
     {
       "behavior": "domain",
@@ -249,13 +249,13 @@
       "output": "rules/youtube.yaml",
       "provider": "youtube",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/youtube.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 178,
       "source_path": "geo/geosite/youtube.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "e95f241fa4357918fc1066390c352aad750b571ddea15e3421d30c84e947ac10",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/youtube.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/youtube.list"
     },
     {
       "behavior": "domain",
@@ -263,13 +263,13 @@
       "output": "rules/threads.yaml",
       "provider": "threads",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/threads.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 2,
       "source_path": "geo/geosite/threads.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "77e44a4fe816e840abf6279a11cc88e418d5792d2ddf7bf8e93e42eb426a84f9",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/threads.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/threads.list"
     },
     {
       "behavior": "domain",
@@ -277,13 +277,13 @@
       "output": "rules/meta.yaml",
       "provider": "meta",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/meta.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 554,
       "source_path": "geo/geosite/meta.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "ecbb3a49c35efe12f6016dca82ff1c83e55b31d7f32620d55b0c7424244afd0b",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/meta.list"
+      "source_sha256": "0482506ff42c2faefb6185c24e958b08284da862c3d66fac7c2d637c012510d7",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/meta.list"
     },
     {
       "behavior": "ipcidr",
@@ -291,13 +291,13 @@
       "output": "rules/facebook-ip.yaml",
       "provider": "facebook_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/facebook.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 83,
       "source_path": "geo/geoip/facebook.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "d9a4e48275407e60472f6b7f3fd3f7a12c78b5aa5c6d8d6b523602518c53af49",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/facebook.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/facebook.list"
     },
     {
       "behavior": "domain",
@@ -305,13 +305,13 @@
       "output": "rules/facebook.yaml",
       "provider": "facebook",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/facebook.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 396,
       "source_path": "geo/geosite/facebook.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "c596908eb3c2227cd9d7b9974f8fed38ad4439118a0a10c4f63c69181313fd9e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/facebook.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/facebook.list"
     },
     {
       "behavior": "domain",
@@ -319,13 +319,13 @@
       "output": "rules/twitter.yaml",
       "provider": "twitter",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/twitter.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 24,
       "source_path": "geo/geosite/twitter.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "7bc17d19d2fa089b36993e56275eb0eb7355963f3e90a711364086442fd369c0",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/twitter.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/twitter.list"
     },
     {
       "behavior": "ipcidr",
@@ -333,13 +333,13 @@
       "output": "rules/twitter-ip.yaml",
       "provider": "twitter_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/twitter.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 635,
       "source_path": "geo/geoip/twitter.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "a56f2115f63f767902db890aeffe657a887ed1e760443d4935d43af1161e15ae",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/twitter.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/twitter.list"
     },
     {
       "behavior": "domain",
@@ -347,13 +347,13 @@
       "output": "rules/twitch.yaml",
       "provider": "twitch",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/twitch.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 34,
       "source_path": "geo/geosite/twitch.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "230e8e3b582de5c769be1b95e06d7aadf7cd83aa54df240bfca2f8bc14e5fd7c",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/twitch.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/twitch.list"
     },
     {
       "behavior": "domain",
@@ -361,13 +361,13 @@
       "output": "rules/tiktok.yaml",
       "provider": "tiktok",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/tiktok.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 37,
       "source_path": "geo/geosite/tiktok.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "09edefc16d3913b24fa7d0d2bae1679e9be03b6f4e1d879e96d937a1d020e7db",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/tiktok.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/tiktok.list"
     },
     {
       "behavior": "ipcidr",
@@ -375,13 +375,13 @@
       "output": "rules/tiktok-ip.yaml",
       "provider": "tiktok_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/tiktok.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 115,
       "source_path": "geo/geoip/tiktok.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "7e7eddb1e9e061cc7dea2a267409f58e64cfdd3221a244b2eb59100cf86b3ce9",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/tiktok.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/tiktok.list"
     },
     {
       "behavior": "domain",
@@ -389,13 +389,13 @@
       "output": "rules/google.yaml",
       "provider": "google",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/google.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 1071,
       "source_path": "geo/geosite/google.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "4ca0d8ec0828b8c508499b8df6b86967b8929d4b12c28686d7ecba253eb377fb",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/google.list"
+      "source_sha256": "4dd76c550f68dc0b2f24cd770c0bab8b5871aba63545b4d503595e02b4d723fa",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/google.list"
     },
     {
       "behavior": "ipcidr",
@@ -403,13 +403,13 @@
       "output": "rules/google-ip.yaml",
       "provider": "google_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/google.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 966,
       "source_path": "geo/geoip/google.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "55f56e7dbbd00f18500657c02397e114649c0cd0f43abe63f469c83887a33d3a",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/google.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/google.list"
     },
     {
       "behavior": "domain",
@@ -417,13 +417,13 @@
       "output": "rules/ai.yaml",
       "provider": "ai",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/category-ai-!cn.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 179,
       "source_path": "geo/geosite/category-ai-!cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "54490c0b140631fa1cfb3bebbbea029c047676e426d3dfb4e975d7dd40f568c6",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/category-ai-!cn.list"
+      "source_sha256": "6520cc25fd5f58c700ce6686dc43672f08441448e0c6cbee1c18f9dfc5adfcc2",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/category-ai-!cn.list"
     },
     {
       "behavior": "domain",
@@ -431,13 +431,13 @@
       "output": "rules/pikpak.yaml",
       "provider": "pikpak",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/pikpak.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 7,
       "source_path": "geo/geosite/pikpak.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "a0ad3b0278f3b720e37133d0641c634549b785e1264a5d5f740defdf5c487b21",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/pikpak.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/pikpak.list"
     },
     {
       "behavior": "domain",
@@ -445,13 +445,13 @@
       "output": "rules/ehentai.yaml",
       "provider": "ehentai",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/ehentai.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 8,
       "source_path": "geo/geosite/ehentai.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "b0465da3d078db69bef733acbfd6a81ba5eb527b281ab45dfc93fab02e956e0e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/ehentai.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/ehentai.list"
     },
     {
       "behavior": "domain",
@@ -459,13 +459,13 @@
       "output": "rules/geolocation-non-cn.yaml",
       "provider": "geolocation-!cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/geolocation-!cn.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 33439,
       "source_path": "geo/geosite/geolocation-!cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "4fc023b40dd6c0f8ffce4c6dff215b6b40f4ece1098e6544ba3227472f91ae59",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/geolocation-!cn.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/geolocation-!cn.list"
     },
     {
       "behavior": "domain",
@@ -488,13 +488,13 @@
       "output": "rules/cn-ip.yaml",
       "provider": "cn_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/cn.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 10902,
       "source_path": "geo/geoip/cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "89707fb72803538ca600058b51e4b6f35ab42ca80c2271f1324885b569aeeb2a",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/cn.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/cn.list"
     },
     {
       "behavior": "ipcidr",
@@ -502,13 +502,13 @@
       "output": "rules/private-ip.yaml",
       "provider": "private_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/private.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 18,
       "source_path": "geo/geoip/private.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "06ae700eaba0fb7b812e699acf3e9fe8167344443ecc7fcfad0ca54c90ad100c",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geoip/private.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geoip/private.list"
     },
     {
       "behavior": "domain",
@@ -516,17 +516,17 @@
       "output": "rules/cn.yaml",
       "provider": "cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/cn.mrs",
-      "source_commit": "58a0b75a789ae386cbaf09d65199aee052465db0",
+      "source_commit": "b25aa39a518e16e8da7990eb0c2d659e03605f56",
       "source_entries": 109100,
       "source_path": "geo/geosite/cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "2ad00ea4c27ec6f9ed0f05c8e4672b374c1b157d5fbd41c233707ad10ebadf88",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/58a0b75a789ae386cbaf09d65199aee052465db0/geo/geosite/cn.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/b25aa39a518e16e8da7990eb0c2d659e03605f56/geo/geosite/cn.list"
     }
   ],
   "policy_groups": 16,
-  "profile_sha256": "832ca7a3fa696a8ec29a95553a7114fd769247b4f6ab85b5ac26ed8cf7a9053f",
+  "profile_sha256": "c751aa059a909fcd5c9bcf266005b0a77caafac9d2aac28b403ea4c51991b98b",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "c714d93777dfc56319d92715cf96802ad6aa56a7",
@@ -542,7 +542,8 @@
   "routing_rules": 37,
   "schema_version": 2,
   "subscription": {
-    "default_proxy_group": "Proxy",
+    "default_proxy_group": null,
+    "default_subscription_group": null,
     "group": "订阅",
     "reason": "Subscription credentials must not be committed to a public repository.",
     "urls_published": false
