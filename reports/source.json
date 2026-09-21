@@ -44,7 +44,7 @@
     "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed."
   ],
   "mihomo_script": {
-    "commit": "f1ea427370d0b43b6e00f69a318bd656fc952823",
+    "commit": "828588b02eb6b8d421b07cab40a493304a352881",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
