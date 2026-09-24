@@ -514,7 +514,7 @@
     }
   ],
   "policy_groups": 18,
-  "profile_sha256": "190e2ba9d69d559cca64da54a67a5a1aca5af5b2b61be71b117e6f795839af87",
+  "profile_sha256": "58046542c43988b38c6840d9c02be0dfd611a520a06fd606b9544617545ea638",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "ccc9574c06731db6c854850e641a0d72e1c615d0",
@@ -530,10 +530,10 @@
   "routing_rules": 35,
   "schema_version": 2,
   "subscription": {
-    "default_proxy_group": null,
-    "default_subscription_group": null,
+    "default_proxy_group": "代理",
+    "default_subscription_group": "订阅",
     "group": "订阅",
-    "reason": "Subscription credentials must not be committed to a public repository.",
+    "reason": "Default group names are public; subscription credentials remain local.",
     "urls_published": false
   }
 }
