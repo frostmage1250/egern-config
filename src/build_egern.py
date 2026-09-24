@@ -732,8 +732,10 @@ def validate_profile(
                 raise BuildError(f"Group {group['name']} references undefined policy {policy}")
     if profile["policy_groups"][names.index("订阅")]["select"].get("urls") != []:
         raise BuildError("Public profile must not contain subscription credentials")
-    if "default_subscription_group" in profile or "default_proxy_group" in profile:
-        raise BuildError("Egern default group assignments must remain unset")
+    if profile.get("default_subscription_group") != "订阅":
+        raise BuildError("Egern default subscription group must be 订阅")
+    if profile.get("default_proxy_group") != "代理":
+        raise BuildError("Egern default proxy group must be 代理")
     if "auto_update" in profile:
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
     for target in ("Telegram", "媒体"):
@@ -957,6 +959,8 @@ def main() -> int:
             "include_all_networks": True,
             "include_apns": True,
             "real_ip_domains": REAL_IP_DOMAINS,
+            "default_subscription_group": "订阅",
+            "default_proxy_group": "代理",
             "dns": {
                 "bootstrap": bootstrap_nameservers(model),
                 "upstreams": {"Foreign": nameservers(model)},
@@ -1038,10 +1042,10 @@ def main() -> int:
             },
             "subscription": {
                 "group": "订阅",
-                "default_subscription_group": None,
-                "default_proxy_group": None,
+                "default_subscription_group": profile["default_subscription_group"],
+                "default_proxy_group": profile["default_proxy_group"],
                 "urls_published": False,
-                "reason": "Subscription credentials must not be committed to a public repository.",
+                "reason": "Default group names are public; subscription credentials remain local.",
             },
             "migration_boundaries": [
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
