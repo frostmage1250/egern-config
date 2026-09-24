@@ -27,6 +27,7 @@ BETT_REPO = "appshubcc/bett-rules"
 CONVERTER_REPO = "frostmage1250/proxy-rules-converter"
 CONVERTER_GEOLOCATION_LIST_PATH = "dist/mihomo/geolocation-cn.list"
 CONVERTER_GEOLOCATION_REPORT_PATH = "reports/geolocation-cn.json"
+CONVERTER_CLAUDE_RULE_PATH = "dist/mihomo/claude.yaml"
 APNS_REPO = "ttyyss2233/Tool"
 APNS_PATH = "shadowrocket/rules/apns.list"
 APNS_FILENAME = "apns.yaml"
@@ -63,6 +64,7 @@ REAL_IP_DOMAINS = [
     "*-appboot.netflix.com",
 ]
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
+NON_SERVICE_IP_PROVIDERS = {"cn_ip", "private_ip"}
 
 
 class BuildError(RuntimeError):
@@ -108,48 +110,62 @@ def resolve_provider_source(
     parsed = urlsplit(provider_url)
     repository: str
     ref: str
-    mrs_path: str
+    published_path: str
     if parsed.netloc == "fastly.jsdelivr.net":
         match = re.fullmatch(
-            r"/gh/([^/]+/[^/@]+)@([^/]+)/(.+)\.mrs",
+            r"/gh/([^/]+/[^/@]+)@([^/]+)/(.+\.mrs)",
             parsed.path,
         )
         if not match:
             raise BuildError(f"Unsupported jsDelivr provider URL: {provider_url}")
-        repository, ref, mrs_path = match.groups()
+        repository, ref, published_path = match.groups()
     elif parsed.netloc == "raw.githubusercontent.com":
         match = re.fullmatch(
-            r"/([^/]+/[^/]+)/([^/]+)/(.+)\.mrs",
+            r"/([^/]+/[^/]+)/([^/]+)/(.+)",
             parsed.path,
         )
         if not match:
             raise BuildError(f"Unsupported raw GitHub provider URL: {provider_url}")
-        repository, ref, mrs_path = match.groups()
+        repository, ref, published_path = match.groups()
     else:
         raise BuildError(f"Unsupported provider URL host: {provider_url}")
 
+    if published_path.endswith(".mrs"):
+        source_path = published_path.removesuffix(".mrs") + ".list"
+    elif published_path.endswith(".yaml"):
+        source_path = published_path
+    else:
+        raise BuildError(f"Unsupported provider artifact: {provider_url}")
+
     if repository == BETT_REPO and ref == "meta":
+        if not published_path.endswith(".mrs"):
+            raise BuildError(f"Unsupported bett-rules provider artifact: {provider_url}")
         commit = bett_commit
     elif repository == CONVERTER_REPO and ref == "main":
-        commit = converter_commit
-        if mrs_path != CONVERTER_GEOLOCATION_LIST_PATH.removesuffix(".list"):
+        allowed = {
+            "dist/mihomo/geolocation-cn.mrs": CONVERTER_GEOLOCATION_LIST_PATH,
+            CONVERTER_CLAUDE_RULE_PATH: CONVERTER_CLAUDE_RULE_PATH,
+        }
+        expected_source = allowed.get(published_path)
+        if expected_source is None:
             raise BuildError(
-                f"Unsupported proxy-rules-converter provider path: {mrs_path}.mrs"
+                f"Unsupported proxy-rules-converter provider path: {published_path}"
             )
+        source_path = expected_source
+        commit = converter_commit
     else:
         raise BuildError(
             f"Unsupported provider source {repository}@{ref}: {provider_url}"
         )
 
-    text_path = mrs_path + ".list"
     return {
         "provider_url": provider_url,
         "repository": repository,
         "ref": ref,
         "commit": commit,
-        "path": text_path,
+        "path": source_path,
         "url": (
-            f"https://raw.githubusercontent.com/{repository}/{commit}/{text_path}"
+            f"https://raw.githubusercontent.com/{repository}/{commit}/{source_path}"
         ),
     }
 
@@ -236,8 +252,10 @@ def parse_classical_rule_list(text: str) -> dict[str, Any]:
         "domain_suffix_set": [],
         "ip_cidr_set": [],
         "ip_cidr6_set": [],
+        "asn_set": [],
     }
-    no_resolve = False
+    ip_rule_count = 0
+    no_resolve_ip_rule_count = 0
     for raw in text.splitlines():
         line = raw.strip()
         if not line or line.startswith(("#", ";", "//")):
@@ -263,17 +281,44 @@ def parse_classical_rule_list(text: str) -> dict[str, Any]:
                 raise BuildError(f"{kind} has the wrong address family: {value!r}")
             target = "ip_cidr_set" if network.version == 4 else "ip_cidr6_set"
             fields[target].append(value)
-            no_resolve = no_resolve or "no-resolve" in parts[2:]
+            ip_rule_count += 1
+            no_resolve_ip_rule_count += int("no-resolve" in parts[2:])
+        elif kind == "IP-ASN":
+            if not re.fullmatch(r"(?:AS)?[1-9][0-9]*", value, re.I):
+                raise BuildError(f"Invalid classical ASN {value!r}")
+            fields["asn_set"].append(value)
+            ip_rule_count += 1
+            no_resolve_ip_rule_count += int("no-resolve" in parts[2:])
         else:
             raise BuildError(f"Unsupported classical rule: {line!r}")
+    if ip_rule_count != no_resolve_ip_rule_count:
+        raise BuildError("Every classical IP/ASN rule must use no-resolve")
     result: dict[str, Any] = {
         key: values for key, values in fields.items() if values
     }
-    if no_resolve:
+    if ip_rule_count:
         result["no_resolve"] = True
     if not result or result == {"no_resolve": True}:
         raise BuildError("Classical source produced an empty rule set")
     return result
+
+
+def parse_classical_yaml_provider(text: str) -> tuple[dict[str, Any], int]:
+    try:
+        document = yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        raise BuildError("Classical provider is not valid YAML") from exc
+    if not isinstance(document, dict) or set(document) != {"payload"}:
+        raise BuildError("Classical YAML provider must contain only payload")
+    payload = document["payload"]
+    if (
+        not isinstance(payload, list)
+        or not payload
+        or any(not isinstance(line, str) or not line.strip() for line in payload)
+    ):
+        raise BuildError("Classical YAML payload must be a non-empty string list")
+    lines = [line.strip() for line in payload]
+    return parse_classical_rule_list("\n".join(lines)), len(lines)
 
 
 def referenced_providers(model: dict[str, Any]) -> list[str]:
@@ -286,6 +331,41 @@ def referenced_providers(model: dict[str, Any]) -> list[str]:
         if isinstance(key, str) and key.startswith("rule-set:"):
             result.append(key.removeprefix("rule-set:"))
     return unique(result)
+
+
+def validate_business_ip_pairs(model: dict[str, Any]) -> None:
+    rules = model["rules"]
+    providers = model["providers"]
+    for index, raw in enumerate(rules):
+        parts = raw.split(",")
+        if parts[0] != "RULE-SET" or len(parts) < 3:
+            continue
+        provider = parts[1]
+        definition = providers.get(provider, {})
+        if (
+            definition.get("behavior") != "ipcidr"
+            or provider in NON_SERVICE_IP_PROVIDERS
+        ):
+            continue
+        if parts[-1] != "no-resolve":
+            raise BuildError(
+                f"Business IP provider must use no-resolve: {provider}"
+            )
+        if index == 0:
+            raise BuildError(f"Business IP provider has no domain pair: {provider}")
+        previous = rules[index - 1].split(",")
+        previous_no_resolve = previous[-1] == "no-resolve"
+        previous_policy = previous[-2] if previous_no_resolve else previous[-1]
+        policy = parts[-2]
+        if (
+            previous[0] != "RULE-SET"
+            or len(previous) < 3
+            or providers.get(previous[1], {}).get("behavior") != "domain"
+            or previous_policy != policy
+        ):
+            raise BuildError(
+                f"Business IP provider must immediately follow its domain pair: {provider}"
+            )
 
 
 def regex_text(item: dict[str, str]) -> str:
@@ -661,6 +741,29 @@ def validate_profile(
             raise BuildError(f"Required policy group is missing: {target}")
         if "订阅" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the 订阅 policy group")
+    for provider, filename in provider_files.items():
+        native_rule = generated[filename]
+        if any(
+            field in native_rule
+            for field in ("ip_cidr_set", "ip_cidr6_set", "asn_set", "geoip_set")
+        ) and native_rule.get("no_resolve") is not True:
+            raise BuildError(
+                f"IP-capable native rule set must use no_resolve: {provider}"
+            )
+    routing_offset = 1 + len(expected_nameserver_routes)
+    for source_index, raw in enumerate(model["rules"]):
+        parts = raw.split(",")
+        if (
+            parts[0] == "RULE-SET"
+            and len(parts) >= 3
+            and model["providers"].get(parts[1], {}).get("behavior") == "ipcidr"
+            and parts[1] not in NON_SERVICE_IP_PROVIDERS
+        ):
+            rendered = profile["rules"][routing_offset + source_index].get("rule_set", {})
+            if rendered.get("no_resolve") is not True:
+                raise BuildError(
+                    f"Rendered business IP rule must use no_resolve: {parts[1]}"
+                )
     for index, wrapper in enumerate(profile["rules"]):
         kind, value = next(iter(wrapper.items()))
         policy = value["policy"]
@@ -723,6 +826,7 @@ def main() -> int:
     try:
         model = json.loads(args.model.read_text(encoding="utf-8"))
         providers = model["providers"]
+        validate_business_ip_pairs(model)
         wanted = referenced_providers(model)
         generated: dict[str, dict[str, Any]] = {}
         provider_files: dict[str, str] = {}
@@ -789,12 +893,15 @@ def main() -> int:
             behavior = provider.get("behavior")
             if behavior == "domain":
                 rule = parse_domain_list(source)
+                source_entries = source_rule_count(source)
             elif behavior == "ipcidr":
                 rule = parse_ip_list(source)
+                source_entries = source_rule_count(source)
+            elif behavior == "classical":
+                rule, source_entries = parse_classical_yaml_provider(source)
             else:
                 raise BuildError(f"Unsupported provider behavior {behavior!r} for {name}")
 
-            source_entries = source_rule_count(source)
             entries = output_rule_count(rule)
             if entries != source_entries:
                 raise BuildError(
@@ -946,6 +1053,8 @@ def main() -> int:
                 "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
                 "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",
                 "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed.",
+                "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
+                "The converter repository's Claude classical YAML is mapped to one Egern-native mixed domain, IPv4, IPv6, and ASN rule set.",
             ],
         }
         report_text = json.dumps(report_data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"

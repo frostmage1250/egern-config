@@ -12,6 +12,7 @@ from build_egern import (  # noqa: E402
     bootstrap_nameservers,
     nameservers,
     parse_classical_rule_list,
+    parse_classical_yaml_provider,
     parse_domain_list,
     parse_ip_list,
     referenced_providers,
@@ -22,6 +23,7 @@ from build_egern import (  # noqa: E402
     resolve_provider_source,
     source_rule_count,
     output_rule_count,
+    validate_business_ip_pairs,
 )
 
 
@@ -48,6 +50,7 @@ class EgernBuilderTests(unittest.TestCase):
             "DOMAIN-KEYWORD,apple.com.edgekey.net\n"
             "IP-CIDR,17.249.0.0/16,no-resolve\n"
             "IP-CIDR6,2620:149:a44::/48,no-resolve\n"
+            "IP-ASN,399358,no-resolve\n"
         )
         self.assertEqual(result["domain_suffix_set"], ["push.apple.com"])
         self.assertEqual(
@@ -55,7 +58,29 @@ class EgernBuilderTests(unittest.TestCase):
         )
         self.assertEqual(result["ip_cidr_set"], ["17.249.0.0/16"])
         self.assertEqual(result["ip_cidr6_set"], ["2620:149:a44::/48"])
+        self.assertEqual(result["asn_set"], ["399358"])
         self.assertTrue(result["no_resolve"])
+
+    def test_classical_yaml_provider_preserves_payload_and_requires_no_resolve(self):
+        result, count = parse_classical_yaml_provider(
+            "payload:\n"
+            "  - DOMAIN-SUFFIX,claude.ai\n"
+            "  - DOMAIN-KEYWORD,sentry\n"
+            "  - IP-CIDR,160.79.104.0/21,no-resolve\n"
+            "  - IP-CIDR6,2607:6bc0::/32,no-resolve\n"
+            "  - IP-ASN,399358,no-resolve\n"
+        )
+        self.assertEqual(count, 5)
+        self.assertEqual(result["domain_suffix_set"], ["claude.ai"])
+        self.assertEqual(result["domain_keyword_set"], ["sentry"])
+        self.assertEqual(result["ip_cidr_set"], ["160.79.104.0/21"])
+        self.assertEqual(result["ip_cidr6_set"], ["2607:6bc0::/32"])
+        self.assertEqual(result["asn_set"], ["399358"])
+        self.assertTrue(result["no_resolve"])
+        with self.assertRaises(BuildError):
+            parse_classical_yaml_provider(
+                "payload:\n  - IP-ASN,399358\n"
+            )
 
     def test_provider_source_follows_final_url_not_bundle_path(self):
         provider = {
@@ -80,6 +105,23 @@ class EgernBuilderTests(unittest.TestCase):
             "proxy-rules-converter/converter-commit/"
             "dist/mihomo/geolocation-cn.list",
         )
+
+    def test_converter_classical_provider_uses_pinned_yaml(self):
+        provider = {
+            "url": (
+                "https://raw.githubusercontent.com/frostmage1250/"
+                "proxy-rules-converter/main/dist/mihomo/claude.yaml"
+            ),
+        }
+        result = resolve_provider_source(
+            provider,
+            bett_commit="bett-commit",
+            converter_commit="converter-commit",
+        )
+        self.assertEqual(result["repository"], "frostmage1250/proxy-rules-converter")
+        self.assertEqual(result["commit"], "converter-commit")
+        self.assertEqual(result["path"], "dist/mihomo/claude.yaml")
+        self.assertTrue(result["url"].endswith("/converter-commit/dist/mihomo/claude.yaml"))
 
     def test_bett_provider_source_uses_final_url_and_pinned_commit(self):
         provider = {
@@ -133,6 +175,43 @@ class EgernBuilderTests(unittest.TestCase):
         self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
         self.assertTrue(rules[3]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
+
+    def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
+        valid = {
+            "providers": {
+                "service": {"behavior": "domain"},
+                "service_ip": {"behavior": "ipcidr"},
+                "cn_ip": {"behavior": "ipcidr"},
+            },
+            "rules": [
+                "RULE-SET,service,Proxy",
+                "RULE-SET,service_ip,Proxy,no-resolve",
+                "RULE-SET,cn_ip,Direct",
+                "MATCH,Final",
+            ],
+        }
+        validate_business_ip_pairs(valid)
+        missing_flag = {
+            **valid,
+            "rules": [
+                "RULE-SET,service,Proxy",
+                "RULE-SET,service_ip,Proxy",
+                "MATCH,Final",
+            ],
+        }
+        with self.assertRaises(BuildError):
+            validate_business_ip_pairs(missing_flag)
+        separated = {
+            **valid,
+            "rules": [
+                "RULE-SET,service,Proxy",
+                "DOMAIN-SUFFIX,example.com,Proxy",
+                "RULE-SET,service_ip,Proxy,no-resolve",
+                "MATCH,Final",
+            ],
+        }
+        with self.assertRaises(BuildError):
+            validate_business_ip_pairs(separated)
 
     def test_nameserver_policy_suffixes_become_explicit_routing_rules(self):
         model = {
@@ -207,6 +286,9 @@ class EgernBuilderTests(unittest.TestCase):
                 {"name": "Proxy", "proxies": ["订阅", "日本"]},
                 {"name": "订阅", "proxies": ["__SUBSCRIPTION__"]},
                 {"name": "Direct", "proxies": ["DIRECT", "IPv4优先", "IPv6优先"]},
+                {"name": "GitHub", "proxies": ["Proxy", "订阅", "AI"]},
+                {"name": "Claude", "proxies": ["Proxy", "日本", "其他节点"]},
+                {"name": "AI", "proxies": ["Proxy", "日本", "其他节点"]},
                 {"name": "日本", "proxies": ["__日本__"]},
                 {"name": "其他节点", "proxies": ["__其他节点__"]},
                 {"name": "低倍率节点", "proxies": ["__低倍率节点__"]},
@@ -222,6 +304,8 @@ class EgernBuilderTests(unittest.TestCase):
         }
         self.assertEqual(by_name["订阅"]["urls"], [])
         self.assertEqual(by_name["Direct"]["policies"], ["DIRECT"])
+        self.assertEqual(by_name["GitHub"]["policies"], ["Proxy", "订阅", "AI"])
+        self.assertEqual(by_name["Claude"]["policies"], ["Proxy", "日本", "其他节点"])
         self.assertEqual(by_name["日本"]["policies"], ["订阅"])
         self.assertTrue(by_name["日本"]["flatten"])
         self.assertEqual(

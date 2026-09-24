@@ -8,9 +8,10 @@ to an Egern profile.
   is the Egern profile.
 - `rules/*.yaml` are Egern-native YAML rule sets generated directly from text
   sources. Most Mihomo providers come from `appshubcc/bett-rules`; `geolocation-cn`
-  follows the Mihomo provider URL into `frostmage1250/proxy-rules-converter`.
-  The APNs override comes from `ttyyss2233/Tool/shadowrocket/rules/apns.list`.
-  MRS files are not converted.
+  and the mixed Claude provider follow their Mihomo URLs into
+  `frostmage1250/proxy-rules-converter`. Claude domains, keywords, IPv4, IPv6,
+  and ASN are converted to Egern-native fields. The APNs override comes from
+  `ttyyss2233/Tool/shadowrocket/rules/apns.list`. MRS files are not converted.
 - `reports/source.json` records immutable upstream commits, source hashes, entry
   counts, policy counts, and the generated profile hash.
 - GitHub Actions refreshes the generated repository files every six hours and can also
@@ -34,6 +35,11 @@ the locally configured node subscription can still update independently.
 
 The generator reads the current Mihomo script on every run and preserves its rule
 order, policies, region filters, service groups, DNS choices, and Hosts mappings.
+This includes the dedicated GitHub and Claude groups, Claude-before-AI routing,
+and the consolidated Meta domain/IP pair without redundant Facebook or Threads
+providers. Every paired business IP rule must immediately follow its domain rule
+and is emitted with Egern's native `no_resolve: true`; the build fails if a future
+Mihomo update breaks that invariant.
 The requested APNs override is the sole rule inserted ahead of the Mihomo rules:
 its classical domain/IPv4/IPv6 entries are converted into `rules/apns.yaml`,
 routed through `Proxy`, and placed first in DNS Forward with `Foreign`.
