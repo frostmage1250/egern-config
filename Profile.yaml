@@ -103,6 +103,19 @@ policy_groups:
     policies:
     - DIRECT
 - select:
+    name: GitHub
+    policies:
+    - Proxy
+    - 订阅
+    - AI
+- select:
+    name: Claude
+    policies:
+    - Proxy
+    - 日本
+    - 台湾
+    - 其他节点
+- select:
     name: AI
     policies:
     - Proxy
@@ -224,7 +237,7 @@ rules:
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/github.yaml
-    policy: Proxy
+    policy: GitHub
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft.yaml
@@ -249,20 +262,7 @@ rules:
     policy: 媒体
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/threads.yaml
-    policy: 媒体
-    update_interval: 86400
-- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/meta.yaml
-    policy: 媒体
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/facebook-ip.yaml
-    policy: 媒体
-    update_interval: 86400
-    no_resolve: true
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/facebook.yaml
     policy: 媒体
     update_interval: 86400
 - rule_set:
@@ -301,6 +301,10 @@ rules:
     policy: Google
     update_interval: 86400
     no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/claude.yaml
+    policy: Claude
+    update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/ai.yaml
     policy: AI

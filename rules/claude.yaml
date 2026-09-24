@@ -1,0 +1,30 @@
+domain_set:
+- servd-anthropic-website.b-cdn.net
+- anthropic.com.cdn.cloudflare.net
+- anthropic.auth0.com
+- anthropic-com.ghost.io
+- browser-intake-us5-datadoghq.com
+- cdn.usefathom.com
+domain_keyword_set:
+- datadog
+- sift
+- sentry
+domain_suffix_set:
+- anthropic.com
+- clau.de
+- claude.ai
+- claude.com
+- claudemcpclient.com
+- claudemcpcontent.com
+- claudeusercontent.com
+- sentry.io
+- statsigapi.net
+- intercom.io
+- intercomcdn.com
+ip_cidr_set:
+- 160.79.104.0/21
+ip_cidr6_set:
+- 2607:6bc0::/32
+asn_set:
+- '399358'
+no_resolve: true

@@ -41,10 +41,12 @@
     "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
     "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
     "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",
-    "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed."
+    "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed.",
+    "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
+    "The converter repository's Claude classical YAML is mapped to one Egern-native mixed domain, IPv4, IPv6, and ASN rule set."
   ],
   "mihomo_script": {
-    "commit": "7196e1710f1173cbf9f526c0f738f7fbe9d7e0b1",
+    "commit": "ef9b21c8ac57d1d0faf0aa69674a14f850b3b998",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -259,20 +261,6 @@
     },
     {
       "behavior": "domain",
-      "entries": 2,
-      "output": "rules/threads.yaml",
-      "provider": "threads",
-      "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/threads.mrs",
-      "source_commit": "7515e77a9b4468a45e78bfab27c66b7e7dfc3e5a",
-      "source_entries": 2,
-      "source_path": "geo/geosite/threads.list",
-      "source_ref": "meta",
-      "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "77e44a4fe816e840abf6279a11cc88e418d5792d2ddf7bf8e93e42eb426a84f9",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7515e77a9b4468a45e78bfab27c66b7e7dfc3e5a/geo/geosite/threads.list"
-    },
-    {
-      "behavior": "domain",
       "entries": 555,
       "output": "rules/meta.yaml",
       "provider": "meta",
@@ -298,20 +286,6 @@
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "d9a4e48275407e60472f6b7f3fd3f7a12c78b5aa5c6d8d6b523602518c53af49",
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7515e77a9b4468a45e78bfab27c66b7e7dfc3e5a/geo/geoip/facebook.list"
-    },
-    {
-      "behavior": "domain",
-      "entries": 397,
-      "output": "rules/facebook.yaml",
-      "provider": "facebook",
-      "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/facebook.mrs",
-      "source_commit": "7515e77a9b4468a45e78bfab27c66b7e7dfc3e5a",
-      "source_entries": 397,
-      "source_path": "geo/geosite/facebook.list",
-      "source_ref": "meta",
-      "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "1b5263aab7ad33d10634bf31ba38073030d5093fa29e53c701e607e66467e329",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7515e77a9b4468a45e78bfab27c66b7e7dfc3e5a/geo/geosite/facebook.list"
     },
     {
       "behavior": "domain",
@@ -412,6 +386,20 @@
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7515e77a9b4468a45e78bfab27c66b7e7dfc3e5a/geo/geoip/google.list"
     },
     {
+      "behavior": "classical",
+      "entries": 23,
+      "output": "rules/claude.yaml",
+      "provider": "claude",
+      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/claude.yaml",
+      "source_commit": "ccc9574c06731db6c854850e641a0d72e1c615d0",
+      "source_entries": 23,
+      "source_path": "dist/mihomo/claude.yaml",
+      "source_ref": "main",
+      "source_repository": "frostmage1250/proxy-rules-converter",
+      "source_sha256": "3c48b735bb646dfcf13d2f049897d647540390efd5c94a0f385adafde66aa96b",
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/ccc9574c06731db6c854850e641a0d72e1c615d0/dist/mihomo/claude.yaml"
+    },
+    {
       "behavior": "domain",
       "entries": 181,
       "output": "rules/ai.yaml",
@@ -474,13 +462,13 @@
       "output": "rules/geolocation-cn.yaml",
       "provider": "geolocation-cn",
       "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/geolocation-cn.mrs",
-      "source_commit": "6fc82b80ac62449d02315d8ddd0a7e63b8737c93",
+      "source_commit": "ccc9574c06731db6c854850e641a0d72e1c615d0",
       "source_entries": 7811,
       "source_path": "dist/mihomo/geolocation-cn.list",
       "source_ref": "main",
       "source_repository": "frostmage1250/proxy-rules-converter",
       "source_sha256": "71b508360e11046c12fb9b7054ba32cfbce06f50bc8655a58fb3597222fd8e87",
-      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/6fc82b80ac62449d02315d8ddd0a7e63b8737c93/dist/mihomo/geolocation-cn.list"
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/ccc9574c06731db6c854850e641a0d72e1c615d0/dist/mihomo/geolocation-cn.list"
     },
     {
       "behavior": "ipcidr",
@@ -525,21 +513,21 @@
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7515e77a9b4468a45e78bfab27c66b7e7dfc3e5a/geo/geosite/cn.list"
     }
   ],
-  "policy_groups": 16,
-  "profile_sha256": "8a30898cc6c8dbcf214f00576d82f49a1b62e414b7a3da5cfecea79a548c5b3c",
+  "policy_groups": 18,
+  "profile_sha256": "190e2ba9d69d559cca64da54a67a5a1aca5af5b2b61be71b117e6f795839af87",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "6fc82b80ac62449d02315d8ddd0a7e63b8737c93",
+    "commit": "ccc9574c06731db6c854850e641a0d72e1c615d0",
     "geolocation_cn": {
       "expected_entries": 7811,
       "list_path": "dist/mihomo/geolocation-cn.list",
       "report_path": "reports/geolocation-cn.json",
       "report_sha256": "97101ed995cfc480897f1b81ca396efd169b267a0f66fccfdd42e94cce1cea79",
-      "report_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/6fc82b80ac62449d02315d8ddd0a7e63b8737c93/reports/geolocation-cn.json"
+      "report_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/ccc9574c06731db6c854850e641a0d72e1c615d0/reports/geolocation-cn.json"
     },
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 37,
+  "routing_rules": 35,
   "schema_version": 2,
   "subscription": {
     "default_proxy_group": null,
