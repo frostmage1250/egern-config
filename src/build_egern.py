@@ -503,6 +503,7 @@ def render_rules(
     model: dict[str, Any], provider_files: dict[str, str]
 ) -> list[dict[str, Any]]:
     rules: list[dict[str, Any]] = [
+        {"protocol": {"match": "stun", "policy": "REJECT"}},
         {
             "rule_set": {
                 "match": f"{RAW_BASE}/rules/{APNS_FILENAME}",
@@ -710,15 +711,18 @@ def validate_profile(
     known = set(names) | BUILTIN_POLICIES
     if APNS_FILENAME not in generated:
         raise BuildError("APNs native rule set was not generated")
-    first_rule = profile["rules"][0].get("rule_set", {})
+    first_rule = profile["rules"][0].get("protocol", {})
+    if first_rule != {"match": "stun", "policy": "REJECT"}:
+        raise BuildError("STUN blocking must be the first routing rule")
+    apns_rule = profile["rules"][1].get("rule_set", {})
     if (
-        first_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
-        or first_rule.get("policy") != "Proxy"
-        or first_rule.get("no_resolve") is not True
+        apns_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
+        or apns_rule.get("policy") != "Proxy"
+        or apns_rule.get("no_resolve") is not True
     ):
-        raise BuildError("APNs rule set must be the first routing rule and use Proxy")
+        raise BuildError("APNs rule set must immediately follow STUN blocking and use Proxy")
     expected_nameserver_routes = render_nameserver_route_rules(model)
-    if profile["rules"][1:1 + len(expected_nameserver_routes)] != expected_nameserver_routes:
+    if profile["rules"][2:2 + len(expected_nameserver_routes)] != expected_nameserver_routes:
         raise BuildError("Mihomo DNS nameserver policy suffixes were not preserved")
     first_dns_rule = profile["dns"]["forward"][0].get("proxy_rule_set", {})
     if (
@@ -752,7 +756,7 @@ def validate_profile(
             raise BuildError(
                 f"IP-capable native rule set must use no_resolve: {provider}"
             )
-    routing_offset = 1 + len(expected_nameserver_routes)
+    routing_offset = 2 + len(expected_nameserver_routes)
     for source_index, raw in enumerate(model["rules"]):
         parts = raw.split(",")
         if (
@@ -1053,7 +1057,8 @@ def main() -> int:
                 "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
-                "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
+                "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
+                "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed immediately after STUN blocking with Proxy/Foreign DNS handling.",
                 "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
                 "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",
                 "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed.",

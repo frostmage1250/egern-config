@@ -40,9 +40,10 @@ and the consolidated Meta domain/IP pair without redundant Facebook or Threads
 providers. Every paired business IP rule must immediately follow its domain rule
 and is emitted with Egern's native `no_resolve: true`; the build fails if a future
 Mihomo update breaks that invariant.
-The requested APNs override is the sole rule inserted ahead of the Mihomo rules:
-its classical domain/IPv4/IPv6 entries are converted into `rules/apns.yaml`,
-routed through `Proxy`, and placed first in DNS Forward with `Foreign`.
+Two user-requested Egern overrides precede the Mihomo routing rules: a global
+`protocol: stun` rule routed to `REJECT`, followed by the APNs override.
+The APNs classical domain/IPv4/IPv6 entries are converted into `rules/apns.yaml`,
+routed through `Proxy`, and remain first in DNS Forward with `Foreign`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
 Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy`
 and every explicit Direct domain rule become ordered Egern DNS Forward rules that

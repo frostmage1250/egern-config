@@ -166,14 +166,18 @@ class EgernBuilderTests(unittest.TestCase):
         }
         rules = render_rules(model, {"domain": "domain.yaml", "ip": "ip.yaml"})
         self.assertEqual(
-            rules[0]["rule_set"]["match"],
+            rules[0],
+            {"protocol": {"match": "stun", "policy": "REJECT"}},
+        )
+        self.assertEqual(
+            rules[1]["rule_set"]["match"],
             "https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml",
         )
-        self.assertEqual(rules[0]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[0]["rule_set"]["no_resolve"])
-        self.assertEqual(list(rules[1]), ["domain_suffix"])
-        self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[3]["rule_set"]["no_resolve"])
+        self.assertEqual(rules[1]["rule_set"]["policy"], "Proxy")
+        self.assertTrue(rules[1]["rule_set"]["no_resolve"])
+        self.assertEqual(list(rules[2]), ["domain_suffix"])
+        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
+        self.assertTrue(rules[4]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
@@ -254,7 +258,7 @@ class EgernBuilderTests(unittest.TestCase):
             ],
         )
         self.assertEqual(render_nameserver_route_rules(model), expected)
-        self.assertEqual(render_rules(model, {})[1:4], expected)
+        self.assertEqual(render_rules(model, {})[2:5], expected)
 
     def test_nameserver_policy_suffix_cannot_be_silently_dropped(self):
         with self.assertRaises(BuildError):
