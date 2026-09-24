@@ -38,7 +38,8 @@
     "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
     "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
-    "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed first with Proxy/Foreign DNS handling.",
+    "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
+    "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed immediately after STUN blocking with Proxy/Foreign DNS handling.",
     "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
     "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",
     "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed.",
@@ -514,7 +515,7 @@
     }
   ],
   "policy_groups": 18,
-  "profile_sha256": "58046542c43988b38c6840d9c02be0dfd611a520a06fd606b9544617545ea638",
+  "profile_sha256": "4a6e110d84373aaea440a1d68a9e5cd79191a1e77ab2a320aa64a7df24257344",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "ccc9574c06731db6c854850e641a0d72e1c615d0",
@@ -527,7 +528,7 @@
     },
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 35,
+  "routing_rules": 36,
   "schema_version": 2,
   "subscription": {
     "default_proxy_group": "代理",

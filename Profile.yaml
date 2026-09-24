@@ -192,6 +192,9 @@ policy_groups:
     - Proxy
     - Direct
 rules:
+- protocol:
+    match: stun
+    policy: REJECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml
     policy: Proxy
