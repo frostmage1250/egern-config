@@ -47,7 +47,7 @@
     "The converter repository's Claude classical YAML is mapped to one Egern-native mixed domain, IPv4, IPv6, and ASN rule set."
   ],
   "mihomo_script": {
-    "commit": "ef9b21c8ac57d1d0faf0aa69674a14f850b3b998",
+    "commit": "1b3b58d06fc549b0d29933676fe43fe9cb2bc8ae",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -515,7 +515,7 @@
     }
   ],
   "policy_groups": 18,
-  "profile_sha256": "4a6e110d84373aaea440a1d68a9e5cd79191a1e77ab2a320aa64a7df24257344",
+  "profile_sha256": "da9307cd86b7952ebbae993eb7e8a66a6efc43ad84f0f9ca25592a93a324d8ae",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "adbbd0b6db39d2b107c4a90f0bcb35f31393c52c",
