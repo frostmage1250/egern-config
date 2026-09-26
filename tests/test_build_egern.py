@@ -14,6 +14,7 @@ from build_egern import (  # noqa: E402
     nameservers,
     referenced_providers,
     render_dns_forward,
+    render_dns_upstreams,
     render_nameserver_route_rules,
     render_policy_groups,
     render_rules,
@@ -263,6 +264,25 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"domain_wildcard": {"match": "*", "value": "Foreign"}},
             ],
         )
+
+    def test_dns_policy_preserves_system_and_explicit_servers(self):
+        model = {
+            "dns": {
+                "nameserver": ["https://dns.google/dns-query#Proxy"],
+                "nameserver-policy": {
+                    "rule-set:douyin": ["system", "180.184.1.1", "180.184.2.2"]
+                },
+            },
+            "rules": [],
+        }
+        self.assertEqual(
+            render_dns_upstreams(model)["Policy-douyin"],
+            ["system", "180.184.1.1", "180.184.2.2"],
+        )
+        forward = render_dns_forward(
+            model, {"douyin": {"behavior": "domain"}}, {"douyin": "douyin.yaml"}
+        )
+        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Policy-douyin")
 
     def test_dns_policy_provider_is_generated_even_when_not_in_routing_rules(self):
         model = {

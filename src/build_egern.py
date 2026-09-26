@@ -343,19 +343,48 @@ def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
     return result
 
 
-def dns_policy_target(value: Any) -> str:
+def dns_policy_servers(value: Any) -> list[str]:
     values = value if isinstance(value, list) else [value]
-    cleaned = [
-        item.rsplit("#", 1)[0].strip()
-        for item in values
-        if isinstance(item, str) and item.strip()
-    ]
-    if cleaned and all(item in {"system", "system://"} for item in cleaned):
+    if not values or any(not isinstance(item, str) or not item.strip() for item in values):
+        raise BuildError(f"Invalid Mihomo nameserver-policy target: {value!r}")
+    servers: list[str] = []
+    for item in values:
+        server, suffix = split_nameserver_policy(item)
+        if suffix not in {None, "DIRECT"}:
+            raise BuildError(f"Unsupported nameserver-policy route: {item!r}")
+        if server in {"system", "system://"}:
+            servers.append("system")
+            continue
+        try:
+            ipaddress.ip_address(server)
+        except ValueError as exc:
+            raise BuildError(f"Unsupported Mihomo nameserver-policy server: {item!r}") from exc
+        servers.append(server)
+    return servers
+
+
+def dns_policy_target(value: Any, provider: str) -> str:
+    servers = dns_policy_servers(value)
+    if all(server == "system" for server in servers):
         return "system"
-    raise BuildError(
-        "Egern DNS Forward cannot preserve this Mihomo nameserver-policy target: "
-        + repr(value)
-    )
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", provider):
+        raise BuildError(f"Invalid DNS policy provider name: {provider!r}")
+    return "Policy-" + provider.replace("_", "-")
+
+
+def render_dns_upstreams(model: dict[str, Any]) -> dict[str, list[str]]:
+    upstreams = {"Foreign": nameservers(model)}
+    for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
+        if not isinstance(key, str) or not key.startswith("rule-set:"):
+            raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
+        provider = key.removeprefix("rule-set:")
+        group = dns_policy_target(target, provider)
+        if group != "system":
+            servers = dns_policy_servers(target)
+            if group in upstreams and upstreams[group] != servers:
+                raise BuildError(f"Conflicting DNS policy upstream group: {group}")
+            upstreams[group] = servers
+    return upstreams
 
 
 def render_dns_forward(
@@ -399,7 +428,7 @@ def render_dns_forward(
         add(
             "proxy_rule_set",
             f"{RAW_BASE}/dist/egern/{filename}",
-            dns_policy_target(target),
+            dns_policy_target(target, provider),
         )
 
     # Egern has no policy-aware direct re-resolution. Preserve every explicit
@@ -548,6 +577,8 @@ def validate_profile(
         raise BuildError("Unsourced Egern connection-closing behavior must not be enabled")
     if dns.get("bootstrap") != bootstrap_nameservers(model):
         raise BuildError("Mihomo default-nameserver was not preserved as Egern bootstrap")
+    if dns.get("upstreams") != render_dns_upstreams(model):
+        raise BuildError("Mihomo nameserver-policy upstreams were not preserved")
     expected_forward = render_dns_forward(model, model["providers"], provider_files)
     if dns.get("forward") != expected_forward:
         raise BuildError("Mihomo DNS policy and Direct-domain DNS were not preserved")
@@ -670,7 +701,7 @@ def main() -> int:
             "default_proxy_group": "代理",
             "dns": {
                 "bootstrap": bootstrap_nameservers(model),
-                "upstreams": {"Foreign": nameservers(model)},
+                "upstreams": render_dns_upstreams(model),
                 "forward": render_dns_forward(model, model["providers"], provider_files),
                 "hosts": hosts(model),
                 "proxy_nameservers": MESL_PROXY_DNS,
@@ -699,6 +730,7 @@ def main() -> int:
             "dns": {
                 "bootstrap": profile["dns"]["bootstrap"],
                 "forward_rules": len(profile["dns"]["forward"]),
+                "upstreams": profile["dns"]["upstreams"],
                 "nameserver_route_rules": len(render_nameserver_route_rules(model)),
                 "proxy_nameservers": profile["dns"]["proxy_nameservers"],
             },
@@ -713,7 +745,7 @@ def main() -> int:
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
                 "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
-                "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
+                "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
                 "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
