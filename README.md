@@ -6,14 +6,11 @@ to an Egern profile.
 
 - [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-config/main/Profile.yaml)
   is the Egern profile.
-- `rules/*.yaml` are Egern-native YAML rule sets generated directly from text
-  sources. Most Mihomo providers come from `appshubcc/bett-rules`; `geolocation-cn`
-  and the mixed Claude provider follow their Mihomo URLs into
-  `frostmage1250/proxy-rules-converter`. Claude domains, keywords, IPv4, IPv6,
-  and ASN are converted to Egern-native fields. The APNs override comes from
-  `ttyyss2233/Tool/shadowrocket/rules/apns.list`. MRS files are not converted.
-- `reports/source.json` records immutable upstream commits, source hashes, entry
-  counts, policy counts, and the generated profile hash.
+- Egern-native rule sets, including APNs, are generated in
+  [`frostmage1250/proxy-rules-converter`](https://github.com/frostmage1250/proxy-rules-converter/tree/main/dist/egern).
+  This profile references their stable `main/dist/egern/*.yaml` URLs.
+- `reports/source.json` records the pinned converter manifest and commit, the
+  verified rule sources, policy counts, and the generated profile hash.
 - GitHub Actions refreshes the generated repository files every six hours and can also
   be run manually. The Egern profile itself deliberately has no root
   `auto_update`; re-import it manually when you want to replace the active profile.
@@ -33,7 +30,8 @@ the locally configured node subscription can still update independently.
 
 ## Migration behavior
 
-The generator reads the current Mihomo script on every run and preserves its rule
+The generator reads the Mihomo script commit recorded in the published rule
+manifest on every run and preserves its rule
 order, policies, region filters, service groups, DNS choices, and Hosts mappings.
 This includes the dedicated GitHub and Claude groups, Claude-before-AI routing,
 and the consolidated Meta domain/IP pair without redundant Facebook or Threads
@@ -42,7 +40,7 @@ and is emitted with Egern's native `no_resolve: true`; the build fails if a futu
 Mihomo update breaks that invariant.
 Two user-requested Egern overrides precede the Mihomo routing rules: a global
 `protocol: stun` rule routed to `REJECT`, followed by the APNs override.
-The APNs classical domain/IPv4/IPv6 entries are converted into `rules/apns.yaml`,
+The APNs classical domain/IPv4/IPv6 entries are converted in the rule converter into `dist/egern/apns.yaml`,
 routed through `Proxy`, and remain first in DNS Forward with `Foreign`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
 Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy`
@@ -65,3 +63,13 @@ rule and records that platform boundary in `reports/source.json`.
 The only deliberate platform mapping is that Mihomo's IPv4/IPv6-preferred DIRECT
 pseudo-proxies become Egern's built-in `DIRECT`; Egern has no equivalent
 per-DIRECT-policy IP-version selector.
+
+## Generation boundary
+
+`proxy-rules-converter` publishes and verifies all Egern-native rules and the
+`reports/egern-source.json` manifest first. This repository pins that published
+converter commit, uses the manifest's Mihomo commit to render `Profile.yaml`,
+and verifies every referenced YAML against its manifest hash. The workflow
+commits only `Profile.yaml` and `reports/source.json`; it no longer generates
+`rules/*.yaml`. Existing rule files remain as read-only compatibility paths
+for profiles imported before the migration.

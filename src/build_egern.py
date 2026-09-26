@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Generate an Egern profile and native YAML rule sets from the current Mihomo script."""
+"""Generate the Egern profile from a published converter rule manifest."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
-import ipaddress
 import json
 import re
 import sys
@@ -16,20 +15,13 @@ from typing import Any
 
 import yaml
 
-
 ROOT = Path(__file__).resolve().parents[1]
-RULE_DIR = ROOT / "rules"
 PROFILE_PATH = ROOT / "Profile.yaml"
 REPORT_PATH = ROOT / "reports" / "source.json"
-RAW_BASE = "https://raw.githubusercontent.com/frostmage1250/egern-config/main"
+RAW_BASE = "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main"
 MIHOMO_REPO = "frostmage1250/mihomo-script"
-BETT_REPO = "appshubcc/bett-rules"
 CONVERTER_REPO = "frostmage1250/proxy-rules-converter"
-CONVERTER_GEOLOCATION_LIST_PATH = "dist/mihomo/geolocation-cn.list"
-CONVERTER_GEOLOCATION_REPORT_PATH = "reports/geolocation-cn.json"
-CONVERTER_CLAUDE_RULE_PATH = "dist/mihomo/claude.yaml"
-APNS_REPO = "ttyyss2233/Tool"
-APNS_PATH = "shadowrocket/rules/apns.list"
+CONVERTER_MANIFEST_PATH = "reports/egern-source.json"
 APNS_FILENAME = "apns.yaml"
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
@@ -66,7 +58,6 @@ REAL_IP_DOMAINS = [
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
 NON_SERVICE_IP_PROVIDERS = {"cn_ip", "private_ip"}
 
-
 class BuildError(RuntimeError):
     pass
 
@@ -74,100 +65,6 @@ class BuildError(RuntimeError):
 def unique(values: list[str]) -> list[str]:
     return list(dict.fromkeys(values))
 
-
-def slug(name: str) -> str:
-    aliases = {
-        "geolocation-!cn": "geolocation-non-cn",
-        "private_ip": "private-ip",
-        "cn_ip": "cn-ip",
-        "google_ip": "google-ip",
-        "microsoft_ip": "microsoft-ip",
-        "apple_ip": "apple-ip",
-        "telegram_ip": "telegram-ip",
-        "steam_ip": "steam-ip",
-        "tiktok_ip": "tiktok-ip",
-        "twitter_ip": "twitter-ip",
-        "facebook_ip": "facebook-ip",
-        "fakeip_filter": "fakeip-filter",
-    }
-    value = aliases.get(name, name.replace("_", "-").replace("!", "not-"))
-    value = re.sub(r"[^A-Za-z0-9.-]+", "-", value).strip("-").lower()
-    if not value:
-        raise BuildError(f"Provider name cannot become a file name: {name!r}")
-    return value
-
-
-def resolve_provider_source(
-    provider: dict[str, Any],
-    *,
-    bett_commit: str,
-    converter_commit: str,
-) -> dict[str, str]:
-    provider_url = provider.get("url")
-    if not isinstance(provider_url, str) or not provider_url:
-        raise BuildError(f"Provider has no final URL: {provider}")
-
-    parsed = urlsplit(provider_url)
-    repository: str
-    ref: str
-    published_path: str
-    if parsed.netloc == "fastly.jsdelivr.net":
-        match = re.fullmatch(
-            r"/gh/([^/]+/[^/@]+)@([^/]+)/(.+\.mrs)",
-            parsed.path,
-        )
-        if not match:
-            raise BuildError(f"Unsupported jsDelivr provider URL: {provider_url}")
-        repository, ref, published_path = match.groups()
-    elif parsed.netloc == "raw.githubusercontent.com":
-        match = re.fullmatch(
-            r"/([^/]+/[^/]+)/([^/]+)/(.+)",
-            parsed.path,
-        )
-        if not match:
-            raise BuildError(f"Unsupported raw GitHub provider URL: {provider_url}")
-        repository, ref, published_path = match.groups()
-    else:
-        raise BuildError(f"Unsupported provider URL host: {provider_url}")
-
-    if published_path.endswith(".mrs"):
-        source_path = published_path.removesuffix(".mrs") + ".list"
-    elif published_path.endswith(".yaml"):
-        source_path = published_path
-    else:
-        raise BuildError(f"Unsupported provider artifact: {provider_url}")
-
-    if repository == BETT_REPO and ref == "meta":
-        if not published_path.endswith(".mrs"):
-            raise BuildError(f"Unsupported bett-rules provider artifact: {provider_url}")
-        commit = bett_commit
-    elif repository == CONVERTER_REPO and ref == "main":
-        allowed = {
-            "dist/mihomo/geolocation-cn.mrs": CONVERTER_GEOLOCATION_LIST_PATH,
-            CONVERTER_CLAUDE_RULE_PATH: CONVERTER_CLAUDE_RULE_PATH,
-        }
-        expected_source = allowed.get(published_path)
-        if expected_source is None:
-            raise BuildError(
-                f"Unsupported proxy-rules-converter provider path: {published_path}"
-            )
-        source_path = expected_source
-        commit = converter_commit
-    else:
-        raise BuildError(
-            f"Unsupported provider source {repository}@{ref}: {provider_url}"
-        )
-
-    return {
-        "provider_url": provider_url,
-        "repository": repository,
-        "ref": ref,
-        "commit": commit,
-        "path": source_path,
-        "url": (
-            f"https://raw.githubusercontent.com/{repository}/{commit}/{source_path}"
-        ),
-    }
 
 
 def download_text(url: str) -> str:
@@ -177,148 +74,6 @@ def download_text(url: str) -> str:
             raise BuildError(f"HTTP error while fetching {url}")
         return response.read().decode("utf-8-sig")
 
-
-def source_rule_count(text: str) -> int:
-    return sum(
-        1
-        for raw in text.splitlines()
-        if (line := raw.strip()) and not line.startswith(("#", ";", "//"))
-    )
-
-
-def output_rule_count(rule: dict[str, Any]) -> int:
-    return sum(len(value) for value in rule.values() if isinstance(value, list))
-
-
-def parse_domain_list(text: str) -> dict[str, Any]:
-    fields: dict[str, list[str]] = {
-        "domain_set": [],
-        "domain_keyword_set": [],
-        "domain_suffix_set": [],
-        "domain_regex_set": [],
-        "domain_wildcard_set": [],
-    }
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith(("#", ";", "//")):
-            continue
-        if line.startswith("+."):
-            fields["domain_suffix_set"].append(line[2:])
-        elif line.startswith("full:"):
-            fields["domain_set"].append(line[5:])
-        elif line.startswith("domain:"):
-            fields["domain_suffix_set"].append(line[7:])
-        elif line.startswith("keyword:"):
-            fields["domain_keyword_set"].append(line[8:])
-        elif line.startswith(("regexp:", "regex:")):
-            fields["domain_regex_set"].append(line.split(":", 1)[1])
-        elif "*" in line or "?" in line:
-            fields["domain_wildcard_set"].append(line)
-        else:
-            fields["domain_set"].append(line)
-    result = {key: value for key, value in fields.items() if value}
-    if not result:
-        raise BuildError("Domain source produced an empty rule set")
-    return result
-
-
-def parse_ip_list(text: str) -> dict[str, Any]:
-    ipv4: list[str] = []
-    ipv6: list[str] = []
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith(("#", ";", "//")):
-            continue
-        try:
-            network = ipaddress.ip_network(line, strict=False)
-        except ValueError as exc:
-            raise BuildError(f"Invalid IP network {line!r}") from exc
-        target = ipv4 if network.version == 4 else ipv6
-        target.append(line)
-    result: dict[str, Any] = {"no_resolve": True}
-    if ipv4:
-        result["ip_cidr_set"] = ipv4
-    if ipv6:
-        result["ip_cidr6_set"] = ipv6
-    if len(result) == 1:
-        raise BuildError("IP source produced an empty rule set")
-    return result
-
-
-def parse_classical_rule_list(text: str) -> dict[str, Any]:
-    fields: dict[str, list[str]] = {
-        "domain_set": [],
-        "domain_keyword_set": [],
-        "domain_suffix_set": [],
-        "ip_cidr_set": [],
-        "ip_cidr6_set": [],
-        "asn_set": [],
-    }
-    ip_rule_count = 0
-    no_resolve_ip_rule_count = 0
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith(("#", ";", "//")):
-            continue
-        parts = [part.strip() for part in line.split(",")]
-        kind = parts[0]
-        if len(parts) < 2 or not parts[1]:
-            raise BuildError(f"Invalid classical rule: {line!r}")
-        value = parts[1]
-        if kind == "DOMAIN":
-            fields["domain_set"].append(value)
-        elif kind == "DOMAIN-KEYWORD":
-            fields["domain_keyword_set"].append(value)
-        elif kind == "DOMAIN-SUFFIX":
-            fields["domain_suffix_set"].append(value)
-        elif kind in {"IP-CIDR", "IP-CIDR6"}:
-            try:
-                network = ipaddress.ip_network(value, strict=False)
-            except ValueError as exc:
-                raise BuildError(f"Invalid classical IP network {value!r}") from exc
-            expected_version = 4 if kind == "IP-CIDR" else 6
-            if network.version != expected_version:
-                raise BuildError(f"{kind} has the wrong address family: {value!r}")
-            target = "ip_cidr_set" if network.version == 4 else "ip_cidr6_set"
-            fields[target].append(value)
-            ip_rule_count += 1
-            no_resolve_ip_rule_count += int("no-resolve" in parts[2:])
-        elif kind == "IP-ASN":
-            if not re.fullmatch(r"(?:AS)?[1-9][0-9]*", value, re.I):
-                raise BuildError(f"Invalid classical ASN {value!r}")
-            fields["asn_set"].append(value)
-            ip_rule_count += 1
-            no_resolve_ip_rule_count += int("no-resolve" in parts[2:])
-        else:
-            raise BuildError(f"Unsupported classical rule: {line!r}")
-    if ip_rule_count != no_resolve_ip_rule_count:
-        raise BuildError("Every classical IP/ASN rule must use no-resolve")
-    result: dict[str, Any] = {
-        key: values for key, values in fields.items() if values
-    }
-    if ip_rule_count:
-        result["no_resolve"] = True
-    if not result or result == {"no_resolve": True}:
-        raise BuildError("Classical source produced an empty rule set")
-    return result
-
-
-def parse_classical_yaml_provider(text: str) -> tuple[dict[str, Any], int]:
-    try:
-        document = yaml.safe_load(text)
-    except yaml.YAMLError as exc:
-        raise BuildError("Classical provider is not valid YAML") from exc
-    if not isinstance(document, dict) or set(document) != {"payload"}:
-        raise BuildError("Classical YAML provider must contain only payload")
-    payload = document["payload"]
-    if (
-        not isinstance(payload, list)
-        or not payload
-        or any(not isinstance(line, str) or not line.strip() for line in payload)
-    ):
-        raise BuildError("Classical YAML payload must be a non-empty string list")
-    lines = [line.strip() for line in payload]
-    return parse_classical_rule_list("\n".join(lines)), len(lines)
 
 
 def referenced_providers(model: dict[str, Any]) -> list[str]:
@@ -506,7 +261,7 @@ def render_rules(
         {"protocol": {"match": "stun", "policy": "REJECT"}},
         {
             "rule_set": {
-                "match": f"{RAW_BASE}/rules/{APNS_FILENAME}",
+                "match": f"{RAW_BASE}/dist/egern/{APNS_FILENAME}",
                 "policy": "Proxy",
                 "update_interval": 86400,
                 "no_resolve": True,
@@ -526,7 +281,7 @@ def render_rules(
             no_resolve = parts[-1] == "no-resolve"
             policy = parts[-2] if no_resolve else parts[-1]
             item: dict[str, Any] = {
-                "match": f"{RAW_BASE}/rules/{provider_files[provider]}",
+                "match": f"{RAW_BASE}/dist/egern/{provider_files[provider]}",
                 "policy": policy,
                 "update_interval": 86400,
             }
@@ -623,7 +378,7 @@ def render_dns_forward(
     # User-requested APNs override is the highest-priority proxied DNS rule.
     add(
         "proxy_rule_set",
-        f"{RAW_BASE}/rules/{APNS_FILENAME}",
+        f"{RAW_BASE}/dist/egern/{APNS_FILENAME}",
         "Foreign",
     )
 
@@ -642,7 +397,7 @@ def render_dns_forward(
             raise BuildError(f"DNS policy provider was not generated: {provider}")
         add(
             "proxy_rule_set",
-            f"{RAW_BASE}/rules/{filename}",
+            f"{RAW_BASE}/dist/egern/{filename}",
             dns_policy_target(target),
         )
 
@@ -668,7 +423,7 @@ def render_dns_forward(
                 raise BuildError(f"Direct DNS provider was not generated: {provider}")
             add(
                 "proxy_rule_set",
-                f"{RAW_BASE}/rules/{filename}",
+                f"{RAW_BASE}/dist/egern/{filename}",
                 "system",
             )
         elif kind == "DOMAIN-SUFFIX" and len(parts) == 3:
@@ -716,7 +471,7 @@ def validate_profile(
         raise BuildError("STUN blocking must be the first routing rule")
     apns_rule = profile["rules"][1].get("rule_set", {})
     if (
-        apns_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
+        apns_rule.get("match") != f"{RAW_BASE}/dist/egern/{APNS_FILENAME}"
         or apns_rule.get("policy") != "Proxy"
         or apns_rule.get("no_resolve") is not True
     ):
@@ -726,7 +481,7 @@ def validate_profile(
         raise BuildError("Mihomo DNS nameserver policy suffixes were not preserved")
     first_dns_rule = profile["dns"]["forward"][0].get("proxy_rule_set", {})
     if (
-        first_dns_rule.get("match") != f"{RAW_BASE}/rules/{APNS_FILENAME}"
+        first_dns_rule.get("match") != f"{RAW_BASE}/dist/egern/{APNS_FILENAME}"
         or first_dns_rule.get("value") != "Foreign"
     ):
         raise BuildError("APNs rule set must be the first DNS Forward rule and use Foreign")
@@ -810,6 +565,71 @@ def validate_profile(
             raise BuildError(f"Flower host mapping missing: {hostname}")
 
 
+
+def load_manifest_rules(
+    model: dict[str, Any], manifest: dict[str, Any], converter_commit: str
+) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+    if manifest.get("schema_version") != 1:
+        raise BuildError("Unsupported Egern rule manifest schema")
+    if manifest.get("mihomo_script", {}).get("repository") != MIHOMO_REPO:
+        raise BuildError("Rule manifest has an unexpected Mihomo repository")
+    records = manifest.get("native_rule_sets")
+    wanted = referenced_providers(model)
+    if not isinstance(records, list) or [
+        record.get("provider") for record in records if isinstance(record, dict)
+    ] != ["apns", *wanted] or len(records) != len(wanted) + 1:
+        raise BuildError("Rule manifest does not match the Mihomo provider model")
+
+    generated: dict[str, dict[str, Any]] = {}
+    provider_files: dict[str, str] = {}
+    for record in records:
+        name = record["provider"]
+        output = record.get("output")
+        if (
+            not isinstance(output, str)
+            or not re.fullmatch(r"dist/egern/[A-Za-z0-9.-]+\.yaml", output)
+        ):
+            raise BuildError(f"Invalid published Egern rule path for {name}")
+        filename = Path(output).name
+        if filename in generated:
+            raise BuildError(f"Duplicate published Egern rule path: {filename}")
+        if name == "apns":
+            if (
+                output != "dist/egern/apns.yaml"
+                or record.get("source_repository") != "ttyyss2233/Tool"
+                or record.get("source_path") != "shadowrocket/rules/apns.list"
+            ):
+                raise BuildError("APNs rule manifest source or path changed")
+        else:
+            provider = model["providers"].get(name)
+            if (
+                provider is None
+                or record.get("provider_url") != provider.get("url")
+                or record.get("behavior") != provider.get("behavior")
+            ):
+                raise BuildError(f"Rule manifest source differs from Mihomo: {name}")
+            provider_files[name] = filename
+        if record.get("source_entries") != record.get("entries") or not isinstance(
+            record.get("entries"), int
+        ) or record["entries"] <= 0:
+            raise BuildError(f"Rule manifest entry count changed: {name}")
+        expected_sha = record.get("output_sha256")
+        if not isinstance(expected_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha):
+            raise BuildError(f"Rule manifest output hash is missing: {name}")
+        url = f"https://raw.githubusercontent.com/{CONVERTER_REPO}/{converter_commit}/{output}"
+        rule_text = download_text(url)
+        if hashlib.sha256(rule_text.encode("utf-8")).hexdigest() != expected_sha:
+            raise BuildError(f"Published Egern rule hash differs from manifest: {name}")
+        rule = yaml.safe_load(rule_text)
+        if not isinstance(rule, dict):
+            raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
+        entries = sum(len(value) for value in rule.values() if isinstance(value, list))
+        if entries != record["entries"]:
+            raise BuildError(f"Published Egern rule count differs from manifest: {name}")
+        generated[filename] = rule
+    return generated, provider_files
+
+
 def write_or_check(path: Path, content: str, check: bool) -> bool:
     current = path.read_text(encoding="utf-8") if path.exists() else None
     changed = current != content
@@ -822,138 +642,20 @@ def write_or_check(path: Path, content: str, check: bool) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=Path, required=True)
+    parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--mihomo-commit", required=True)
-    parser.add_argument("--bett-commit", required=True)
     parser.add_argument("--converter-commit", required=True)
-    parser.add_argument("--apns-commit", required=True)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
     try:
         model = json.loads(args.model.read_text(encoding="utf-8"))
-        providers = model["providers"]
+        manifest_text = args.manifest.read_text(encoding="utf-8")
+        manifest = json.loads(manifest_text)
+        if manifest.get("mihomo_script", {}).get("commit") != args.mihomo_commit:
+            raise BuildError("Mihomo script commit differs from converter rule manifest")
         validate_business_ip_pairs(model)
-        wanted = referenced_providers(model)
-        generated: dict[str, dict[str, Any]] = {}
-        provider_files: dict[str, str] = {}
-        source_records: list[dict[str, Any]] = []
-
-        converter_report_url = (
-            f"https://raw.githubusercontent.com/{CONVERTER_REPO}/"
-            f"{args.converter_commit}/{CONVERTER_GEOLOCATION_REPORT_PATH}"
-        )
-        converter_report_text = download_text(converter_report_url)
-        converter_report = json.loads(converter_report_text)
-        converter_expected_entries = converter_report.get("mrs_compatible_entries")
-        converter_expected_sha256 = (
-            converter_report.get("sha256", {}).get("domain_list")
-        )
-        if (
-            not isinstance(converter_expected_entries, int)
-            or converter_expected_entries <= 0
-            or not isinstance(converter_expected_sha256, str)
-            or not re.fullmatch(r"[0-9a-f]{64}", converter_expected_sha256)
-        ):
-            raise BuildError("Invalid proxy-rules-converter geolocation-cn report")
-
-        apns_url = (
-            f"https://raw.githubusercontent.com/{APNS_REPO}/"
-            f"{args.apns_commit}/{APNS_PATH}"
-        )
-        apns_source = download_text(apns_url)
-        apns_rule = parse_classical_rule_list(apns_source)
-        apns_source_entries = source_rule_count(apns_source)
-        apns_output_entries = output_rule_count(apns_rule)
-        if apns_output_entries != apns_source_entries:
-            raise BuildError(
-                "APNs conversion changed the rule count: "
-                f"{apns_source_entries} -> {apns_output_entries}"
-            )
-        generated[APNS_FILENAME] = apns_rule
-        source_records.append({
-            "provider": "apns",
-            "behavior": "classical",
-            "source_repository": APNS_REPO,
-            "source_ref": "main",
-            "source_commit": args.apns_commit,
-            "source_path": APNS_PATH,
-            "source_url": apns_url,
-            "output": f"rules/{APNS_FILENAME}",
-            "source_entries": apns_source_entries,
-            "entries": apns_output_entries,
-            "source_sha256": hashlib.sha256(
-                apns_source.encode("utf-8")
-            ).hexdigest(),
-        })
-
-        for name in wanted:
-            provider = providers.get(name)
-            if provider is None:
-                raise BuildError(f"Mihomo model is missing provider {name}")
-            source_info = resolve_provider_source(
-                provider,
-                bett_commit=args.bett_commit,
-                converter_commit=args.converter_commit,
-            )
-            source = download_text(source_info["url"])
-            behavior = provider.get("behavior")
-            if behavior == "domain":
-                rule = parse_domain_list(source)
-                source_entries = source_rule_count(source)
-            elif behavior == "ipcidr":
-                rule = parse_ip_list(source)
-                source_entries = source_rule_count(source)
-            elif behavior == "classical":
-                rule, source_entries = parse_classical_yaml_provider(source)
-            else:
-                raise BuildError(f"Unsupported provider behavior {behavior!r} for {name}")
-
-            entries = output_rule_count(rule)
-            if entries != source_entries:
-                raise BuildError(
-                    f"{name} conversion changed the rule count: "
-                    f"{source_entries} -> {entries}"
-                )
-            source_sha256 = hashlib.sha256(source.encode("utf-8")).hexdigest()
-            record: dict[str, Any] = {
-                "provider": name,
-                "behavior": behavior,
-                "provider_url": source_info["provider_url"],
-                "source_repository": source_info["repository"],
-                "source_ref": source_info["ref"],
-                "source_commit": source_info["commit"],
-                "source_path": source_info["path"],
-                "source_url": source_info["url"],
-                "output": f"rules/{slug(name)}.yaml",
-                "source_entries": source_entries,
-                "entries": entries,
-                "source_sha256": source_sha256,
-            }
-            if name == "geolocation-cn":
-                if source_info["repository"] != CONVERTER_REPO:
-                    raise BuildError(
-                        "geolocation-cn did not resolve from proxy-rules-converter"
-                    )
-                if source_info["path"] != CONVERTER_GEOLOCATION_LIST_PATH:
-                    raise BuildError(
-                        "geolocation-cn resolved to an unexpected converter path"
-                    )
-                if entries != converter_expected_entries:
-                    raise BuildError(
-                        "geolocation-cn entry count disagrees with converter report: "
-                        f"{entries} != {converter_expected_entries}"
-                    )
-                if source_sha256 != converter_expected_sha256:
-                    raise BuildError(
-                        "geolocation-cn SHA-256 disagrees with converter report"
-                    )
-                record["expected_entries"] = converter_expected_entries
-
-            filename = slug(name) + ".yaml"
-            provider_files[name] = filename
-            generated[filename] = rule
-            source_records.append(record)
-
+        generated, provider_files = load_manifest_rules(model, manifest, args.converter_commit)
         groups, filters = render_policy_groups(model)
         rules = render_rules(model, provider_files)
         profile = {
@@ -968,7 +670,7 @@ def main() -> int:
             "dns": {
                 "bootstrap": bootstrap_nameservers(model),
                 "upstreams": {"Foreign": nameservers(model)},
-                "forward": render_dns_forward(model, providers, provider_files),
+                "forward": render_dns_forward(model, model["providers"], provider_files),
                 "hosts": hosts(model),
                 "proxy_nameservers": MESL_PROXY_DNS,
             },
@@ -977,66 +679,21 @@ def main() -> int:
         }
         validate_profile(profile, generated, model, provider_files)
 
-        yaml_options = dict(allow_unicode=True, sort_keys=False, width=1000)
-        profile_text = yaml.safe_dump(profile, **yaml_options)
-        output_texts = {
-            filename: yaml.safe_dump(content, **yaml_options)
-            for filename, content in generated.items()
-        }
-
-        expected = set(output_texts)
-        stale = (
-            {path.name for path in RULE_DIR.glob("*.yaml")} - expected
-            if RULE_DIR.exists() else set()
-        )
-        changed: list[str] = []
-        if write_or_check(PROFILE_PATH, profile_text, args.check):
-            changed.append("Profile.yaml")
-        for filename, content in output_texts.items():
-            if write_or_check(RULE_DIR / filename, content, args.check):
-                changed.append(f"rules/{filename}")
-        if stale:
-            if args.check:
-                changed.extend(f"rules/{name}" for name in sorted(stale))
-            else:
-                for name in stale:
-                    (RULE_DIR / name).unlink()
-
+        profile_text = yaml.safe_dump(profile, allow_unicode=True, sort_keys=False, width=1000)
         report_data = {
-            "schema_version": 2,
-            "mihomo_script": {
-                "repository": MIHOMO_REPO,
-                "commit": args.mihomo_commit,
-            },
-            "bett_rules": {
-                "repository": BETT_REPO,
-                "branch": "meta",
-                "commit": args.bett_commit,
-            },
+            "schema_version": 3,
+            "mihomo_script": manifest["mihomo_script"],
             "proxy_rules_converter": {
                 "repository": CONVERTER_REPO,
                 "branch": "main",
                 "commit": args.converter_commit,
-                "geolocation_cn": {
-                    "list_path": CONVERTER_GEOLOCATION_LIST_PATH,
-                    "report_path": CONVERTER_GEOLOCATION_REPORT_PATH,
-                    "report_url": converter_report_url,
-                    "report_sha256": hashlib.sha256(
-                        converter_report_text.encode("utf-8")
-                    ).hexdigest(),
-                    "expected_entries": converter_expected_entries,
-                },
-            },
-            "apns_rules": {
-                "repository": APNS_REPO,
-                "branch": "main",
-                "path": APNS_PATH,
-                "commit": args.apns_commit,
+                "manifest_path": CONVERTER_MANIFEST_PATH,
+                "manifest_sha256": hashlib.sha256(manifest_text.encode("utf-8")).hexdigest(),
             },
             "profile_sha256": hashlib.sha256(profile_text.encode("utf-8")).hexdigest(),
             "policy_groups": len(groups),
             "routing_rules": len(rules),
-            "native_rule_sets": source_records,
+            "native_rule_sets": manifest["native_rule_sets"],
             "group_filters": filters,
             "dns": {
                 "bootstrap": profile["dns"]["bootstrap"],
@@ -1058,26 +715,22 @@ def main() -> int:
                 "Mihomo nameserver-policy and explicit Direct domain rules map to Egern Forward system rules; Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
-                "The user-requested APNs list is converted from classical syntax to one Egern-native mixed rule set and placed immediately after STUN blocking with Proxy/Foreign DNS handling.",
-                "Mihomo fakeip_filter and the user-requested APNs override are the only approved rule-set migration exceptions.",
-                "Every other provider text source is resolved from the Mihomo provider's final URL and pinned to an immutable commit; MRS is not decoded.",
-                "Rule-set conversion preserves every source rule, duplicate, spelling, and per-field order; only Egern-native syntax mapping is performed.",
+                "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
+                "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
                 "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
-                "The converter repository's Claude classical YAML is mapped to one Egern-native mixed domain, IPv4, IPv6, and ASN rule set.",
             ],
         }
         report_text = json.dumps(report_data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        changed: list[str] = []
+        if write_or_check(PROFILE_PATH, profile_text, args.check):
+            changed.append("Profile.yaml")
         if write_or_check(REPORT_PATH, report_text, args.check):
             changed.append("reports/source.json")
-
         if args.check and changed:
             raise BuildError("Generated files are out of date: " + ", ".join(changed))
-        print(
-            f"Generated {len(groups)} policy groups, {len(rules)} routing rules, "
-            f"{len(generated)} native Egern rule sets."
-        )
+        print(f"Generated {len(groups)} policy groups and {len(rules)} routing rules; verified {len(generated)} published rule sets.")
         return 0
-    except (BuildError, OSError, ValueError, KeyError, json.JSONDecodeError, yaml.YAMLError) as exc:
+    except (BuildError, OSError, ValueError, KeyError, TypeError, json.JSONDecodeError, yaml.YAMLError) as exc:
         print(f"Build failed: {exc}", file=sys.stderr)
         return 2
 

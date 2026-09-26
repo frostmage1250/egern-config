@@ -22,7 +22,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -36,43 +36,54 @@ jobs:
       - name: Install builder dependency
         run: python -m pip install --requirement requirements.txt
 
-      - name: Resolve immutable upstream revisions
+      - name: Resolve published rule manifest and Mihomo model
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mihomo_commit="$(gh api repos/frostmage1250/mihomo-script/commits/main --jq .sha)"
-          bett_commit="$(gh api repos/appshubcc/bett-rules/commits/meta --jq .sha)"
           converter_commit="$(gh api repos/frostmage1250/proxy-rules-converter/commits/main --jq .sha)"
-          apns_commit="$(gh api repos/ttyyss2233/Tool/commits/main --jq .sha)"
-          echo "MIHOMO_COMMIT=${mihomo_commit}" >> "${GITHUB_ENV}"
-          echo "BETT_COMMIT=${bett_commit}" >> "${GITHUB_ENV}"
+          curl --fail --location --silent --show-error \
+            "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/${converter_commit}/reports/egern-source.json" \
+            --output "${RUNNER_TEMP}/egern-source.json"
+          mihomo_commit="$(jq --exit-status --raw-output '.mihomo_script.commit' "${RUNNER_TEMP}/egern-source.json")"
           echo "CONVERTER_COMMIT=${converter_commit}" >> "${GITHUB_ENV}"
-          echo "APNS_COMMIT=${apns_commit}" >> "${GITHUB_ENV}"
-          curl --fail --location --silent --show-error             "https://raw.githubusercontent.com/frostmage1250/mihomo-script/${mihomo_commit}/mihomoScript.js"             --output "${RUNNER_TEMP}/mihomoScript.js"
+          echo "MIHOMO_COMMIT=${mihomo_commit}" >> "${GITHUB_ENV}"
+          curl --fail --location --silent --show-error \
+            "https://raw.githubusercontent.com/frostmage1250/mihomo-script/${mihomo_commit}/mihomoScript.js" \
+            --output "${RUNNER_TEMP}/mihomoScript.js"
 
-      - name: Extract current Mihomo model
+      - name: Extract pinned Mihomo model
         run: |
-          node src/extract_mihomo_model.js             "${RUNNER_TEMP}/mihomoScript.js"             > "${RUNNER_TEMP}/mihomo-model.json"
+          node src/extract_mihomo_model.js \
+            "${RUNNER_TEMP}/mihomoScript.js" > "${RUNNER_TEMP}/mihomo-model.json"
 
-      - name: Generate Egern profile and native YAML rules
+      - name: Generate Egern profile from published rules
         run: |
-          python src/build_egern.py             --model "${RUNNER_TEMP}/mihomo-model.json"             --mihomo-commit "${MIHOMO_COMMIT}"             --bett-commit "${BETT_COMMIT}"             --converter-commit "${CONVERTER_COMMIT}"             --apns-commit "${APNS_COMMIT}"
+          python src/build_egern.py \
+            --model "${RUNNER_TEMP}/mihomo-model.json" \
+            --manifest "${RUNNER_TEMP}/egern-source.json" \
+            --mihomo-commit "${MIHOMO_COMMIT}" \
+            --converter-commit "${CONVERTER_COMMIT}"
 
       - name: Run builder tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Verify deterministic regeneration
         run: |
-          python src/build_egern.py             --model "${RUNNER_TEMP}/mihomo-model.json"             --mihomo-commit "${MIHOMO_COMMIT}"             --bett-commit "${BETT_COMMIT}"             --converter-commit "${CONVERTER_COMMIT}"             --apns-commit "${APNS_COMMIT}"             --check
+          python src/build_egern.py \
+            --model "${RUNNER_TEMP}/mihomo-model.json" \
+            --manifest "${RUNNER_TEMP}/egern-source.json" \
+            --mihomo-commit "${MIHOMO_COMMIT}" \
+            --converter-commit "${CONVERTER_COMMIT}" \
+            --check
           git diff --check
 
       - name: Commit generated files
         shell: bash
         run: |
           set -euo pipefail
-          git add -- Profile.yaml rules reports/source.json
+          git add -- Profile.yaml reports/source.json
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -93,5 +104,5 @@ jobs:
             remote_file="${RUNNER_TEMP}/published-${file//\//-}"
             curl --fail --location --silent --show-error               "https://raw.githubusercontent.com/frostmage1250/egern-config/${published_commit}/${file}"               --output "${remote_file}"
             cmp --silent "${file}" "${remote_file}"
-          done < <(printf '%s\n' Profile.yaml reports/source.json; find rules -maxdepth 1 -type f -name '*.yaml' -printf '%p\n' | sort)
+          done < <(printf '%s\n' Profile.yaml reports/source.json)
           echo "Verified generated files at remote commit ${published_commit}."
