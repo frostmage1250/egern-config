@@ -31,33 +31,41 @@ dns:
     Foreign:
     - https://cloudflare-dns.com/dns-query
     - https://dns.google/dns-query
+    Policy-douyin:
+    - system
+    - 180.184.1.1
+    - 180.184.2.2
   forward:
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apns.yaml
       value: Foreign
       update_interval: 86400
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn.yaml
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
       value: system
       update_interval: 86400
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private.yaml
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/douyin.yaml
+      value: Policy-douyin
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn.yaml
       value: system
       update_interval: 86400
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/games-cn.yaml
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/games-cn.yaml
       value: system
       update_interval: 86400
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple-cn.yaml
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-cn.yaml
       value: system
       update_interval: 86400
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft-cn.yaml
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml
       value: system
       update_interval: 86400
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/geolocation-cn.yaml
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-cn.yaml
       value: system
       update_interval: 86400
   - domain_wildcard:
@@ -197,7 +205,7 @@ rules:
     match: stun
     policy: REJECT
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apns.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apns.yaml
     policy: Proxy
     update_interval: 86400
     no_resolve: true
@@ -208,135 +216,135 @@ rules:
     match: dns.google
     policy: Proxy
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
     policy: Direct
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/games-cn.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/games-cn.yaml
     policy: Direct
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/steam.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam.yaml
     policy: Proxy
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/steam-ip.yaml
-    policy: Proxy
-    update_interval: 86400
-    no_resolve: true
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple-cn.yaml
-    policy: Direct
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple.yaml
-    policy: Proxy
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/apple-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-ip.yaml
     policy: Proxy
     update_interval: 86400
     no_resolve: true
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft-cn.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-cn.yaml
     policy: Direct
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/github.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple.yaml
+    policy: Proxy
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-ip.yaml
+    policy: Proxy
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/github.yaml
     policy: GitHub
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft.yaml
     policy: Proxy
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/microsoft-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-ip.yaml
     policy: Proxy
     update_interval: 86400
     no_resolve: true
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/telegram.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/telegram.yaml
     policy: Telegram
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/telegram-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/telegram-ip.yaml
     policy: Telegram
     update_interval: 86400
     no_resolve: true
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/youtube.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/youtube.yaml
     policy: 媒体
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/meta.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/meta.yaml
     policy: 媒体
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/facebook-ip.yaml
-    policy: 媒体
-    update_interval: 86400
-    no_resolve: true
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/twitter.yaml
-    policy: 媒体
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/twitter-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/facebook-ip.yaml
     policy: 媒体
     update_interval: 86400
     no_resolve: true
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/twitch.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/twitter.yaml
     policy: 媒体
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/tiktok.yaml
-    policy: 媒体
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/tiktok-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/twitter-ip.yaml
     policy: 媒体
     update_interval: 86400
     no_resolve: true
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/google.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/twitch.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/tiktok.yaml
+    policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/tiktok-ip.yaml
+    policy: 媒体
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/google.yaml
     policy: Google
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/google-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/google-ip.yaml
     policy: Google
     update_interval: 86400
     no_resolve: true
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/claude.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/claude.yaml
     policy: Claude
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/ai.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/ai.yaml
     policy: AI
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/pikpak.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/pikpak.yaml
     policy: PikPak
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/ehentai.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/ehentai.yaml
     policy: EHentai
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/geolocation-non-cn.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-non-cn.yaml
     policy: Proxy
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/geolocation-cn.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-cn.yaml
     policy: Direct
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/cn-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn-ip.yaml
     policy: Direct
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/egern-config/main/rules/private-ip.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private-ip.yaml
     policy: Direct
     update_interval: 86400
 - default:
