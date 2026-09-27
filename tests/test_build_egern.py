@@ -48,6 +48,18 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertTrue(rules[4]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
+    def test_youtube_rule_uses_its_own_group(self):
+        model = {
+            "rules": [
+                "RULE-SET,youtube,媒体",
+                "RULE-SET,meta,媒体",
+                "MATCH,Final",
+            ]
+        }
+        rules = render_rules(model, {"youtube": ["youtube.yaml"], "meta": ["meta.yaml"]})
+        self.assertEqual(rules[2]["rule_set"]["policy"], "YouTube")
+        self.assertEqual(rules[3]["rule_set"]["policy"], "媒体")
+
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
         valid = {
             "providers": {
@@ -191,6 +203,11 @@ class EgernProfileBuilderTests(unittest.TestCase):
         )
         self.assertEqual(
             by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
+        )
+        self.assertEqual(by_name["YouTube"]["policies"], by_name["媒体"]["policies"])
+        self.assertEqual(
+            [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
+            [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,
         )
         self.assertIn("traffic", filters["订阅"])
         self.assertNotIn("订阅2", filters["订阅"])

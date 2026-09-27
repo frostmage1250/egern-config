@@ -161,6 +161,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
     if any(source["name"] == "订阅2" for source in model["groups"]):
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
+    has_youtube_group = any(source["name"] == "YouTube" for source in model["groups"])
     for source in model["groups"]:
         name = source["name"]
         if name == "订阅":
@@ -198,6 +199,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
+        if name == "媒体" and not has_youtube_group:
+            groups.append({"select": {"name": "YouTube", "policies": policies.copy()}})
     return groups, filters
 
 
@@ -282,7 +285,7 @@ def render_rules(
             if not filenames:
                 raise BuildError(f"Rule references missing generated provider: {provider}")
             no_resolve = parts[-1] == "no-resolve"
-            policy = parts[-2] if no_resolve else parts[-1]
+            policy = "YouTube" if provider == "youtube" else (parts[-2] if no_resolve else parts[-1])
             for filename in filenames:
                 item: dict[str, Any] = {
                     "match": f"{RAW_BASE}/dist/egern/{filename}",
@@ -531,12 +534,23 @@ def validate_profile(
         raise BuildError("Egern default proxy group must be 代理")
     if "auto_update" in profile:
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
-    for target in ("Telegram", "媒体"):
+    for target in ("Telegram", "媒体", "YouTube"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
         for subscription in ("订阅", "订阅2"):
             if subscription not in groups[names.index(target)].get("policies", []):
                 raise BuildError(f"{target} must include the {subscription} policy group")
+    youtube_files = provider_files.get("youtube")
+    if not youtube_files:
+        raise BuildError("YouTube rule set is missing")
+    for filename in youtube_files:
+        match = f"{RAW_BASE}/dist/egern/{filename}"
+        if not any(
+            rule.get("rule_set", {}).get("match") == match
+            and rule["rule_set"].get("policy") == "YouTube"
+            for rule in profile["rules"]
+        ):
+            raise BuildError(f"YouTube rule set must use the YouTube group: {filename}")
     for provider, filenames in provider_files.items():
         for filename in filenames:
             native_rule = generated[filename]
