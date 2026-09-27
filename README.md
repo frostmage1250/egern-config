@@ -14,6 +14,8 @@ to an Egern profile.
 - GitHub Actions refreshes the generated repository files every six hours and can also
   be run manually. The Egern profile itself deliberately has no root
   `auto_update`; re-import it manually when you want to replace the active profile.
+  The ordered-rule migration replaced earlier single-file rule URLs, so profiles
+  imported before this change need a manual re-import.
 
 ## Subscription setup
 
