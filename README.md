@@ -21,7 +21,9 @@ to an Egern profile.
 
 Subscription credentials are deliberately not committed to this public repository.
 After importing `Profile.yaml` into Egern, add the private subscription URL
-to the **订阅** policy group. The profile sets `default_subscription_group` to **订阅** and
+to the **订阅** policy group. The adjacent **订阅2** group starts with empty
+`policies` and `urls`; you can add another subscription URL to that group
+locally without publishing it in this repository. The profile sets `default_subscription_group` to **订阅** and
 `default_proxy_group` to **代理**. The private URL remains in Egern instead of this public
 repository. Region groups flatten and filter **订阅**,
 so future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点

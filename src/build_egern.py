@@ -158,6 +158,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
     filters.update(rates)
     filters["其他节点"] = negative_filter(list(regions.values()))
 
+    if any(source["name"] == "订阅2" for source in model["groups"]):
+        raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
     for source in model["groups"]:
         name = source["name"]
@@ -171,6 +173,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
                     "update_interval": 86400,
                 }
             })
+            groups.append({"select": {"name": "订阅2", "policies": [], "urls": []}})
             continue
         if name in filters and name != "订阅":
             groups.append({
@@ -516,6 +519,9 @@ def validate_profile(
                 raise BuildError(f"Group {group['name']} references undefined policy {policy}")
     if profile["policy_groups"][names.index("订阅")]["select"].get("urls") != []:
         raise BuildError("Public profile must not contain subscription credentials")
+    subscription_two = profile["policy_groups"][names.index("订阅2")]["select"]
+    if subscription_two.get("policies") != [] or subscription_two.get("urls") != []:
+        raise BuildError("订阅2 must start with no policy options or subscription URLs")
     if profile.get("default_subscription_group") != "订阅":
         raise BuildError("Egern default subscription group must be 订阅")
     if profile.get("default_proxy_group") != "代理":

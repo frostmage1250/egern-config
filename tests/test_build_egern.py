@@ -185,6 +185,11 @@ class EgernProfileBuilderTests(unittest.TestCase):
             for item in groups
         }
         self.assertEqual(by_name["订阅"]["urls"], [])
+        self.assertEqual(by_name["订阅2"], {"name": "订阅2", "policies": [], "urls": []})
+        self.assertEqual(
+            [next(iter(item.values()))["name"] for item in groups][1:3],
+            ["订阅", "订阅2"],
+        )
         self.assertEqual(by_name["Direct"]["policies"], ["DIRECT"])
         self.assertEqual(by_name["GitHub"]["policies"], ["Proxy", "订阅", "AI"])
         self.assertEqual(by_name["Claude"]["policies"], ["Proxy", "日本", "其他节点"])
