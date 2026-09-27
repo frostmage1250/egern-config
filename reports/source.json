@@ -661,7 +661,7 @@
     }
   ],
   "policy_groups": 20,
-  "profile_sha256": "6b8a9a90f44997f1df1fb1c3bea525ed6218982cd369d64ae68b0f2af81c32d5",
+  "profile_sha256": "273c874d68791a409c0776b02fe53f12cbdc1b896b93731deee2f851910a184b",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "d2a0bfb1c061b785cf312383fc88e73070c9b75a",

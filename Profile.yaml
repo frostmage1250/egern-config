@@ -155,11 +155,7 @@ policy_groups:
     - 订阅2
 - select:
     name: YouTube
-    policies:
-    - Proxy
-    - 低倍率节点
-    - 订阅
-    - 订阅2
+    policies: []
 - select:
     name: Telegram
     policies:
