@@ -5,7 +5,7 @@
       "223.5.5.5",
       "1.12.12.12"
     ],
-    "forward_rules": 9,
+    "forward_rules": 32,
     "nameserver_route_rules": 2,
     "proxy_nameservers": [
       "https://zone.rlose.com:39933/api-query",
@@ -51,9 +51,30 @@
     {
       "behavior": "classical",
       "entries": 12,
-      "output": "dist/egern/apns.yaml",
-      "output_sha256": "68f708fe3b1200b05b230b28305d50ddbfa540a4f38532ab133f059da42cbfdd",
+      "ordered_entries_sha256": "a573452062bf370bd4b038130f3a0c89e5b8445342f1e4fb3ea83257206f6997",
       "provider": "apns",
+      "segments": [
+        {
+          "entries": 2,
+          "output": "dist/egern/apns-0001.yaml",
+          "output_sha256": "30c28cd8d97e28fb16a906bfd5b2274a3a23b21b50cba30c111d25c0a0882e32"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/apns-0002.yaml",
+          "output_sha256": "9d344fafbf89c28349ca45fa718b2fc676c9529e27d834e728fdd6fd0692186c"
+        },
+        {
+          "entries": 5,
+          "output": "dist/egern/apns-0003.yaml",
+          "output_sha256": "a7477a2624c66ef8629d9e068aab1b7b108262ec95ed175e33c6cfef4a503e54"
+        },
+        {
+          "entries": 4,
+          "output": "dist/egern/apns-0004.yaml",
+          "output_sha256": "f43dfda31ae2eb52f67589ed19c6d7bd1f33673b84e67ab569cef6dbe5090ff3"
+        }
+      ],
       "source_commit": "24ad892385d9a377ec5bd5945d0d1dc3d9681d73",
       "source_entries": 12,
       "source_path": "shadowrocket/rules/apns.list",
@@ -65,378 +86,872 @@
     {
       "behavior": "domain",
       "entries": 130,
-      "output": "dist/egern/private.yaml",
-      "output_sha256": "d5551c5d525eeb04688e91ae0aa43db4a23eec9427f141327d0da683ce96e82f",
+      "ordered_entries_sha256": "68ebeeb061f0f655aab1dc5ac8139c53b94622346cc7d90242d941d39d1a2792",
       "provider": "private",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/private.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 12,
+          "output": "dist/egern/private-0001.yaml",
+          "output_sha256": "48a9bc3843d4eb3d33b28d80d14502cf6b7180085c1f78ebbda2580e4edf4023"
+        },
+        {
+          "entries": 118,
+          "output": "dist/egern/private-0002.yaml",
+          "output_sha256": "ecf6b2443bd6c0216da4671e2847c9890530d2816baf8193d63067aa0bc9f82d"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 130,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/private.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "9caf8f67450f6ff72fde0d2aec4d425238b88e371628011e51aab9185b0da73e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/private.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/private.list"
     },
     {
       "behavior": "domain",
       "entries": 37,
-      "output": "dist/egern/games-cn.yaml",
-      "output_sha256": "047c4cd108b3a16cad40a2f1998a3ba21bd5b27ef7d32bcb30ee5b499d5fcd39",
+      "ordered_entries_sha256": "a1e73063e1fed0622e01ad483d3f5f26315ebbbaa13ae232308df0d613614984",
       "provider": "games_cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/category-games@cn.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 28,
+          "output": "dist/egern/games-cn-0001.yaml",
+          "output_sha256": "e46d00dd216a63cb626645c0e1909eecd06fb33b6a17066abe64cf97c9b68df1"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/games-cn-0002.yaml",
+          "output_sha256": "0254082e9ea98f003d142dea8da25fe24f5f1a5a67a0b2c02ee566484c7b4445"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/games-cn-0003.yaml",
+          "output_sha256": "6d4afbd036a8eb0468cd51c3d3e56136c8bcd364a6495e482b258844e56fc893"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/games-cn-0004.yaml",
+          "output_sha256": "c8b9ac13754be90a2023b3e3d9a5f3be14f7406c3857b0c3c608e1b67696f4e5"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/games-cn-0005.yaml",
+          "output_sha256": "a60b0ccb240213337fec3511f0bc8f65a54a6c000dce388d40be8d12c3bfbfff"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 37,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/category-games@cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "74a0f168781af3245decfed7e01607e0f7165a747b79457c9f86ec94c1fd1fb3",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/category-games@cn.list"
+      "source_sha256": "eb647490b30df212ce200cfdf13b8dc865bf7118b641e89d239688fdc9857a1f",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/category-games@cn.list"
     },
     {
       "behavior": "domain",
       "entries": 60,
-      "output": "dist/egern/steam.yaml",
-      "output_sha256": "f31dec7d71e0f102bdf252f8050fb8089529a57ae4a1d698f9335be01e341e87",
+      "ordered_entries_sha256": "77a95872807226d1412e452aa4dab928329cebaab5b0cedee155ee5b80df3d0c",
       "provider": "steam",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/steam.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 16,
+          "output": "dist/egern/steam-0001.yaml",
+          "output_sha256": "08779be420b2adfbe8c81af8c4a2cd91a52fbb80f006abce55c61dd7956ab6f1"
+        },
+        {
+          "entries": 39,
+          "output": "dist/egern/steam-0002.yaml",
+          "output_sha256": "ded0a7b2586bb8a16f92a0a06389cd2342d8821df50a576f0f5764a0e6195d5a"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/steam-0003.yaml",
+          "output_sha256": "0254082e9ea98f003d142dea8da25fe24f5f1a5a67a0b2c02ee566484c7b4445"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/steam-0004.yaml",
+          "output_sha256": "6d4afbd036a8eb0468cd51c3d3e56136c8bcd364a6495e482b258844e56fc893"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 60,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/steam.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "63e7cfe27eedb6660abd763618129cf46e3a39ebf436886bfb8a8eedde5b49bb",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/steam.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/steam.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 35,
-      "output": "dist/egern/steam-ip.yaml",
-      "output_sha256": "781f24e4830cfcb3033b5a942e332809621b7405a722e6558a8aff4dc1cd7181",
+      "ordered_entries_sha256": "cad2d85280aadf2decb39bc5b852b18f9e930792f823e8240ac03faa37ee7ee7",
       "provider": "steam_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/steam.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 30,
+          "output": "dist/egern/steam-ip-0001.yaml",
+          "output_sha256": "fac83737d792f620c5d90bb19abb898c73c0294927340c62ae431d188eafb54f"
+        },
+        {
+          "entries": 5,
+          "output": "dist/egern/steam-ip-0002.yaml",
+          "output_sha256": "80e7baca837547ea10a636f6230e45f23f7ee04ba15f70ca6740f698a36f45ed"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 35,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/steam.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "ad3b1ef3c38de732e01d671c96a9854691a5f1f50f1d490fd243cff954419ac4",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/steam.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/steam.list"
     },
     {
       "behavior": "domain",
       "entries": 296,
-      "output": "dist/egern/apple-cn.yaml",
-      "output_sha256": "edf9a0ca88b09e70522c4c6f6bf4698a6d3396cde490e5105ead992178c852ab",
+      "ordered_entries_sha256": "ef2ecbe735bd8ac7f4b67acfaeb864ee85a8febb7b816aa3eb6ac29032a3ed04",
       "provider": "apple_cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/apple@cn.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 38,
+          "output": "dist/egern/apple-cn-0001.yaml",
+          "output_sha256": "db997d2237c80b1d24146890b4da271961225c8253f1543f7b7f49b2be3f102c"
+        },
+        {
+          "entries": 170,
+          "output": "dist/egern/apple-cn-0002.yaml",
+          "output_sha256": "2a3d883cc926d28675e6be6f43ae2227055f442749dd6f768eb3f491e9784a30"
+        },
+        {
+          "entries": 7,
+          "output": "dist/egern/apple-cn-0003.yaml",
+          "output_sha256": "fb4c5d4df89e4de035b7aa1cab3dd9e04c89109d84c453044842a3f2445890d6"
+        },
+        {
+          "entries": 9,
+          "output": "dist/egern/apple-cn-0004.yaml",
+          "output_sha256": "3b0139c789c04e26d26f1c4027ab242a387f14cc5b4ba3f1419a038fa7f4ab11"
+        },
+        {
+          "entries": 13,
+          "output": "dist/egern/apple-cn-0005.yaml",
+          "output_sha256": "dd4d865a9d89e13ad02fb4703a9a80e9f9bd1ef4f24d46fec8db6a5a00693e8b"
+        },
+        {
+          "entries": 55,
+          "output": "dist/egern/apple-cn-0006.yaml",
+          "output_sha256": "2acbd9789a28b4a46dccefb9eab2563aba6188e3bce2d52ad9ea0711b848ec99"
+        },
+        {
+          "entries": 4,
+          "output": "dist/egern/apple-cn-0007.yaml",
+          "output_sha256": "bca78094ca5b893c783d8eff8c7c32cc4f42920bc39da205b41aab59de3c0add"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 296,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/apple@cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "203ba4937c68fc8e8f5553264c19c46fedf47eb77c81e2bf08b048106223062c",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/apple@cn.list"
+      "source_sha256": "4197ee406190e86b7d5d69952ec5d995a1750fd9c7fa6cf7ffb47d4c3ea8c9a5",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/apple@cn.list"
     },
     {
       "behavior": "domain",
       "entries": 1792,
-      "output": "dist/egern/apple.yaml",
-      "output_sha256": "5f9847e8295f1d66d9e72498e08e631729bb7246d0116d4565a68c9483109ea2",
+      "ordered_entries_sha256": "e1d842c2984b39e572e9dd1fe47b7ae36a864dd3ddcc158f4d9d5d3f82cf2d19",
       "provider": "apple",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/apple.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 17,
+          "output": "dist/egern/apple-0001.yaml",
+          "output_sha256": "f43cf7213e4a4471b408bda1f40b63a36c83a47bc1195dcd52b8bbe45a45451a"
+        },
+        {
+          "entries": 1512,
+          "output": "dist/egern/apple-0002.yaml",
+          "output_sha256": "17847c8b96267325f4f816157170e177bffc6ad143c4297443516285960d4c2a"
+        },
+        {
+          "entries": 162,
+          "output": "dist/egern/apple-0003.yaml",
+          "output_sha256": "76f83cecff1f3373096c0a43e25198c346d145725e8ff4377816eb469b641fef"
+        },
+        {
+          "entries": 5,
+          "output": "dist/egern/apple-0004.yaml",
+          "output_sha256": "38a6fad698ec58f89ef3be4dfb492535fa828b3a6ab10024233bfa06f0a840a0"
+        },
+        {
+          "entries": 8,
+          "output": "dist/egern/apple-0005.yaml",
+          "output_sha256": "0e0962683090e516788b1bcb1e0dd398695c5bbeebd66ff852ffe14f82fc049f"
+        },
+        {
+          "entries": 7,
+          "output": "dist/egern/apple-0006.yaml",
+          "output_sha256": "fb4c5d4df89e4de035b7aa1cab3dd9e04c89109d84c453044842a3f2445890d6"
+        },
+        {
+          "entries": 9,
+          "output": "dist/egern/apple-0007.yaml",
+          "output_sha256": "3b0139c789c04e26d26f1c4027ab242a387f14cc5b4ba3f1419a038fa7f4ab11"
+        },
+        {
+          "entries": 13,
+          "output": "dist/egern/apple-0008.yaml",
+          "output_sha256": "dd4d865a9d89e13ad02fb4703a9a80e9f9bd1ef4f24d46fec8db6a5a00693e8b"
+        },
+        {
+          "entries": 55,
+          "output": "dist/egern/apple-0009.yaml",
+          "output_sha256": "2acbd9789a28b4a46dccefb9eab2563aba6188e3bce2d52ad9ea0711b848ec99"
+        },
+        {
+          "entries": 4,
+          "output": "dist/egern/apple-0010.yaml",
+          "output_sha256": "bca78094ca5b893c783d8eff8c7c32cc4f42920bc39da205b41aab59de3c0add"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 1792,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/apple.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "9a4f21cfb843561d36cbb61f681dde55c24d4aa3f33c0568b3580219b6d0aa0b",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/apple.list"
+      "source_sha256": "c9791b07b0304d8014934da0c9197875d95d673a5d0cd9b8b59599a070757407",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/apple.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 169,
-      "output": "dist/egern/apple-ip.yaml",
-      "output_sha256": "dcb4af2c644493672040e2116402cba3dae2b0998b2941c5adccda817acbd772",
+      "ordered_entries_sha256": "19564e533c9fbb50ed5ba812df11923948c09ef28b58d8731c323a6c26948108",
       "provider": "apple_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/apple.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 146,
+          "output": "dist/egern/apple-ip-0001.yaml",
+          "output_sha256": "76cb21d1686487974b77a0b1d753750b5a75b91a4a6648632d06756b31c3d065"
+        },
+        {
+          "entries": 23,
+          "output": "dist/egern/apple-ip-0002.yaml",
+          "output_sha256": "4da19979887513e4dfcdb5510ee7b9b9b9438018812107461d2f4500169205d4"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 169,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/apple.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "1498e55f38c4c5f40868acf764aa4012be91ce5d42be195d4d18ac6b97764d22",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/apple.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/apple.list"
     },
     {
       "behavior": "domain",
       "entries": 189,
-      "output": "dist/egern/microsoft-cn.yaml",
-      "output_sha256": "d7ea00fbcc9c5dc25055f6f9677c462b6677cb2546e12872e597e3772002b691",
+      "ordered_entries_sha256": "07f8d9cbab58320fce110bd6a56509262d4f5b872f60e2bfa817584ce95878d6",
       "provider": "microsoft_cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/microsoft@cn.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 37,
+          "output": "dist/egern/microsoft-cn-0001.yaml",
+          "output_sha256": "756b1f60ceba5c82735f27615fef19dcb6b90b1a311491757b974507f6771d65"
+        },
+        {
+          "entries": 48,
+          "output": "dist/egern/microsoft-cn-0002.yaml",
+          "output_sha256": "3743b6ce02cb050ce54d14573f47bef67113914083ce026d6c09193f0e584d82"
+        },
+        {
+          "entries": 97,
+          "output": "dist/egern/microsoft-cn-0003.yaml",
+          "output_sha256": "30e4d1dda9a3bafeefb27f3cef47dac58bb1ec3e8925656ac7166e6779331e9d"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/microsoft-cn-0004.yaml",
+          "output_sha256": "e3d674bb38d8cdc8a067cf486cec20449f108880ccf6ac409b14e76c20e559fe"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/microsoft-cn-0005.yaml",
+          "output_sha256": "88018ff0fdc8aca68bdd4fc6b52fabf0453274574eb8be2d419eb8ddf4608c8f"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/microsoft-cn-0006.yaml",
+          "output_sha256": "b762d259a90291ba2c22adb346dbfec16ff4160e571281c4e052805857a87471"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/microsoft-cn-0007.yaml",
+          "output_sha256": "71553ef7193434be629029d6c5f7e92f99e0a80d154260678626ad32c2b1042f"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 189,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/microsoft@cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "cad6cb3e1253def08646df6391ca79abfb22ddea030d3bc9487babf22d00af3b",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/microsoft@cn.list"
+      "source_sha256": "fdaface6af9503fadf8c68cb3a383dad0912ddf1b7fd8f0bd7e87af87121da1c",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/microsoft@cn.list"
     },
     {
       "behavior": "domain",
       "entries": 64,
-      "output": "dist/egern/github.yaml",
-      "output_sha256": "4d8dfade76d9075787bc62ebb58578b6e0dffed7148532e41c2b675d89128339",
+      "ordered_entries_sha256": "3e8a23437d06088c076b8336f8f7300f414f3563162e8281793254bbedfe6140",
       "provider": "github",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/github.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 30,
+          "output": "dist/egern/github-0001.yaml",
+          "output_sha256": "58b036212c58e651d6ee8d4bf40408ff32c7f55c75e1eeaefd30e538674a990e"
+        },
+        {
+          "entries": 32,
+          "output": "dist/egern/github-0002.yaml",
+          "output_sha256": "aa66becba20aaf21f904d28a0bfb789621bbab71cbb6b0445a84401e9f06b490"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/github-0003.yaml",
+          "output_sha256": "6981c1bc9e6de24d878698e92a3b69ebee262b81e42d9a439c83d2065b68f181"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 64,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/github.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "a7c82a082fdd3f2a7051a75dbb1a2fee64e69db2f7001094187d2349563cb93f",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/github.list"
+      "source_sha256": "f5d67e6e0c8799bd292c8a012d579c8af37ee6a0af771299dd6500db4d1202fd",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/github.list"
     },
     {
       "behavior": "domain",
       "entries": 748,
-      "output": "dist/egern/microsoft.yaml",
-      "output_sha256": "12fe178619a590c21a25caa325ab10057c2b53d0c74e3245a8c3a30a53d667cf",
+      "ordered_entries_sha256": "a1a2dffde6f2ce125388ccfe5b681026d61573ccfc0dd40d28bae5829a8aa903",
       "provider": "microsoft",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/microsoft.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 62,
+          "output": "dist/egern/microsoft-0001.yaml",
+          "output_sha256": "56d91c88c80164b7a32ae639557fe589aa59d33b864d8857555a13a3320a8c68"
+        },
+        {
+          "entries": 528,
+          "output": "dist/egern/microsoft-0002.yaml",
+          "output_sha256": "d8169dc71ee16c222fa1a9cd3387cfb28475464961d939c470c1711191ef01c7"
+        },
+        {
+          "entries": 48,
+          "output": "dist/egern/microsoft-0003.yaml",
+          "output_sha256": "3743b6ce02cb050ce54d14573f47bef67113914083ce026d6c09193f0e584d82"
+        },
+        {
+          "entries": 98,
+          "output": "dist/egern/microsoft-0004.yaml",
+          "output_sha256": "cf06c723b00c078cc11f814600223531c41b7d98173af7132d2435c9ce9e6522"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/microsoft-0005.yaml",
+          "output_sha256": "e3d674bb38d8cdc8a067cf486cec20449f108880ccf6ac409b14e76c20e559fe"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/microsoft-0006.yaml",
+          "output_sha256": "7249f2760514c528dc3e0d85a3f7d13095ee615f71feb3d8211241735c750d4e"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/microsoft-0007.yaml",
+          "output_sha256": "6981c1bc9e6de24d878698e92a3b69ebee262b81e42d9a439c83d2065b68f181"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/microsoft-0008.yaml",
+          "output_sha256": "88018ff0fdc8aca68bdd4fc6b52fabf0453274574eb8be2d419eb8ddf4608c8f"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/microsoft-0009.yaml",
+          "output_sha256": "b762d259a90291ba2c22adb346dbfec16ff4160e571281c4e052805857a87471"
+        },
+        {
+          "entries": 4,
+          "output": "dist/egern/microsoft-0010.yaml",
+          "output_sha256": "d9ecfbfea5b923c0fc2ac5de6e2c58bbe312133b0c8f5644587929c490d10e13"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 748,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/microsoft.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "bd0ee03d69ee3be3ad30ae65c4ef52643a8a4d6451d9fc64cee7196f850fde8e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/microsoft.list"
+      "source_sha256": "abc5bf55bb46d9436f489cb88d7701543864506fcc88ddfd20a782d597c2e98a",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/microsoft.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 1066,
-      "output": "dist/egern/microsoft-ip.yaml",
-      "output_sha256": "ea459be0b5c20fb9b730ba409e59b8498524079c7b6c30242cbe0aaf116369d9",
+      "ordered_entries_sha256": "baa0e3f41338ecfdc294380bd3a8f176aed00b43a4081faed27775700a451e63",
       "provider": "microsoft_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/microsoft.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 989,
+          "output": "dist/egern/microsoft-ip-0001.yaml",
+          "output_sha256": "4a4f1bf6880ce3f561d2d44241f1a59e16cbc2086611dbb4b1a239d5d05d0a1b"
+        },
+        {
+          "entries": 77,
+          "output": "dist/egern/microsoft-ip-0002.yaml",
+          "output_sha256": "1449f6ca633f37ab81ec4f09b1ad187141e4cb3bffcd4ff42e057915fc440880"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 1066,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/microsoft.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "9934f9a98c4f203d46799bbdc59864a5ac677bac5e34c494a13b3d11e27d4dcc",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/microsoft.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/microsoft.list"
     },
     {
       "behavior": "domain",
       "entries": 21,
-      "output": "dist/egern/telegram.yaml",
-      "output_sha256": "21ca8c62545053f7bc0ce397cc9657d3a1d7a7fb9c8a422c8b3bfa4dcc683d00",
+      "ordered_entries_sha256": "d6b11823e9d53b8954e5de1dcb1227752297cfc8ca5abeef6fdca00acd12fcf8",
       "provider": "telegram",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/telegram.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 21,
+          "output": "dist/egern/telegram.yaml",
+          "output_sha256": "21ca8c62545053f7bc0ce397cc9657d3a1d7a7fb9c8a422c8b3bfa4dcc683d00"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 21,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/telegram.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "2448b2699519cd258b10232fcacd01e89b7db04c8ce7fc860a4962518370a329",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/telegram.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/telegram.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 12,
-      "output": "dist/egern/telegram-ip.yaml",
-      "output_sha256": "74238f3356de7aff9ad65748c3686867d23142882d1fa323f82d845b0690455f",
+      "ordered_entries_sha256": "ebc891d13243c50100a70775f99e2e02ebef813341c203bb80c2c4d2d2d31976",
       "provider": "telegram_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/telegram.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 9,
+          "output": "dist/egern/telegram-ip-0001.yaml",
+          "output_sha256": "2c87c764db88a9588e9767c2f0c7d6c833aa0f0e7667d5aee0a07a6e746ce6fc"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/telegram-ip-0002.yaml",
+          "output_sha256": "23c263b7d36657e93c002452004162337b68d7f39279c804699a90a2254b8554"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 12,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/telegram.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "271a96cc22155f8aefbe0b282384b611c4e2d17b87e264bb6e0b6e94c019407a",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/telegram.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/telegram.list"
     },
     {
       "behavior": "domain",
       "entries": 178,
-      "output": "dist/egern/youtube.yaml",
-      "output_sha256": "73d878209079dc467881c6df0420230b9a6dd23e09193e974bc233f385cfabe1",
+      "ordered_entries_sha256": "6e75dca6846ddc0cb3dbb029462191bca3bb84014b7e022bf3125bb19f9b82ea",
       "provider": "youtube",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/youtube.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 1,
+          "output": "dist/egern/youtube-0001.yaml",
+          "output_sha256": "2f09dc2720ee327d9bbe29276f54177ad9a3f9ef0d66836afaa55c79c0fc5c2d"
+        },
+        {
+          "entries": 177,
+          "output": "dist/egern/youtube-0002.yaml",
+          "output_sha256": "9220285f87d1c8632ecdfcc844e3c6ce324fa4a431a6fc80af229f88bef48a00"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 178,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/youtube.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "e95f241fa4357918fc1066390c352aad750b571ddea15e3421d30c84e947ac10",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/youtube.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/youtube.list"
     },
     {
       "behavior": "domain",
       "entries": 555,
-      "output": "dist/egern/meta.yaml",
-      "output_sha256": "d5d403ab22e74f85dbba075eccacb0b41aab13bb202ba3b818d73e018ed2ea99",
+      "ordered_entries_sha256": "1fca834434ca7ece7b00b2bd5d3d49ff2bb041cdfc99af0a085e3118f48f52b9",
       "provider": "meta",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/meta.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 2,
+          "output": "dist/egern/meta-0001.yaml",
+          "output_sha256": "c0ab2ef9dd2a450288f457ee31c74ef8a0c6c74257cf34407c2297c708e4f174"
+        },
+        {
+          "entries": 553,
+          "output": "dist/egern/meta-0002.yaml",
+          "output_sha256": "a84987c1ee260632dcb350f0aec6aba95f2970ea16b35036b5488b055a374a0d"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 555,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/meta.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "9dc209ec3193b4d1310ab4aabf760c5022ab32251e9218febeedce0773ac0427",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/meta.list"
+      "source_sha256": "f9cb132f45fae809db668b5954c92d57b9d4d72c3438993111c0f9b335bdad35",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/meta.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 82,
-      "output": "dist/egern/facebook-ip.yaml",
-      "output_sha256": "34b57f669d41809729ed946d21b9b2f92cb419d8f11ddf3685846dddfa218682",
+      "ordered_entries_sha256": "029e9fd5bf1375f968ddcc326b36baefeb61aba53bab9dd496ee1b00a5ee33bf",
       "provider": "facebook_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/facebook.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 77,
+          "output": "dist/egern/facebook-ip-0001.yaml",
+          "output_sha256": "bd87d827101105be304c6c397fad2874a3d405ea899640eb44c65f12f1ba1034"
+        },
+        {
+          "entries": 5,
+          "output": "dist/egern/facebook-ip-0002.yaml",
+          "output_sha256": "4b28df2301e68f88dc7a7aaa73eb8725066b40e7d1a4d8adac09864ac8bb631f"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 82,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/facebook.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "7eb48df382269dff7fed77e65301a047e3585407dd2d05db4355e3de6063c65e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/facebook.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/facebook.list"
     },
     {
       "behavior": "domain",
       "entries": 24,
-      "output": "dist/egern/twitter.yaml",
-      "output_sha256": "c4c83d87e0e2864fbace152615ecbe73ef369986449d3fd2d61e60043180b36d",
+      "ordered_entries_sha256": "c10bd619e2dd9ada55c35c4d17a73f7768964d7af755dbad7f3c2f2ba5d307e1",
       "provider": "twitter",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/twitter.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 24,
+          "output": "dist/egern/twitter.yaml",
+          "output_sha256": "c4c83d87e0e2864fbace152615ecbe73ef369986449d3fd2d61e60043180b36d"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 24,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/twitter.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "7bc17d19d2fa089b36993e56275eb0eb7355963f3e90a711364086442fd369c0",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/twitter.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/twitter.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 653,
-      "output": "dist/egern/twitter-ip.yaml",
-      "output_sha256": "dc958e1f518dfafe431bece55b3c2f1970e683ac0f87074660f7f3ef5858224e",
+      "ordered_entries_sha256": "5fdff3d972e8f5d8dadc0b00bf9bd197eafd401e732ca985b03b77f7fa4848e3",
       "provider": "twitter_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/twitter.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 633,
+          "output": "dist/egern/twitter-ip-0001.yaml",
+          "output_sha256": "f2f2680fbf0dbd5159e40210270d7918ecd0820c0877df222f712960b3028df7"
+        },
+        {
+          "entries": 20,
+          "output": "dist/egern/twitter-ip-0002.yaml",
+          "output_sha256": "1f51d242971e48ec9e3ed0b76871fed7f81a16f1170c5f5bb09941c61ac12dff"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 653,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/twitter.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "10f6f9d39b9d85673d4ad00eb692036df6204c99f5febb889ee98a2c6975fb02",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/twitter.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/twitter.list"
     },
     {
       "behavior": "domain",
       "entries": 34,
-      "output": "dist/egern/twitch.yaml",
-      "output_sha256": "731eb65f6ea60be18d6b96707d90e80dfe73d531f586313d100909702cec1966",
+      "ordered_entries_sha256": "6f6fe3488f6ecf5d04e4b3d0dd7a1fee1b77db3269b04478f01d9dc24e0d3b2f",
       "provider": "twitch",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/twitch.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 26,
+          "output": "dist/egern/twitch-0001.yaml",
+          "output_sha256": "f4e599c9fe54817b36c5f1532addc19cb6030a1f1d5e0320570da0d0c05f8e3b"
+        },
+        {
+          "entries": 8,
+          "output": "dist/egern/twitch-0002.yaml",
+          "output_sha256": "6b24418b4d80b241d0589bb824a06dd00d85620b09e84ff0fe2ac902e06c72c6"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 34,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/twitch.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "230e8e3b582de5c769be1b95e06d7aadf7cd83aa54df240bfca2f8bc14e5fd7c",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/twitch.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/twitch.list"
     },
     {
       "behavior": "domain",
       "entries": 37,
-      "output": "dist/egern/tiktok.yaml",
-      "output_sha256": "56a3c1d35f38262160c1e18c6828138e29c72865221947fbb3bfa6ad0656d122",
+      "ordered_entries_sha256": "5eb878eaabc1b6b36d4528510c86bb634b2a4e7e487779a76eceaac4cb34ea51",
       "provider": "tiktok",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/tiktok.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 30,
+          "output": "dist/egern/tiktok-0001.yaml",
+          "output_sha256": "1fc7a34c6bc824e2bcc73dda33f278d23b822d32f201e279449dae4004312fe9"
+        },
+        {
+          "entries": 6,
+          "output": "dist/egern/tiktok-0002.yaml",
+          "output_sha256": "cb26e3ef662b6b644dfadfe728ba7f073775f7553317dea25fd739d4c36d522d"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/tiktok-0003.yaml",
+          "output_sha256": "d118a4948875231d7a813f69f75a42cafe200278a99f4395b4ca3555b1043521"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 37,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/tiktok.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "09edefc16d3913b24fa7d0d2bae1679e9be03b6f4e1d879e96d937a1d020e7db",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/tiktok.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/tiktok.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 116,
-      "output": "dist/egern/tiktok-ip.yaml",
-      "output_sha256": "181c0dd7d958031265d5efd810fa07dee3fdaf58bce6b7b19c79d2c3e8e289df",
+      "ordered_entries_sha256": "d123422de24108eea80b072290707bdf7e110ba236e03b1c8a4ee6d89d76ec7f",
       "provider": "tiktok_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/tiktok.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 102,
+          "output": "dist/egern/tiktok-ip-0001.yaml",
+          "output_sha256": "627416a71ff15c88d5475db9bc35fa29e618a067ef4b9cd4e6ae0b8542b540ba"
+        },
+        {
+          "entries": 14,
+          "output": "dist/egern/tiktok-ip-0002.yaml",
+          "output_sha256": "7db180989bff954d5db059055cff23e6b357912bf68e2ac93fcd2c11ee4b282b"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 116,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/tiktok.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "7f5f862f73a74583e522543a2436a8e780acbf6e58878d0dd1d7ed04a7252c20",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/tiktok.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/tiktok.list"
     },
     {
       "behavior": "domain",
       "entries": 1073,
-      "output": "dist/egern/google.yaml",
-      "output_sha256": "0cdebfd7a8707de12bd3b5f17f25c8ce777715448e53171dccfa1059410ec0ce",
+      "ordered_entries_sha256": "5b620c33b9659f180120d3060189b9e8e2f72716006ad90775315e5ed35dec73",
       "provider": "google",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/google.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 112,
+          "output": "dist/egern/google-0001.yaml",
+          "output_sha256": "467296b0adeb5408b02529ee519ffb9404bb2a155c6ef46cc37d285b0b6d15c6"
+        },
+        {
+          "entries": 834,
+          "output": "dist/egern/google-0002.yaml",
+          "output_sha256": "af2649a660adba5aba98b8afeec7b2e60ca0aa277f36083ac37fca82935b8f83"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/google-0003.yaml",
+          "output_sha256": "1559c9841079b4ebe2e4af02c931609a3daaee8a37aa2427191f7f0f360f5893"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/google-0004.yaml",
+          "output_sha256": "d5bf768f9e7df74093959756391dbf35443a180c6878d64c2c5b54688a930961"
+        },
+        {
+          "entries": 114,
+          "output": "dist/egern/google-0005.yaml",
+          "output_sha256": "63b4db1d7cb5edf17427bfe4557a5c27ffd617b6984a0f4929e8c891dc4e49ae"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/google-0006.yaml",
+          "output_sha256": "5438ee281f9ce2b4e5679a07e44bf33d65ebeabcd9be0585c85e2f0225567ff9"
+        },
+        {
+          "entries": 7,
+          "output": "dist/egern/google-0007.yaml",
+          "output_sha256": "2e02acce3684c310a87f1e1ee43df8d1dd3f6556a20e26e97f29c49c62ff0c4a"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 1073,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/google.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "402fe8c052deff4ab326f7329ffb1de7e815950fb327e412f66256a79983b830",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/google.list"
+      "source_sha256": "b82a6a270adc3221b3ab93b34d1eafc6bd9893ba92c492555d6df151fbb72b69",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/google.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 960,
-      "output": "dist/egern/google-ip.yaml",
-      "output_sha256": "9616e2dd78407881a9e39694ce5efce6dba3df58430124cc86507f3261d62d9f",
+      "ordered_entries_sha256": "2d5ab0010481d5cc4a50a303651175e884cc2ee8b4864075a08650574e252d2c",
       "provider": "google_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/google.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 872,
+          "output": "dist/egern/google-ip-0001.yaml",
+          "output_sha256": "e4dd86b5264d755f7574375ff68f540647eeacd5b8e71d8f5838bfb3587bf333"
+        },
+        {
+          "entries": 88,
+          "output": "dist/egern/google-ip-0002.yaml",
+          "output_sha256": "d7606fb0bf135a49c30e6955a398e02599f9b869785256febc1278b5bc773dcc"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 960,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/google.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "bdc7d33a1bb6850ec3b4a369e9949202347ff450ec4d104993678e5ef47ac199",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/google.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/google.list"
     },
     {
       "behavior": "classical",
       "entries": 23,
-      "output": "dist/egern/claude.yaml",
-      "output_sha256": "f2232abda389dfdea3e24149239b11e156743d21e2dadb20044d37f55b58481d",
+      "ordered_entries_sha256": "3896a8fa36d3dd35011edeb88f9e4f497afb5ed5497d0dd732c1e0ab1a6465c2",
       "provider": "claude",
       "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/claude.yaml",
+      "segments": [
+        {
+          "entries": 1,
+          "output": "dist/egern/claude-0001.yaml",
+          "output_sha256": "d59de0ae1df57f0476b383e1912d3ae815e159339246241eeb4434df21a8209c"
+        },
+        {
+          "entries": 7,
+          "output": "dist/egern/claude-0002.yaml",
+          "output_sha256": "717feda26a8b005aae7de359df614e781c70ce6ed16f4b86e3921ed5aa2a09c4"
+        },
+        {
+          "entries": 3,
+          "output": "dist/egern/claude-0003.yaml",
+          "output_sha256": "9719ed528f2b8bf8fea50ecf04407d16ce552aa00d061cd32ab44cfce9ca4aaa"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/claude-0004.yaml",
+          "output_sha256": "55eafd9e22f4e5b0ef1c4408ecbf0b38709dd08c76eee1b35e4075bf212fa3ec"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/claude-0005.yaml",
+          "output_sha256": "57ed83422833e881ce7157fc2a674c3cd74df185d1fd3872843c099448d20ccb"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/claude-0006.yaml",
+          "output_sha256": "3655982777fc7bde86c274e9c8830430c41f94798455975ea923b6459361c3cb"
+        },
+        {
+          "entries": 2,
+          "output": "dist/egern/claude-0007.yaml",
+          "output_sha256": "681ba3cebd560c6cb9f1894b436482d1c3fbe170eada45defce74db1314593ac"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/claude-0008.yaml",
+          "output_sha256": "f9e5a48802d3307fb106df3439ec6a9cb1163f8cd919d61eb710251e9575cb2a"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/claude-0009.yaml",
+          "output_sha256": "fb800b84b6a3200617b4ca866a7016116e8a5c3167dcb6cc6a6337c023eaff49"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/claude-0010.yaml",
+          "output_sha256": "e9f98938cea2da4d28d7c7e8e39a1eaac276d7079a38f5529b4f8bd4a5393fa2"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/claude-0011.yaml",
+          "output_sha256": "5f1f63e273b02a2883560e2392895fa54d260a7bbee5836c6ef4288c0bfa1114"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/claude-0012.yaml",
+          "output_sha256": "6b3fa0a1e049322575bf80803950c6928eef6254c63a763a26aff78a3e7271cb"
+        }
+      ],
       "source_commit": null,
       "source_entries": 23,
       "source_generated_in_same_run": true,
@@ -449,10 +964,21 @@
     {
       "behavior": "domain",
       "entries": 184,
-      "output": "dist/egern/ai.yaml",
-      "output_sha256": "59474721ec27829913e79def9902c38c572caa70f440324bfa01d221db1cb042",
+      "ordered_entries_sha256": "cf7245e4aa79d1b31ea5ae2733a8c070f0e940ddb44b3a21f3d59a6d3b70ed56",
       "provider": "ai",
       "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/ai.mrs",
+      "segments": [
+        {
+          "entries": 154,
+          "output": "dist/egern/ai-0001.yaml",
+          "output_sha256": "956b457b3013c802a171818578d0d8c2bd6253f46111a4dd399fa18d7794f457"
+        },
+        {
+          "entries": 30,
+          "output": "dist/egern/ai-0002.yaml",
+          "output_sha256": "98a152a9860bf5770d98177b4bba325de74dda267aa3ab950219ed4894cdedf2"
+        }
+      ],
       "source_commit": null,
       "source_entries": 184,
       "source_generated_in_same_run": true,
@@ -465,59 +991,98 @@
     {
       "behavior": "domain",
       "entries": 7,
-      "output": "dist/egern/pikpak.yaml",
-      "output_sha256": "87004fdc62fb07732f5fab092fa8301b3561028b6edae57a969ce23333623450",
+      "ordered_entries_sha256": "32f5653e35eda17d5ae70453569ea8b5aea9ed7bad9fae0b8878fb68493e1fee",
       "provider": "pikpak",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/pikpak.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 6,
+          "output": "dist/egern/pikpak-0001.yaml",
+          "output_sha256": "8ad30b00047c44eda518a9b95ad0f6e953ff89e4fc2fc705b3fb50512fb8c2ac"
+        },
+        {
+          "entries": 1,
+          "output": "dist/egern/pikpak-0002.yaml",
+          "output_sha256": "0190bf9e9201c09cbe0d6e9f042266650068601d9beb67b55d1b5e5d8d013fd3"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 7,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/pikpak.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "a0ad3b0278f3b720e37133d0641c634549b785e1264a5d5f740defdf5c487b21",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/pikpak.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/pikpak.list"
     },
     {
       "behavior": "domain",
       "entries": 8,
-      "output": "dist/egern/ehentai.yaml",
-      "output_sha256": "d5d1e159d7b6b0d5f37fa9faf918282881f8c0f0a99dd1485a00ff06d84984d3",
+      "ordered_entries_sha256": "b2248375a7c83a0eb6ebb8087a41c5aabc6d52f75cd0a6f30e9cdc4ec1503291",
       "provider": "ehentai",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/ehentai.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 8,
+          "output": "dist/egern/ehentai.yaml",
+          "output_sha256": "d5d1e159d7b6b0d5f37fa9faf918282881f8c0f0a99dd1485a00ff06d84984d3"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 8,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/ehentai.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "b0465da3d078db69bef733acbfd6a81ba5eb527b281ab45dfc93fab02e956e0e",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/ehentai.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/ehentai.list"
     },
     {
       "behavior": "domain",
       "entries": 33446,
-      "output": "dist/egern/geolocation-non-cn.yaml",
-      "output_sha256": "7606328756335d40fcf0ae7ecbb97f44f4a954a45ee324e58c787e50ceb96a64",
+      "ordered_entries_sha256": "aed0622d3910c3106fb322180e5f703a179999d2dd37afc2b49e47f9f4bf7c56",
       "provider": "geolocation-!cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/geolocation-!cn.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 69,
+          "output": "dist/egern/geolocation-non-cn-0001.yaml",
+          "output_sha256": "0296c4471db75ac8a44c2a7ddc298fc5614d5a793f4e07a2708cca73684b34b7"
+        },
+        {
+          "entries": 33377,
+          "output": "dist/egern/geolocation-non-cn-0002.yaml",
+          "output_sha256": "b47cacca811333885d5f1b5015a960a06fba7d1453cf306f396ca802f75fa2ab"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 33446,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/geolocation-!cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "91f5f34f70812a60133551a9b1367bf01ea1b8ad6316e13b7dc75bfe02048c18",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/geolocation-!cn.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/geolocation-!cn.list"
     },
     {
       "behavior": "domain",
       "entries": 7813,
       "expected_entries": 7813,
-      "output": "dist/egern/geolocation-cn.yaml",
-      "output_sha256": "56ebb36996038235e72817136a548999129ee43f927532edc95eb5268bd1ba7a",
+      "ordered_entries_sha256": "5ab6b09ff38870703ede7632beace3e8cdf27d87862af5abddebbae1222d395d",
       "provider": "geolocation-cn",
       "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/geolocation-cn.mrs",
+      "segments": [
+        {
+          "entries": 7785,
+          "output": "dist/egern/geolocation-cn-0001.yaml",
+          "output_sha256": "0b46ec758953bab0d3e4fbc6bbb8fb52f6aecced181837c5c91cd3790755bdfe"
+        },
+        {
+          "entries": 28,
+          "output": "dist/egern/geolocation-cn-0002.yaml",
+          "output_sha256": "3c9814b578b217e3c943639612f6f2f6afe0aae12c4ddeb72136dd96ebea8dac"
+        }
+      ],
       "source_commit": null,
       "source_entries": 7813,
       "source_generated_in_same_run": true,
@@ -530,79 +1095,113 @@
     {
       "behavior": "ipcidr",
       "entries": 11062,
-      "output": "dist/egern/cn-ip.yaml",
-      "output_sha256": "19989305955409f1be443b27aa6a900ca9a0c6a8ae8d11fb15f6f19e50f685d8",
+      "ordered_entries_sha256": "d30259e3b712913017c364daf7aa40104822b76b3bbe0966125158795da96e85",
       "provider": "cn_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/cn.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 7354,
+          "output": "dist/egern/cn-ip-0001.yaml",
+          "output_sha256": "051dcc4f6f8e8287c72b76d748d0ef7544c7af94b381c20294d8a107fd6f91bd"
+        },
+        {
+          "entries": 3708,
+          "output": "dist/egern/cn-ip-0002.yaml",
+          "output_sha256": "306c1d5868d677cf4886a1205d28bd63bb20f783c6f6c0c6bd3e6ac4c9eb6b4a"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 11062,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "0ec7a259aad07ad2ab80935d018826bd86311f2d2c8128c1d468c1bd935c42f6",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/cn.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/cn.list"
     },
     {
       "behavior": "ipcidr",
       "entries": 18,
-      "output": "dist/egern/private-ip.yaml",
-      "output_sha256": "53e21b43107a6cbe05e5260f64c976a07dc85b153a2a3514974800890233641d",
+      "ordered_entries_sha256": "9ac8ff2c3f13f8b5dbdefe78af2231d89ae67c9bde45c6b5adbf1235da1dc51c",
       "provider": "private_ip",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/private.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 12,
+          "output": "dist/egern/private-ip-0001.yaml",
+          "output_sha256": "b4a827e5baef45e309576dcd46ebb357e489d7d5088a805b1e32ad5bde5aef8e"
+        },
+        {
+          "entries": 6,
+          "output": "dist/egern/private-ip-0002.yaml",
+          "output_sha256": "42573166d75c114bd2a80101833610733e373e60af7bd9908fb358e546655a55"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 18,
       "source_generated_in_same_run": false,
       "source_path": "geo/geoip/private.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "06ae700eaba0fb7b812e699acf3e9fe8167344443ecc7fcfad0ca54c90ad100c",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geoip/private.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/private.list"
     },
     {
       "behavior": "domain",
       "entries": 71,
-      "output": "dist/egern/douyin.yaml",
-      "output_sha256": "097b273d4e0a22b01ca55bacbdc54c1bee30bfbecabc923f0c5846ef5aed8a6d",
+      "ordered_entries_sha256": "509203e60680aef3251c2ea88967296b75b7f18c4de7d7f888fe28bf15ac49d5",
       "provider": "douyin",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/douyin.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
+      "segments": [
+        {
+          "entries": 71,
+          "output": "dist/egern/douyin.yaml",
+          "output_sha256": "097b273d4e0a22b01ca55bacbdc54c1bee30bfbecabc923f0c5846ef5aed8a6d"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
       "source_entries": 71,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/douyin.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "b3cf1b6906d1f45454599955e681d4980d7434411f1d976d37550eefb6c9066d",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/douyin.list"
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/douyin.list"
     },
     {
       "behavior": "domain",
-      "entries": 109340,
-      "output": "dist/egern/cn.yaml",
-      "output_sha256": "94f38a58da7a21508599b4d733aee5a607a8813091a4f5fd99956a98aa8be8e6",
+      "entries": 109286,
+      "ordered_entries_sha256": "df746682d92843fbb085c87ac1a65d20b1ecf2c8eecbef83ffc55830fad3cf72",
       "provider": "cn",
       "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/cn.mrs",
-      "source_commit": "89ae384705ed3573b69de2ed59cdd546b572eb95",
-      "source_entries": 109340,
+      "segments": [
+        {
+          "entries": 109286,
+          "output": "dist/egern/cn.yaml",
+          "output_sha256": "5251a62778e2c0fb460983d5e0da8ed79e304311b4ac9c5ba88be5c905faf677"
+        }
+      ],
+      "source_commit": "7763a4ef7943d3e2f8584414402ba9cb8feaa768",
+      "source_entries": 109286,
       "source_generated_in_same_run": false,
       "source_path": "geo/geosite/cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "d0b068dcb02540a64236440dc39a7638ab5165d122d439bb13f4d4d33c6ba416",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/89ae384705ed3573b69de2ed59cdd546b572eb95/geo/geosite/cn.list"
+      "source_sha256": "adfa243cbf1c01d207de208659f2885d3d1a96319aff67fae44b61a1e73b7113",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/cn.list"
     }
   ],
   "policy_groups": 18,
-  "profile_sha256": "9d7b974f9035ee97dbed08be85eab0f812bdc2e1614f2354a90e872cd47c5369",
+  "profile_sha256": "ba7b7b287f1ab85dd96e8a578e7de3de330ee9cd6f2382ef307163aeb24c0c79",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "a5a56686ae6629d4783bce3145069aa493b7e912",
+    "commit": "ff6fae743fd48d2761be34371cfdf853027c0a95",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "b49951cc3d033f953512f31708adffbb5911b6661c2e341f36620b157132dfa4",
+    "manifest_sha256": "269835b2dde70d6bb3d1bbab32dc751a6b0c3c92797b0b86ec1761dbd5b81219",
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 36,
-  "schema_version": 3,
+  "routing_rules": 115,
+  "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
     "default_subscription_group": "订阅",
