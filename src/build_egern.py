@@ -555,6 +555,8 @@ def validate_profile(
         raise BuildError("Egern default proxy group must be 代理")
     if "auto_update" in profile:
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
+    if "香港" not in names or groups[names.index("香港")].get("filter") != regex_text(next(entry for entry in model["regions"] if entry["name"] == "香港")):
+        raise BuildError("Hong Kong group must use the upstream region filter")
     if "YouTube" not in names or groups[names.index("YouTube")].get("policies") != []:
         raise BuildError("YouTube group must have no policy options")
     if "绕过日本" not in names or groups[names.index("绕过日本")].get("policies") != []:
