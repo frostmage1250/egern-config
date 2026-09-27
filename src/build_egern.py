@@ -491,7 +491,7 @@ def validate_profile(
     known = set(names) | BUILTIN_POLICIES
     apns_files = provider_files.get("apns")
     if not apns_files or any(filename not in generated for filename in apns_files):
-        raise BuildError("APNs native rule segments were not generated")
+        raise BuildError("APNs native rule set was not generated")
     first_rule = profile["rules"][0].get("protocol", {})
     if first_rule != {"match": "stun", "policy": "REJECT"}:
         raise BuildError("STUN blocking must be the first routing rule")
@@ -502,7 +502,7 @@ def validate_profile(
             or apns_rule.get("policy") != "Proxy"
             or apns_rule.get("no_resolve") is not True
         ):
-            raise BuildError("APNs rule segments must follow STUN in source order")
+            raise BuildError("APNs rule set must follow STUN")
     expected_nameserver_routes = render_nameserver_route_rules(model)
     offset = 1 + len(apns_files)
     if profile["rules"][offset:offset + len(expected_nameserver_routes)] != expected_nameserver_routes:
@@ -513,7 +513,7 @@ def validate_profile(
             first_dns_rule.get("match") != f"{RAW_BASE}/dist/egern/{filename}"
             or first_dns_rule.get("value") != "Foreign"
         ):
-            raise BuildError("APNs DNS Forward segments must be first in source order")
+            raise BuildError("APNs DNS Forward rule set must be first")
     for group in groups:
         for policy in group.get("policies", []):
             if policy not in known:
@@ -593,7 +593,7 @@ def validate_profile(
 def load_manifest_rules(
     model: dict[str, Any], manifest: dict[str, Any], converter_commit: str
 ) -> tuple[dict[str, dict[str, Any]], dict[str, list[str]]]:
-    if manifest.get("schema_version") != 2:
+    if manifest.get("schema_version") != 3:
         raise BuildError("Unsupported Egern rule manifest schema")
     if manifest.get("mihomo_script", {}).get("repository") != MIHOMO_REPO:
         raise BuildError("Rule manifest has an unexpected Mihomo repository")
@@ -626,50 +626,50 @@ def load_manifest_rules(
             record.get("entries"), int
         ) or record["entries"] <= 0:
             raise BuildError(f"Rule manifest entry count changed: {name}")
-        segments = record.get("segments")
-        if not isinstance(segments, list) or not segments:
-            raise BuildError(f"Rule manifest has no ordered segments: {name}")
-        filenames: list[str] = []
+        output = record.get("output")
+        if (
+            not isinstance(output, str)
+            or not re.fullmatch(r"dist/egern/[A-Za-z0-9.-]+\.yaml", output)
+        ):
+            raise BuildError(f"Invalid published Egern rule path for {name}")
+        filename = Path(output).name
+        if filename in generated:
+            raise BuildError(f"Duplicate published Egern rule path: {filename}")
+        expected_sha = record.get("output_sha256")
+        native_sha = record.get("native_entries_sha256")
+        source_order_sha = record.get("source_order_sha256")
+        if any(
+            not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value)
+            for value in (expected_sha, native_sha, source_order_sha)
+        ):
+            raise BuildError(f"Rule manifest digest is missing: {name}")
+        url = f"https://raw.githubusercontent.com/{CONVERTER_REPO}/{converter_commit}/{output}"
+        rule_text = download_text(url)
+        if hashlib.sha256(rule_text.encode("utf-8")).hexdigest() != expected_sha:
+            raise BuildError(f"Published Egern rule hash differs from manifest: {name}")
+        rule = yaml.safe_load(rule_text)
+        if not isinstance(rule, dict):
+            raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
         sequence: list[tuple[str, str]] = []
-        total = 0
-        for segment in segments:
-            output = segment.get("output")
-            if (
-                not isinstance(output, str)
-                or not re.fullmatch(r"dist/egern/[A-Za-z0-9.-]+\.yaml", output)
-            ):
-                raise BuildError(f"Invalid published Egern rule path for {name}")
-            filename = Path(output).name
-            if filename in generated:
-                raise BuildError(f"Duplicate published Egern rule path: {filename}")
-            expected_sha = segment.get("output_sha256")
-            if not isinstance(expected_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha):
-                raise BuildError(f"Rule manifest output hash is missing: {name}")
-            url = f"https://raw.githubusercontent.com/{CONVERTER_REPO}/{converter_commit}/{output}"
-            rule_text = download_text(url)
-            if hashlib.sha256(rule_text.encode("utf-8")).hexdigest() != expected_sha:
-                raise BuildError(f"Published Egern rule hash differs from manifest: {name}")
-            rule = yaml.safe_load(rule_text)
-            if not isinstance(rule, dict):
-                raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
-            fields = [(field, values) for field, values in rule.items() if isinstance(values, list)]
-            if len(fields) != 1 or any(not isinstance(value, str) for value in fields[0][1]):
-                raise BuildError(f"Egern segment must contain one ordered rule type: {name}")
-            field, values = fields[0]
-            if len(values) != segment.get("entries") or not values:
-                raise BuildError(f"Published Egern segment count differs from manifest: {name}")
-            sequence.extend((field, value) for value in values)
-            total += len(values)
-            generated[filename] = rule
-            filenames.append(filename)
-        if total != record["entries"]:
+        for field, values in rule.items():
+            if isinstance(values, list):
+                if not values or any(not isinstance(value, str) for value in values):
+                    raise BuildError(f"Invalid Egern rule entries: {name}/{field}")
+                sequence.extend((field, value) for value in values)
+            elif field != "no_resolve" or values is not True:
+                raise BuildError(f"Invalid Egern rule field: {name}/{field}")
+        if len(sequence) != record["entries"]:
             raise BuildError(f"Published Egern rule count differs from manifest: {name}")
-        ordered_sha = hashlib.sha256(
+        computed_native_sha = hashlib.sha256(
             json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         ).hexdigest()
-        if ordered_sha != record.get("ordered_entries_sha256"):
-            raise BuildError(f"Published Egern rule order differs from manifest: {name}")
-        provider_files[name] = filenames
+        if computed_native_sha != native_sha:
+            raise BuildError(f"Published Egern native rule order differs from manifest: {name}")
+        if any(field in rule for field in ("ip_cidr_set", "ip_cidr6_set", "asn_set")):
+            if rule.get("no_resolve") is not True:
+                raise BuildError(f"Published Egern IP rules must disable resolution: {name}")
+        generated[filename] = rule
+        provider_files[name] = [filename]
     return generated, provider_files
 
 

@@ -14,8 +14,8 @@ to an Egern profile.
 - GitHub Actions refreshes the generated repository files every six hours and can also
   be run manually. The Egern profile itself deliberately has no root
   `auto_update`; re-import it manually when you want to replace the active profile.
-  The ordered-rule migration replaced earlier single-file rule URLs, so profiles
-  imported before this change need a manual re-import.
+  The rule URL layout changed, so profiles imported before this change need a
+  manual re-import.
 
 ## Subscription setup
 
@@ -46,9 +46,8 @@ Mihomo update breaks that invariant.
 Two user-requested Egern overrides precede the Mihomo routing rules: a global
 `protocol: stun` rule routed to `REJECT`, followed by the APNs override.
 The APNs classical domain/IPv4/IPv6 entries are converted in the rule converter
-into ordered YAML segments. Egern references each segment in source order,
-routes it through `Proxy`, and keeps the same segment order first in DNS Forward
-with `Foreign`.
+into one Egern-native YAML file. Egern routes that rule set through `Proxy`
+and puts the same file first in DNS Forward with `Foreign`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
 Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy` becomes ordered Egern DNS Forward rules; a policy
 with explicit servers uses a matching Egern upstream group preserving its server
@@ -77,9 +76,11 @@ per-DIRECT-policy IP-version selector.
 `proxy-rules-converter` publishes and verifies all Egern-native rules and the
 `reports/egern-source.json` manifest first. This repository pins that published
 converter commit, uses the manifest's Mihomo commit to render `Profile.yaml`,
-and verifies every referenced YAML against its manifest hash and ordered rule
-digest. The converter splits a source at type transitions; Egern references the
-segments consecutively, preserving source count, duplicates, and order. The workflow
+and verifies every referenced YAML against its manifest hash, entry count, and
+native-field-order digest. Each provider has one Egern-native YAML file. The
+converter retains source count, duplicates, and order within each Egern rule
+type. Native YAML groups different types into separate fields, so their original
+interleaving cannot be expressed in one file. The workflow
 commits only `Profile.yaml` and `reports/source.json`; it no longer generates
 `rules/*.yaml`. Existing rule files remain as read-only compatibility paths
 for profiles imported before the migration.
