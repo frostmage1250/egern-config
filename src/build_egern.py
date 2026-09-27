@@ -261,6 +261,24 @@ def render_nameserver_route_rules(model: dict[str, Any]) -> list[dict[str, Any]]
     return rules
 
 
+def prioritize_ai_rules(rules: list[str]) -> list[str]:
+    def provider(raw: str) -> str | None:
+        parts = raw.split(",", 2)
+        return parts[1] if len(parts) >= 3 and parts[0] == "RULE-SET" else None
+
+    if not any(provider(raw) == "github" for raw in rules):
+        return rules
+    selected: list[str] = []
+    for name in ("claude", "ai"):
+        matches = [raw for raw in rules if provider(raw) == name]
+        if len(matches) != 1:
+            raise BuildError(f"Expected one {name} rule before GitHub routing")
+        selected.extend(matches)
+    remaining = [raw for raw in rules if provider(raw) not in {"claude", "ai"}]
+    anchor = next(index for index, raw in enumerate(remaining) if provider(raw) == "github")
+    return remaining[:anchor] + selected + remaining[anchor:]
+
+
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
@@ -277,7 +295,7 @@ def render_rules(
             }
         })
     rules.extend(render_nameserver_route_rules(model))
-    for raw in model["rules"]:
+    for raw in prioritize_ai_rules(model["rules"]):
         parts = raw.split(",")
         kind = parts[0]
         if kind == "MATCH" and len(parts) == 2:
@@ -556,6 +574,21 @@ def validate_profile(
             for rule in profile["rules"]
         ):
             raise BuildError(f"YouTube rule set must use the YouTube group: {filename}")
+    priority_positions: list[int] = []
+    for provider in ("claude", "ai", "github"):
+        filenames = provider_files.get(provider)
+        if not filenames or len(filenames) != 1:
+            raise BuildError(f"Expected one native rule set for {provider}")
+        match = f"{RAW_BASE}/dist/egern/{filenames[0]}"
+        positions = [
+            index for index, rule in enumerate(profile["rules"])
+            if rule.get("rule_set", {}).get("match") == match
+        ]
+        if len(positions) != 1:
+            raise BuildError(f"Expected one Egern routing rule for {provider}")
+        priority_positions.append(positions[0])
+    if priority_positions != sorted(priority_positions):
+        raise BuildError("Claude and AI must precede GitHub routing")
     for provider, filenames in provider_files.items():
         for filename in filenames:
             native_rule = generated[filename]
@@ -778,6 +811,7 @@ def main() -> int:
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
+                "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
                 "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",

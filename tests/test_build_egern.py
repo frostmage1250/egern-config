@@ -60,6 +60,40 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(rules[2]["rule_set"]["policy"], "YouTube")
         self.assertEqual(rules[3]["rule_set"]["policy"], "媒体")
 
+    def test_claude_and_ai_rules_precede_github_without_dropping_rules(self):
+        model = {
+            "rules": [
+                "RULE-SET,steam_ip,Proxy,no-resolve",
+                "RULE-SET,apple_cn,Direct",
+                "RULE-SET,apple,Proxy",
+                "RULE-SET,github,GitHub",
+                "RULE-SET,claude,Claude",
+                "RULE-SET,ai,AI",
+                "MATCH,Final",
+            ]
+        }
+        provider_files = {
+            name: [name.replace("_", "-") + ".yaml"]
+            for name in ("steam_ip", "apple_cn", "apple", "github", "claude", "ai")
+        }
+        rules = render_rules(model, provider_files)
+        ordered = [
+            (rule["rule_set"]["match"].rsplit("/", 1)[-1], rule["rule_set"]["policy"])
+            for rule in rules
+            if "rule_set" in rule and not rule["rule_set"]["match"].endswith("/apns.yaml")
+        ]
+        self.assertEqual(
+            ordered,
+            [
+                ("steam-ip.yaml", "Proxy"),
+                ("apple-cn.yaml", "Direct"),
+                ("apple.yaml", "Proxy"),
+                ("claude.yaml", "Claude"),
+                ("ai.yaml", "AI"),
+                ("github.yaml", "GitHub"),
+            ],
+        )
+
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
         valid = {
             "providers": {
