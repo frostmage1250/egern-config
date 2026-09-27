@@ -214,6 +214,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "Claude", "proxies": ["Proxy", "日本", "其他节点"]},
                 {"name": "AI", "proxies": ["Proxy", "日本", "其他节点"]},
                 {"name": "日本", "proxies": ["__日本__"]},
+                {"name": "香港", "proxies": ["__香港__"]},
                 {"name": "其他节点", "proxies": ["__其他节点__"]},
                 {"name": "低倍率节点", "proxies": ["__低倍率节点__"]},
                 {"name": "Telegram", "proxies": ["Proxy", "低倍率节点"]},
@@ -239,6 +240,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["Claude"]["policies"], ["Proxy", "日本", "其他节点"])
         self.assertEqual(by_name["日本"]["policies"], ["订阅"])
         self.assertTrue(by_name["日本"]["flatten"])
+        self.assertEqual(by_name["香港"]["policies"], ["订阅"])
+        self.assertTrue(by_name["香港"]["flatten"])
+        self.assertIsNotNone(re.search(by_name["香港"]["filter"], "HK Node"))
         self.assertEqual(
             by_name["Telegram"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
         )
@@ -253,9 +257,13 @@ class EgernProfileBuilderTests(unittest.TestCase):
         )
         self.assertIn("traffic", filters["订阅"])
         self.assertNotIn("订阅2", filters["订阅"])
-        self.assertIsNone(re.fullmatch(by_name["订阅2"]["filter"], "HK Node"))
+        self.assertIsNotNone(re.fullmatch(by_name["订阅2"]["filter"], "HK Node"))
+        self.assertIsNone(re.fullmatch(filters["其他节点"], "HK Node"))
         self.assertIsNone(re.fullmatch(by_name["订阅2"]["filter"], "traffic-50GB"))
         self.assertIsNotNone(re.fullmatch(by_name["订阅2"]["filter"], "普通节点"))
+        model["options"] = {"过滤非地区节点": False, "过滤低倍率节点": False}
+        _, unrestricted_filters = render_policy_groups(model)
+        self.assertEqual(unrestricted_filters["订阅"], ".*")
 
     def test_bootstrap_preserves_mihomo_default_nameserver_ips(self):
         model = {

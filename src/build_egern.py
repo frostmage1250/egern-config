@@ -134,6 +134,8 @@ def negative_filter(patterns: list[str]) -> str:
             pattern = pattern[4:]
         if pattern:
             bodies.append(pattern)
+    if not bodies:
+        return ".*"
     prefix = "(?i)" if insensitive else ""
     return prefix + "^(?!.*(?:" + "|".join(bodies) + ")).*$"
 
@@ -141,11 +143,7 @@ def negative_filter(patterns: list[str]) -> str:
 def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, str]]:
     regions = {entry["name"]: regex_text(entry) for entry in model["regions"]}
     rates = {entry["name"]: regex_text(entry) for entry in model["rateRegions"]}
-    hong_kong = regions.get("香港")
-    if not hong_kong:
-        raise BuildError("Mihomo region model is missing 香港")
-
-    excluded = [hong_kong]
+    excluded: list[str] = []
     if model["options"].get("过滤非地区节点"):
         excluded.append(regex_text(model["excludeFilter"]))
     if model["options"].get("过滤低倍率节点"):
@@ -154,8 +152,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
     filters: dict[str, str] = {"订阅": negative_filter(excluded)}
     display_name = {"台湾省": "台湾"}
     for source_name, pattern in regions.items():
-        if source_name != "香港":
-            filters[display_name.get(source_name, source_name)] = pattern
+        filters[display_name.get(source_name, source_name)] = pattern
     filters.update(rates)
     filters["其他节点"] = negative_filter(list(regions.values()))
 
