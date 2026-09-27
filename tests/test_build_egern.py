@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,7 +35,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 "MATCH,Final",
             ]
         }
-        rules = render_rules(model, {"domain": "domain.yaml", "ip": "ip.yaml"})
+        rules = render_rules(model, {"domain": ["domain-0001.yaml", "domain-0002.yaml"], "ip": ["ip.yaml"]})
         self.assertEqual(
             rules[0],
             {"protocol": {"match": "stun", "policy": "REJECT"}},
@@ -44,8 +47,15 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(rules[1]["rule_set"]["policy"], "Proxy")
         self.assertTrue(rules[1]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[2]), ["domain_suffix"])
+        self.assertEqual(
+            [rules[3]["rule_set"]["match"], rules[4]["rule_set"]["match"]],
+            [
+                "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/domain-0001.yaml",
+                "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/domain-0002.yaml",
+            ],
+        )
         self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[4]["rule_set"]["no_resolve"])
+        self.assertTrue(rules[5]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
@@ -225,10 +235,10 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "google": {"behavior": "domain"},
         }
         files = {
-            "cn": "cn.yaml",
-            "private": "private.yaml",
-            "cn_ip": "cn-ip.yaml",
-            "google": "google.yaml",
+            "cn": ["cn.yaml"],
+            "private": ["private.yaml"],
+            "cn_ip": ["cn-ip.yaml"],
+            "google": ["google.yaml"],
         }
         forward = render_dns_forward(model, providers, files)
         self.assertEqual(
@@ -280,7 +290,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ["system", "180.184.1.1", "180.184.2.2"],
         )
         forward = render_dns_forward(
-            model, {"douyin": {"behavior": "domain"}}, {"douyin": "douyin.yaml"}
+            model, {"douyin": {"behavior": "domain"}}, {"douyin": ["douyin.yaml"]}
         )
         self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Policy-douyin")
 
@@ -290,6 +300,97 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "rules": ["RULE-SET,google,Proxy", "MATCH,Final"],
         }
         self.assertEqual(referenced_providers(model), ["google", "cn"])
+
+    def test_repeated_nameserver_and_dns_forward_rules_remain_repeated(self):
+        model = {
+            "dns": {
+                "nameserver": [
+                    "https://dns.example/dns-query#Proxy",
+                    "https://dns.example/dns-query#Proxy",
+                ],
+            },
+            "rules": [
+                "DOMAIN-SUFFIX,internal.example,Direct",
+                "DOMAIN-SUFFIX,internal.example,Direct",
+                "MATCH,Final",
+            ],
+        }
+        self.assertEqual(len(nameservers(model)), 2)
+        self.assertEqual(len(render_nameserver_route_rules(model)), 2)
+        forward = render_dns_forward(model, {}, {})
+        self.assertEqual(forward[1], forward[2])
+        self.assertEqual(len(forward), 4)
+
+    def test_dns_forward_expands_provider_segments_in_order(self):
+        model = {
+            "dns": {"nameserver-policy": {"rule-set:cn": ["system"]}},
+            "rules": ["MATCH,Final"],
+        }
+        forward = render_dns_forward(
+            model, {"cn": {"behavior": "domain"}},
+            {"apns": ["apns-0001.yaml", "apns-0002.yaml"],
+             "cn": ["cn-0001.yaml", "cn-0002.yaml"]},
+        )
+        self.assertEqual(
+            [item["proxy_rule_set"]["match"].rsplit("/", 1)[-1] for item in forward[:4]],
+            ["apns-0001.yaml", "apns-0002.yaml", "cn-0001.yaml", "cn-0002.yaml"],
+        )
+
+    def test_manifest_verifies_segment_order_and_duplicates(self):
+        model = {
+            "providers": {"service": {"behavior": "domain", "url": "https://example.test/service.mrs"}},
+            "rules": ["RULE-SET,service,Proxy", "MATCH,Final"],
+        }
+        texts = {
+            "apns.yaml": "domain_set:\n- push.apple.com\n",
+            "service-0001.yaml": "domain_set:\n- a.example\n- a.example\n",
+            "service-0002.yaml": "domain_suffix_set:\n- example.org\n",
+        }
+        def segment(filename, count):
+            return {
+                "output": "dist/egern/" + filename,
+                "entries": count,
+                "output_sha256": hashlib.sha256(texts[filename].encode()).hexdigest(),
+            }
+        def sequence_hash(sequence):
+            return hashlib.sha256(
+                json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode()
+            ).hexdigest()
+        manifest = {
+            "schema_version": 2,
+            "mihomo_script": {"repository": "frostmage1250/mihomo-script"},
+            "native_rule_sets": [
+                {
+                    "provider": "apns",
+                    "source_repository": "ttyyss2233/Tool",
+                    "source_path": "shadowrocket/rules/apns.list",
+                    "source_entries": 1,
+                    "entries": 1,
+                    "ordered_entries_sha256": sequence_hash([("domain_set", "push.apple.com")]),
+                    "segments": [segment("apns.yaml", 1)],
+                },
+                {
+                    "provider": "service",
+                    "provider_url": "https://example.test/service.mrs",
+                    "behavior": "domain",
+                    "source_entries": 3,
+                    "entries": 3,
+                    "ordered_entries_sha256": sequence_hash([
+                        ("domain_set", "a.example"),
+                        ("domain_set", "a.example"),
+                        ("domain_suffix_set", "example.org"),
+                    ]),
+                    "segments": [segment("service-0001.yaml", 2), segment("service-0002.yaml", 1)],
+                },
+            ],
+        }
+        with patch("build_egern.download_text", side_effect=lambda url: texts[url.rsplit("/", 1)[-1]]):
+            generated, files = load_manifest_rules(model, manifest, "converter-commit")
+            self.assertEqual(files["service"], ["service-0001.yaml", "service-0002.yaml"])
+            self.assertEqual(generated["service-0001.yaml"]["domain_set"], ["a.example", "a.example"])
+            manifest["native_rule_sets"][1]["segments"].reverse()
+            with self.assertRaises(BuildError):
+                load_manifest_rules(model, manifest, "converter-commit")
 
     def test_manifest_must_cover_all_referenced_providers(self):
         model = {

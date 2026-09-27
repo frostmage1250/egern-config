@@ -40,8 +40,10 @@ and is emitted with Egern's native `no_resolve: true`; the build fails if a futu
 Mihomo update breaks that invariant.
 Two user-requested Egern overrides precede the Mihomo routing rules: a global
 `protocol: stun` rule routed to `REJECT`, followed by the APNs override.
-The APNs classical domain/IPv4/IPv6 entries are converted in the rule converter into `dist/egern/apns.yaml`,
-routed through `Proxy`, and remain first in DNS Forward with `Foreign`.
+The APNs classical domain/IPv4/IPv6 entries are converted in the rule converter
+into ordered YAML segments. Egern references each segment in source order,
+routes it through `Proxy`, and keeps the same segment order first in DNS Forward
+with `Foreign`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
 Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy` becomes ordered Egern DNS Forward rules; a policy
 with explicit servers uses a matching Egern upstream group preserving its server
@@ -70,7 +72,9 @@ per-DIRECT-policy IP-version selector.
 `proxy-rules-converter` publishes and verifies all Egern-native rules and the
 `reports/egern-source.json` manifest first. This repository pins that published
 converter commit, uses the manifest's Mihomo commit to render `Profile.yaml`,
-and verifies every referenced YAML against its manifest hash. The workflow
+and verifies every referenced YAML against its manifest hash and ordered rule
+digest. The converter splits a source at type transitions; Egern references the
+segments consecutively, preserving source count, duplicates, and order. The workflow
 commits only `Profile.yaml` and `reports/source.json`; it no longer generates
 `rules/*.yaml`. Existing rule files remain as read-only compatibility paths
 for profiles imported before the migration.

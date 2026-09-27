@@ -63,10 +63,6 @@ class BuildError(RuntimeError):
     pass
 
 
-def unique(values: list[str]) -> list[str]:
-    return list(dict.fromkeys(values))
-
-
 
 def download_text(url: str) -> str:
     request = urllib.request.Request(url, headers={"User-Agent": "egern-config-builder/1"})
@@ -86,7 +82,7 @@ def referenced_providers(model: dict[str, Any]) -> list[str]:
     for key in model.get("dns", {}).get("nameserver-policy", {}):
         if isinstance(key, str) and key.startswith("rule-set:"):
             result.append(key.removeprefix("rule-set:"))
-    return unique(result)
+    return list(dict.fromkeys(result))
 
 
 def validate_business_ip_pairs(model: dict[str, Any]) -> None:
@@ -193,10 +189,11 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         if name == "Direct":
             policies = ["DIRECT"]
         if name in {"Telegram", "媒体"}:
-            policies = unique(policies + ["订阅"])
+            if "订阅" not in policies:
+                policies.append("订阅")
         if not policies:
             policies = ["DIRECT"]
-        groups.append({"select": {"name": name, "policies": unique(policies)}})
+        groups.append({"select": {"name": name, "policies": policies}})
     return groups, filters
 
 
@@ -249,26 +246,26 @@ def render_nameserver_route_rules(model: dict[str, Any]) -> list[dict[str, Any]]
             raise BuildError(
                 f"Conflicting Mihomo DNS policies for {host}: {previous!r} and {policy!r}"
             )
-        if previous is None:
-            seen[key] = policy
-            rules.append({kind: item})
+        seen[key] = policy
+        rules.append({kind: item})
     return rules
 
 
 def render_rules(
-    model: dict[str, Any], provider_files: dict[str, str]
+    model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
     rules: list[dict[str, Any]] = [
         {"protocol": {"match": "stun", "policy": "REJECT"}},
-        {
+    ]
+    for filename in provider_files.get("apns", [APNS_FILENAME]):
+        rules.append({
             "rule_set": {
-                "match": f"{RAW_BASE}/dist/egern/{APNS_FILENAME}",
+                "match": f"{RAW_BASE}/dist/egern/{filename}",
                 "policy": "Proxy",
                 "update_interval": 86400,
                 "no_resolve": True,
             }
-        }
-    ]
+        })
     rules.extend(render_nameserver_route_rules(model))
     for raw in model["rules"]:
         parts = raw.split(",")
@@ -277,18 +274,20 @@ def render_rules(
             rules.append({"default": {"policy": parts[1]}})
         elif kind == "RULE-SET" and len(parts) >= 3:
             provider = parts[1]
-            if provider not in provider_files:
+            filenames = provider_files.get(provider)
+            if not filenames:
                 raise BuildError(f"Rule references missing generated provider: {provider}")
             no_resolve = parts[-1] == "no-resolve"
             policy = parts[-2] if no_resolve else parts[-1]
-            item: dict[str, Any] = {
-                "match": f"{RAW_BASE}/dist/egern/{provider_files[provider]}",
-                "policy": policy,
-                "update_interval": 86400,
-            }
-            if no_resolve:
-                item["no_resolve"] = True
-            rules.append({"rule_set": item})
+            for filename in filenames:
+                item: dict[str, Any] = {
+                    "match": f"{RAW_BASE}/dist/egern/{filename}",
+                    "policy": policy,
+                    "update_interval": 86400,
+                }
+                if no_resolve:
+                    item["no_resolve"] = True
+                rules.append({"rule_set": item})
         elif kind == "DOMAIN-SUFFIX" and len(parts) == 3:
             rules.append({"domain_suffix": {"match": parts[1], "policy": parts[2]}})
         elif kind == "DOMAIN" and len(parts) == 3:
@@ -304,8 +303,7 @@ def nameservers(model: dict[str, Any]) -> list[str]:
         if not isinstance(value, str):
             continue
         server, _policy = split_nameserver_policy(value)
-        if server not in result:
-            result.append(server)
+        result.append(server)
     if not result:
         raise BuildError("Mihomo DNS model contains no nameservers")
     return result
@@ -336,8 +334,7 @@ def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
             raise BuildError(
                 f"Egern bootstrap only accepts IP addresses; cannot map {value!r}"
             ) from exc
-        if address not in result:
-            result.append(address)
+        result.append(address)
     if not result:
         raise BuildError("Mihomo DNS model contains no usable default-nameserver IPs")
     return result
@@ -390,27 +387,19 @@ def render_dns_upstreams(model: dict[str, Any]) -> dict[str, list[str]]:
 def render_dns_forward(
     model: dict[str, Any],
     providers: dict[str, Any],
-    provider_files: dict[str, str],
+    provider_files: dict[str, list[str]],
 ) -> list[dict[str, Any]]:
     forward: list[dict[str, Any]] = []
-    seen: set[tuple[str, str, str]] = set()
 
     def add(kind: str, match: str, value: str) -> None:
-        key = (kind, match, value)
-        if key in seen:
-            return
-        seen.add(key)
         item: dict[str, Any] = {"match": match, "value": value}
         if kind == "proxy_rule_set":
             item["update_interval"] = 86400
         forward.append({kind: item})
 
     # User-requested APNs override is the highest-priority proxied DNS rule.
-    add(
-        "proxy_rule_set",
-        f"{RAW_BASE}/dist/egern/{APNS_FILENAME}",
-        "Foreign",
-    )
+    for filename in provider_files.get("apns", [APNS_FILENAME]):
+        add("proxy_rule_set", f"{RAW_BASE}/dist/egern/{filename}", "Foreign")
 
     # Preserve Mihomo nameserver-policy before its general nameserver.
     for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
@@ -422,14 +411,15 @@ def render_dns_forward(
             raise BuildError(
                 f"DNS policy references a missing or non-domain provider: {provider}"
             )
-        filename = provider_files.get(provider)
-        if not filename:
+        filenames = provider_files.get(provider)
+        if not filenames:
             raise BuildError(f"DNS policy provider was not generated: {provider}")
-        add(
-            "proxy_rule_set",
-            f"{RAW_BASE}/dist/egern/{filename}",
-            dns_policy_target(target, provider),
-        )
+        for filename in filenames:
+            add(
+                "proxy_rule_set",
+                f"{RAW_BASE}/dist/egern/{filename}",
+                dns_policy_target(target, provider),
+            )
 
     # Egern has no policy-aware direct re-resolution. Preserve every explicit
     # domain rule whose final Mihomo target is Direct by selecting system DNS
@@ -448,14 +438,15 @@ def render_dns_forward(
                 raise BuildError(f"Direct rule references missing provider: {provider}")
             if definition.get("behavior") != "domain":
                 continue
-            filename = provider_files.get(provider)
-            if not filename:
+            filenames = provider_files.get(provider)
+            if not filenames:
                 raise BuildError(f"Direct DNS provider was not generated: {provider}")
-            add(
-                "proxy_rule_set",
-                f"{RAW_BASE}/dist/egern/{filename}",
-                "system",
-            )
+            for filename in filenames:
+                add(
+                    "proxy_rule_set",
+                    f"{RAW_BASE}/dist/egern/{filename}",
+                    "system",
+                )
         elif kind == "DOMAIN-SUFFIX" and len(parts) == 3:
             add("domain_suffix", parts[1], "system")
         elif kind == "DOMAIN" and len(parts) == 3:
@@ -478,7 +469,7 @@ def hosts(model: dict[str, Any]) -> dict[str, Any]:
         existing = result.get(hostname, [])
         if not isinstance(existing, list):
             raise BuildError(f"DNS host mapping must be an IP list: {hostname}")
-        result[hostname] = unique(existing + additions)
+        result[hostname] = existing + [address for address in additions if address not in existing]
     result.update(FLOWER_HOSTS)
     return result
 
@@ -487,34 +478,38 @@ def validate_profile(
     profile: dict[str, Any],
     generated: dict[str, dict[str, Any]],
     model: dict[str, Any],
-    provider_files: dict[str, str],
+    provider_files: dict[str, list[str]],
 ) -> None:
     groups = [next(iter(item.values())) for item in profile["policy_groups"]]
     names = [item["name"] for item in groups]
     if len(names) != len(set(names)):
         raise BuildError("Policy group names are not unique")
     known = set(names) | BUILTIN_POLICIES
-    if APNS_FILENAME not in generated:
-        raise BuildError("APNs native rule set was not generated")
+    apns_files = provider_files.get("apns")
+    if not apns_files or any(filename not in generated for filename in apns_files):
+        raise BuildError("APNs native rule segments were not generated")
     first_rule = profile["rules"][0].get("protocol", {})
     if first_rule != {"match": "stun", "policy": "REJECT"}:
         raise BuildError("STUN blocking must be the first routing rule")
-    apns_rule = profile["rules"][1].get("rule_set", {})
-    if (
-        apns_rule.get("match") != f"{RAW_BASE}/dist/egern/{APNS_FILENAME}"
-        or apns_rule.get("policy") != "Proxy"
-        or apns_rule.get("no_resolve") is not True
-    ):
-        raise BuildError("APNs rule set must immediately follow STUN blocking and use Proxy")
+    for index, filename in enumerate(apns_files, start=1):
+        apns_rule = profile["rules"][index].get("rule_set", {})
+        if (
+            apns_rule.get("match") != f"{RAW_BASE}/dist/egern/{filename}"
+            or apns_rule.get("policy") != "Proxy"
+            or apns_rule.get("no_resolve") is not True
+        ):
+            raise BuildError("APNs rule segments must follow STUN in source order")
     expected_nameserver_routes = render_nameserver_route_rules(model)
-    if profile["rules"][2:2 + len(expected_nameserver_routes)] != expected_nameserver_routes:
+    offset = 1 + len(apns_files)
+    if profile["rules"][offset:offset + len(expected_nameserver_routes)] != expected_nameserver_routes:
         raise BuildError("Mihomo DNS nameserver policy suffixes were not preserved")
-    first_dns_rule = profile["dns"]["forward"][0].get("proxy_rule_set", {})
-    if (
-        first_dns_rule.get("match") != f"{RAW_BASE}/dist/egern/{APNS_FILENAME}"
-        or first_dns_rule.get("value") != "Foreign"
-    ):
-        raise BuildError("APNs rule set must be the first DNS Forward rule and use Foreign")
+    for index, filename in enumerate(apns_files):
+        first_dns_rule = profile["dns"]["forward"][index].get("proxy_rule_set", {})
+        if (
+            first_dns_rule.get("match") != f"{RAW_BASE}/dist/egern/{filename}"
+            or first_dns_rule.get("value") != "Foreign"
+        ):
+            raise BuildError("APNs DNS Forward segments must be first in source order")
     for group in groups:
         for policy in group.get("policies", []):
             if policy not in known:
@@ -532,28 +527,15 @@ def validate_profile(
             raise BuildError(f"Required policy group is missing: {target}")
         if "订阅" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the 订阅 policy group")
-    for provider, filename in provider_files.items():
-        native_rule = generated[filename]
-        if any(
-            field in native_rule
-            for field in ("ip_cidr_set", "ip_cidr6_set", "asn_set", "geoip_set")
-        ) and native_rule.get("no_resolve") is not True:
-            raise BuildError(
-                f"IP-capable native rule set must use no_resolve: {provider}"
-            )
-    routing_offset = 2 + len(expected_nameserver_routes)
-    for source_index, raw in enumerate(model["rules"]):
-        parts = raw.split(",")
-        if (
-            parts[0] == "RULE-SET"
-            and len(parts) >= 3
-            and model["providers"].get(parts[1], {}).get("behavior") == "ipcidr"
-            and parts[1] not in NON_SERVICE_IP_PROVIDERS
-        ):
-            rendered = profile["rules"][routing_offset + source_index].get("rule_set", {})
-            if rendered.get("no_resolve") is not True:
+    for provider, filenames in provider_files.items():
+        for filename in filenames:
+            native_rule = generated[filename]
+            if any(
+                field in native_rule
+                for field in ("ip_cidr_set", "ip_cidr6_set", "asn_set", "geoip_set")
+            ) and native_rule.get("no_resolve") is not True:
                 raise BuildError(
-                    f"Rendered business IP rule must use no_resolve: {parts[1]}"
+                    f"IP-capable native rule set must use no_resolve: {provider}"
                 )
     for index, wrapper in enumerate(profile["rules"]):
         kind, value = next(iter(wrapper.items()))
@@ -600,8 +582,8 @@ def validate_profile(
 
 def load_manifest_rules(
     model: dict[str, Any], manifest: dict[str, Any], converter_commit: str
-) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
-    if manifest.get("schema_version") != 1:
+) -> tuple[dict[str, dict[str, Any]], dict[str, list[str]]]:
+    if manifest.get("schema_version") != 2:
         raise BuildError("Unsupported Egern rule manifest schema")
     if manifest.get("mihomo_script", {}).get("repository") != MIHOMO_REPO:
         raise BuildError("Rule manifest has an unexpected Mihomo repository")
@@ -613,25 +595,15 @@ def load_manifest_rules(
         raise BuildError("Rule manifest does not match the Mihomo provider model")
 
     generated: dict[str, dict[str, Any]] = {}
-    provider_files: dict[str, str] = {}
+    provider_files: dict[str, list[str]] = {}
     for record in records:
         name = record["provider"]
-        output = record.get("output")
-        if (
-            not isinstance(output, str)
-            or not re.fullmatch(r"dist/egern/[A-Za-z0-9.-]+\.yaml", output)
-        ):
-            raise BuildError(f"Invalid published Egern rule path for {name}")
-        filename = Path(output).name
-        if filename in generated:
-            raise BuildError(f"Duplicate published Egern rule path: {filename}")
         if name == "apns":
             if (
-                output != "dist/egern/apns.yaml"
-                or record.get("source_repository") != "ttyyss2233/Tool"
+                record.get("source_repository") != "ttyyss2233/Tool"
                 or record.get("source_path") != "shadowrocket/rules/apns.list"
             ):
-                raise BuildError("APNs rule manifest source or path changed")
+                raise BuildError("APNs rule manifest source changed")
         else:
             provider = model["providers"].get(name)
             if (
@@ -640,25 +612,54 @@ def load_manifest_rules(
                 or record.get("behavior") != provider.get("behavior")
             ):
                 raise BuildError(f"Rule manifest source differs from Mihomo: {name}")
-            provider_files[name] = filename
         if record.get("source_entries") != record.get("entries") or not isinstance(
             record.get("entries"), int
         ) or record["entries"] <= 0:
             raise BuildError(f"Rule manifest entry count changed: {name}")
-        expected_sha = record.get("output_sha256")
-        if not isinstance(expected_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha):
-            raise BuildError(f"Rule manifest output hash is missing: {name}")
-        url = f"https://raw.githubusercontent.com/{CONVERTER_REPO}/{converter_commit}/{output}"
-        rule_text = download_text(url)
-        if hashlib.sha256(rule_text.encode("utf-8")).hexdigest() != expected_sha:
-            raise BuildError(f"Published Egern rule hash differs from manifest: {name}")
-        rule = yaml.safe_load(rule_text)
-        if not isinstance(rule, dict):
-            raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
-        entries = sum(len(value) for value in rule.values() if isinstance(value, list))
-        if entries != record["entries"]:
+        segments = record.get("segments")
+        if not isinstance(segments, list) or not segments:
+            raise BuildError(f"Rule manifest has no ordered segments: {name}")
+        filenames: list[str] = []
+        sequence: list[tuple[str, str]] = []
+        total = 0
+        for segment in segments:
+            output = segment.get("output")
+            if (
+                not isinstance(output, str)
+                or not re.fullmatch(r"dist/egern/[A-Za-z0-9.-]+\\.yaml", output)
+            ):
+                raise BuildError(f"Invalid published Egern rule path for {name}")
+            filename = Path(output).name
+            if filename in generated:
+                raise BuildError(f"Duplicate published Egern rule path: {filename}")
+            expected_sha = segment.get("output_sha256")
+            if not isinstance(expected_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha):
+                raise BuildError(f"Rule manifest output hash is missing: {name}")
+            url = f"https://raw.githubusercontent.com/{CONVERTER_REPO}/{converter_commit}/{output}"
+            rule_text = download_text(url)
+            if hashlib.sha256(rule_text.encode("utf-8")).hexdigest() != expected_sha:
+                raise BuildError(f"Published Egern rule hash differs from manifest: {name}")
+            rule = yaml.safe_load(rule_text)
+            if not isinstance(rule, dict):
+                raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
+            fields = [(field, values) for field, values in rule.items() if isinstance(values, list)]
+            if len(fields) != 1 or any(not isinstance(value, str) for value in fields[0][1]):
+                raise BuildError(f"Egern segment must contain one ordered rule type: {name}")
+            field, values = fields[0]
+            if len(values) != segment.get("entries") or not values:
+                raise BuildError(f"Published Egern segment count differs from manifest: {name}")
+            sequence.extend((field, value) for value in values)
+            total += len(values)
+            generated[filename] = rule
+            filenames.append(filename)
+        if total != record["entries"]:
             raise BuildError(f"Published Egern rule count differs from manifest: {name}")
-        generated[filename] = rule
+        ordered_sha = hashlib.sha256(
+            json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        if ordered_sha != record.get("ordered_entries_sha256"):
+            raise BuildError(f"Published Egern rule order differs from manifest: {name}")
+        provider_files[name] = filenames
     return generated, provider_files
 
 
@@ -713,7 +714,7 @@ def main() -> int:
 
         profile_text = yaml.safe_dump(profile, allow_unicode=True, sort_keys=False, width=1000)
         report_data = {
-            "schema_version": 3,
+            "schema_version": 4,
             "mihomo_script": manifest["mihomo_script"],
             "proxy_rules_converter": {
                 "repository": CONVERTER_REPO,
