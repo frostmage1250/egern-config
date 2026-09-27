@@ -99,6 +99,7 @@ policy_groups:
     name: Proxy
     policies:
     - 订阅
+    - 香港
     - 台湾
     - 新加坡
     - 日本
@@ -176,6 +177,12 @@ policy_groups:
     name: EHentai
     policies:
     - Proxy
+- select:
+    name: 香港
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
 - select:
     name: 台湾
     policies:
