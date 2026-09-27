@@ -1191,11 +1191,11 @@
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/cn.list"
     }
   ],
-  "policy_groups": 18,
-  "profile_sha256": "ba7b7b287f1ab85dd96e8a578e7de3de330ee9cd6f2382ef307163aeb24c0c79",
+  "policy_groups": 19,
+  "profile_sha256": "1ac06f70e5f0a6956b048e6034960c6b2ef5f8c2fbfe6eac9cdd73c9796adbe3",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "ff6fae743fd48d2761be34371cfdf853027c0a95",
+    "commit": "294b7f8b4b42cb915253368758903c91caf60e15",
     "manifest_path": "reports/egern-source.json",
     "manifest_sha256": "269835b2dde70d6bb3d1bbab32dc751a6b0c3c92797b0b86ec1761dbd5b81219",
     "repository": "frostmage1250/proxy-rules-converter"
