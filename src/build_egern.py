@@ -149,6 +149,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         excluded.append(regex_text(model["excludeFilter"]))
     if model["options"].get("过滤低倍率节点"):
         excluded.extend(rates.values())
+    excluded.append(re.escape("订阅2"))
 
     filters: dict[str, str] = {"订阅": negative_filter(excluded)}
     display_name = {"台湾省": "台湾"}
@@ -192,8 +193,9 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         if name == "Direct":
             policies = ["DIRECT"]
         if name in {"Telegram", "媒体"}:
-            if "订阅" not in policies:
-                policies.append("订阅")
+            for subscription in ("订阅", "订阅2"):
+                if subscription not in policies:
+                    policies.append(subscription)
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
@@ -531,8 +533,9 @@ def validate_profile(
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
-        if "订阅" not in groups[names.index(target)].get("policies", []):
-            raise BuildError(f"{target} must include the 订阅 policy group")
+        for subscription in ("订阅", "订阅2"):
+            if subscription not in groups[names.index(target)].get("policies", []):
+                raise BuildError(f"{target} must include the {subscription} policy group")
     for provider, filenames in provider_files.items():
         for filename in filenames:
             native_rule = generated[filename]

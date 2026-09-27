@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 import unittest
 from unittest.mock import patch
@@ -196,12 +197,15 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["日本"]["policies"], ["订阅"])
         self.assertTrue(by_name["日本"]["flatten"])
         self.assertEqual(
-            by_name["Telegram"]["policies"], ["Proxy", "低倍率节点", "订阅"]
+            by_name["Telegram"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
         )
         self.assertEqual(
-            by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅"]
+            by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
         )
         self.assertIn("traffic", filters["订阅"])
+        self.assertIsNone(re.fullmatch(filters["订阅"], "订阅2"))
+        self.assertIsNone(re.fullmatch(filters["订阅"], "节点-订阅2"))
+        self.assertIsNotNone(re.fullmatch(filters["订阅"], "普通节点"))
 
     def test_bootstrap_preserves_mihomo_default_nameserver_ips(self):
         model = {
