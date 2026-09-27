@@ -660,8 +660,8 @@
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/cn.list"
     }
   ],
-  "policy_groups": 19,
-  "profile_sha256": "cce7dc71b277760ca5cf6b46ebb46a91088c23828fe9ec3ad5c7e57e17663a9d",
+  "policy_groups": 20,
+  "profile_sha256": "6b8a9a90f44997f1df1fb1c3bea525ed6218982cd369d64ae68b0f2af81c32d5",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "d2a0bfb1c061b785cf312383fc88e73070c9b75a",

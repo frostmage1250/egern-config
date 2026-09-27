@@ -154,6 +154,13 @@ policy_groups:
     - 订阅
     - 订阅2
 - select:
+    name: YouTube
+    policies:
+    - Proxy
+    - 低倍率节点
+    - 订阅
+    - 订阅2
+- select:
     name: Telegram
     policies:
     - Proxy
@@ -284,7 +291,7 @@ rules:
     no_resolve: true
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/youtube.yaml
-    policy: 媒体
+    policy: YouTube
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/meta.yaml
