@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from build_egern import (  # noqa: E402
     BuildError,
+    RAW_BASE,
     bootstrap_nameservers,
     load_manifest_rules,
     nameservers,
@@ -107,7 +108,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "geolocation-!cn": ["geolocation-non-cn.yaml"],
         })
         self.assertEqual(rules[2]["rule_set"]["policy"], "绕过日本")
-        self.assertTrue(rules[2]["rule_set"]["match"].endswith("/bypass-japan.yaml"))
+        self.assertEqual(rules[2]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
         self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
 
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
