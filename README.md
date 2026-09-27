@@ -28,8 +28,8 @@ locally without publishing it in this repository. The profile sets `default_subs
 repository. Region groups flatten and filter **订阅**,
 so future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点
 and 低倍率节点 automatically. Telegram and 媒体 also expose both 订阅 and
-订阅2 as selectable policies. The 订阅 filter excludes names containing
-订阅2 to keep the two subscription groups separate. Because a full profile replacement overwrites
+订阅2 as selectable policies. The 订阅2 group uses the same exclusion filter as
+订阅 while keeping its policy options and URLs empty. Because a full profile replacement overwrites
 locally added subscription URLs, profile updates are manual; remote rule sets and
 the locally configured node subscription can still update independently.
 

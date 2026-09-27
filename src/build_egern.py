@@ -149,7 +149,6 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         excluded.append(regex_text(model["excludeFilter"]))
     if model["options"].get("过滤低倍率节点"):
         excluded.extend(rates.values())
-    excluded.append(re.escape("订阅2"))
 
     filters: dict[str, str] = {"订阅": negative_filter(excluded)}
     display_name = {"台湾省": "台湾"}
@@ -174,7 +173,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
                     "update_interval": 86400,
                 }
             })
-            groups.append({"select": {"name": "订阅2", "policies": [], "urls": []}})
+            groups.append({"select": {"name": "订阅2", "policies": [], "urls": [], "filter": filters[name]}})
             continue
         if name in filters and name != "订阅":
             groups.append({
@@ -524,6 +523,8 @@ def validate_profile(
     subscription_two = profile["policy_groups"][names.index("订阅2")]["select"]
     if subscription_two.get("policies") != [] or subscription_two.get("urls") != []:
         raise BuildError("订阅2 must start with no policy options or subscription URLs")
+    if subscription_two.get("filter") != profile["policy_groups"][names.index("订阅")]["select"].get("filter"):
+        raise BuildError("订阅2 must use the same exclusion filter as 订阅")
     if profile.get("default_subscription_group") != "订阅":
         raise BuildError("Egern default subscription group must be 订阅")
     if profile.get("default_proxy_group") != "代理":

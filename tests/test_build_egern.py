@@ -186,7 +186,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
             for item in groups
         }
         self.assertEqual(by_name["订阅"]["urls"], [])
-        self.assertEqual(by_name["订阅2"], {"name": "订阅2", "policies": [], "urls": []})
+        self.assertEqual(by_name["订阅2"], {"name": "订阅2", "policies": [], "urls": [], "filter": filters["订阅"]})
+        self.assertEqual(by_name["订阅2"]["filter"], by_name["订阅"]["filter"])
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups][1:3],
             ["订阅", "订阅2"],
@@ -203,9 +204,10 @@ class EgernProfileBuilderTests(unittest.TestCase):
             by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
         )
         self.assertIn("traffic", filters["订阅"])
-        self.assertIsNone(re.fullmatch(filters["订阅"], "订阅2"))
-        self.assertIsNone(re.fullmatch(filters["订阅"], "节点-订阅2"))
-        self.assertIsNotNone(re.fullmatch(filters["订阅"], "普通节点"))
+        self.assertNotIn("订阅2", filters["订阅"])
+        self.assertIsNone(re.fullmatch(by_name["订阅2"]["filter"], "HK Node"))
+        self.assertIsNone(re.fullmatch(by_name["订阅2"]["filter"], "traffic-50GB"))
+        self.assertIsNotNone(re.fullmatch(by_name["订阅2"]["filter"], "普通节点"))
 
     def test_bootstrap_preserves_mihomo_default_nameserver_ips(self):
         model = {
