@@ -181,6 +181,7 @@ policy_groups:
     name: 香港
     policies:
     - 订阅
+    - 订阅2
     flatten: true
     filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
 - select:
