@@ -97,7 +97,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         with self.assertRaises(BuildError):
             validate_business_ip_pairs(separated)
 
-    def test_nameserver_policy_suffixes_become_explicit_routing_rules(self):
+    def test_two_doh_routes_are_omitted_but_upstreams_remain(self):
         model = {
             "dns": {
                 "nameserver": [
@@ -109,18 +109,6 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "rules": ["MATCH,Final"],
         }
         expected = [
-            {
-                "domain": {
-                    "match": "cloudflare-dns.com",
-                    "policy": "Proxy",
-                }
-            },
-            {
-                "domain": {
-                    "match": "dns.google",
-                    "policy": "Proxy",
-                }
-            },
             {
                 "ip_cidr": {
                     "match": "1.1.1.1/32",
@@ -137,8 +125,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 "1.1.1.1",
             ],
         )
+        self.assertEqual(render_dns_upstreams(model)["Foreign"], nameservers(model))
         self.assertEqual(render_nameserver_route_rules(model), expected)
-        self.assertEqual(render_rules(model, {})[2:5], expected)
+        self.assertEqual(render_rules(model, {})[2:3], expected)
 
     def test_nameserver_policy_suffix_cannot_be_silently_dropped(self):
         with self.assertRaises(BuildError):

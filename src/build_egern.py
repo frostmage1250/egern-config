@@ -58,6 +58,7 @@ REAL_IP_DOMAINS = [
 ]
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
 NON_SERVICE_IP_PROVIDERS = {"cn_ip", "private_ip"}
+DNS_ROUTE_EXCLUDED_HOSTS = {"cloudflare-dns.com", "dns.google"}
 
 class BuildError(RuntimeError):
     pass
@@ -255,7 +256,8 @@ def render_nameserver_route_rules(model: dict[str, Any]) -> list[dict[str, Any]]
                 f"Conflicting Mihomo DNS policies for {host}: {previous!r} and {policy!r}"
             )
         seen[key] = policy
-        rules.append({kind: item})
+        if host not in DNS_ROUTE_EXCLUDED_HOSTS:
+            rules.append({kind: item})
     return rules
 
 
@@ -772,7 +774,7 @@ def main() -> int:
             "migration_boundaries": [
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
-                "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
+                "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
