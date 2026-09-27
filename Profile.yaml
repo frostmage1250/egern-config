@@ -223,12 +223,6 @@ rules:
     policy: Proxy
     update_interval: 86400
     no_resolve: true
-- domain:
-    match: cloudflare-dns.com
-    policy: Proxy
-- domain:
-    match: dns.google
-    policy: Proxy
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
     policy: Direct

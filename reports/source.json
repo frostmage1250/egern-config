@@ -6,7 +6,7 @@
       "1.12.12.12"
     ],
     "forward_rules": 10,
-    "nameserver_route_rules": 2,
+    "nameserver_route_rules": 0,
     "proxy_nameservers": [
       "https://zone.rlose.com:39933/api-query",
       "https://radar.rlose.com/api-query"
@@ -35,7 +35,7 @@
   "migration_boundaries": [
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
     "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
-    "Mihomo nameserver policy suffixes map to explicit Egern routing rules for the DNS server endpoints.",
+    "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
     "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
     "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
@@ -661,7 +661,7 @@
     }
   ],
   "policy_groups": 20,
-  "profile_sha256": "273c874d68791a409c0776b02fe53f12cbdc1b896b93731deee2f851910a184b",
+  "profile_sha256": "16ba0994bf6454efac08ffade7532f932986d36bc02705bd7340425f508e890e",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "d2a0bfb1c061b785cf312383fc88e73070c9b75a",
@@ -669,7 +669,7 @@
     "manifest_sha256": "6ec70a30f1a840b926ba387218058e4b0fa3b21018004efbc3ac7738a51334d0",
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 36,
+  "routing_rules": 34,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
