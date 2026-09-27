@@ -626,7 +626,7 @@ def load_manifest_rules(
             output = segment.get("output")
             if (
                 not isinstance(output, str)
-                or not re.fullmatch(r"dist/egern/[A-Za-z0-9.-]+\\.yaml", output)
+                or not re.fullmatch(r"dist/egern/[A-Za-z0-9.-]+\.yaml", output)
             ):
                 raise BuildError(f"Invalid published Egern rule path for {name}")
             filename = Path(output).name
