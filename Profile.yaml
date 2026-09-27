@@ -143,6 +143,9 @@ policy_groups:
     - 台湾
     - 其他节点
 - select:
+    name: 绕过日本
+    policies: []
+- select:
     name: Google
     policies:
     - Proxy
@@ -338,6 +341,10 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/ehentai.yaml
     policy: EHentai
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/bypass-japan.yaml
+    policy: 绕过日本
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-non-cn.yaml

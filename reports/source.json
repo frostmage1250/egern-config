@@ -40,12 +40,13 @@
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
     "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
+    "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
     "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
     "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "4fd753f98c5718d8a5b2298bf4ef5209c9641ee7",
+    "commit": "29a4e343d1198363d4e73a4d2deb8d32d44f386f",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -208,6 +209,42 @@
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "fdaface6af9503fadf8c68cb3a383dad0912ddf1b7fd8f0bd7e87af87121da1c",
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/microsoft@cn.list"
+    },
+    {
+      "behavior": "classical",
+      "entries": 23,
+      "native_entries_sha256": "34480eb85630f215facd16b780aa1e790ab359139aeac5b56e2a7edd4c554b1d",
+      "output": "dist/egern/claude.yaml",
+      "output_sha256": "f853fba78653a697ad3b6c1a497c276d92fc673df153bf9b58c97cefc7708a70",
+      "provider": "claude",
+      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/claude.yaml",
+      "source_commit": null,
+      "source_entries": 23,
+      "source_generated_in_same_run": true,
+      "source_order_sha256": "3896a8fa36d3dd35011edeb88f9e4f497afb5ed5497d0dd732c1e0ab1a6465c2",
+      "source_path": "dist/mihomo/claude.yaml",
+      "source_ref": "main",
+      "source_repository": "frostmage1250/proxy-rules-converter",
+      "source_sha256": "3c48b735bb646dfcf13d2f049897d647540390efd5c94a0f385adafde66aa96b",
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/claude.yaml"
+    },
+    {
+      "behavior": "domain",
+      "entries": 184,
+      "native_entries_sha256": "cf7245e4aa79d1b31ea5ae2733a8c070f0e940ddb44b3a21f3d59a6d3b70ed56",
+      "output": "dist/egern/ai.yaml",
+      "output_sha256": "b9bbc3abb589bda39b164d1a0a0e3feb0f00b2cac8dc2a0c970da33eee71ee89",
+      "provider": "ai",
+      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/ai.mrs",
+      "source_commit": null,
+      "source_entries": 184,
+      "source_generated_in_same_run": true,
+      "source_order_sha256": "cf7245e4aa79d1b31ea5ae2733a8c070f0e940ddb44b3a21f3d59a6d3b70ed56",
+      "source_path": "dist/mihomo/ai.list",
+      "source_ref": "main",
+      "source_repository": "frostmage1250/proxy-rules-converter",
+      "source_sha256": "866d48b39ce6f0a4f9a3c6b69da93f5f63b4a15bd38e163b368af3d360e2cc77",
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/ai.list"
     },
     {
       "behavior": "domain",
@@ -480,42 +517,6 @@
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geoip/google.list"
     },
     {
-      "behavior": "classical",
-      "entries": 23,
-      "native_entries_sha256": "34480eb85630f215facd16b780aa1e790ab359139aeac5b56e2a7edd4c554b1d",
-      "output": "dist/egern/claude.yaml",
-      "output_sha256": "f853fba78653a697ad3b6c1a497c276d92fc673df153bf9b58c97cefc7708a70",
-      "provider": "claude",
-      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/claude.yaml",
-      "source_commit": null,
-      "source_entries": 23,
-      "source_generated_in_same_run": true,
-      "source_order_sha256": "3896a8fa36d3dd35011edeb88f9e4f497afb5ed5497d0dd732c1e0ab1a6465c2",
-      "source_path": "dist/mihomo/claude.yaml",
-      "source_ref": "main",
-      "source_repository": "frostmage1250/proxy-rules-converter",
-      "source_sha256": "3c48b735bb646dfcf13d2f049897d647540390efd5c94a0f385adafde66aa96b",
-      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/claude.yaml"
-    },
-    {
-      "behavior": "domain",
-      "entries": 184,
-      "native_entries_sha256": "cf7245e4aa79d1b31ea5ae2733a8c070f0e940ddb44b3a21f3d59a6d3b70ed56",
-      "output": "dist/egern/ai.yaml",
-      "output_sha256": "b9bbc3abb589bda39b164d1a0a0e3feb0f00b2cac8dc2a0c970da33eee71ee89",
-      "provider": "ai",
-      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/ai.mrs",
-      "source_commit": null,
-      "source_entries": 184,
-      "source_generated_in_same_run": true,
-      "source_order_sha256": "cf7245e4aa79d1b31ea5ae2733a8c070f0e940ddb44b3a21f3d59a6d3b70ed56",
-      "source_path": "dist/mihomo/ai.list",
-      "source_ref": "main",
-      "source_repository": "frostmage1250/proxy-rules-converter",
-      "source_sha256": "866d48b39ce6f0a4f9a3c6b69da93f5f63b4a15bd38e163b368af3d360e2cc77",
-      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/ai.list"
-    },
-    {
       "behavior": "domain",
       "entries": 7,
       "native_entries_sha256": "32f5653e35eda17d5ae70453569ea8b5aea9ed7bad9fae0b8878fb68493e1fee",
@@ -550,6 +551,24 @@
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "b0465da3d078db69bef733acbfd6a81ba5eb527b281ab45dfc93fab02e956e0e",
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/ehentai.list"
+    },
+    {
+      "behavior": "domain",
+      "entries": 2,
+      "native_entries_sha256": "f9f251fbe2504ac3afeb0e9beb2f12a3fa6ef82e4c1835b9ad1a048922eaf468",
+      "output": "dist/egern/bypass-japan.yaml",
+      "output_sha256": "6b19b74de529e3f968315af6b3353b9904a4047d81d2203f595d4f5c9e30fb77",
+      "provider": "bypass_japan",
+      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/bypass-japan.mrs",
+      "source_commit": null,
+      "source_entries": 2,
+      "source_generated_in_same_run": true,
+      "source_order_sha256": "f9f251fbe2504ac3afeb0e9beb2f12a3fa6ef82e4c1835b9ad1a048922eaf468",
+      "source_path": "dist/mihomo/bypass-japan.list",
+      "source_ref": "main",
+      "source_repository": "frostmage1250/proxy-rules-converter",
+      "source_sha256": "9e74a68fb509df55017434101997ab47c44b948fb2e3ad50557112340c5bd3b4",
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/bypass-japan.list"
     },
     {
       "behavior": "domain",
@@ -661,16 +680,16 @@
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/7763a4ef7943d3e2f8584414402ba9cb8feaa768/geo/geosite/cn.list"
     }
   ],
-  "policy_groups": 20,
-  "profile_sha256": "ced38faaf8aaad56881ec3fc52e97b1a5ced11d2f721667469451e64fab85b25",
+  "policy_groups": 21,
+  "profile_sha256": "87c8c236410ba3baa1070dec662b7b9a420e2e58b745dc9a51f0a6f034a01a0f",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "d2a0bfb1c061b785cf312383fc88e73070c9b75a",
+    "commit": "4cc1f95ede8663e0a05c6f20029eb8938d76092f",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "6ec70a30f1a840b926ba387218058e4b0fa3b21018004efbc3ac7738a51334d0",
+    "manifest_sha256": "8db4b4eb7fb9caad1d97d600c74e76dff6f96c0fafddfed721683dea13092142",
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 34,
+  "routing_rules": 35,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
