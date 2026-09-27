@@ -240,7 +240,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["Claude"]["policies"], ["Proxy", "日本", "其他节点"])
         self.assertEqual(by_name["日本"]["policies"], ["订阅"])
         self.assertTrue(by_name["日本"]["flatten"])
-        self.assertEqual(by_name["香港"]["policies"], ["订阅"])
+        self.assertEqual(by_name["香港"]["policies"], ["订阅", "订阅2"])
         self.assertTrue(by_name["香港"]["flatten"])
         self.assertIsNotNone(re.search(by_name["香港"]["filter"], "HK Node"))
         self.assertEqual(

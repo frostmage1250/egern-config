@@ -182,7 +182,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             groups.append({
                 "select": {
                     "name": name,
-                    "policies": ["订阅"],
+                    "policies": ["订阅", "订阅2"] if name == "香港" else ["订阅"],
                     "flatten": True,
                     "filter": filters[name],
                 }
@@ -555,8 +555,15 @@ def validate_profile(
         raise BuildError("Egern default proxy group must be 代理")
     if "auto_update" in profile:
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
-    if "香港" not in names or groups[names.index("香港")].get("filter") != regex_text(next(entry for entry in model["regions"] if entry["name"] == "香港")):
-        raise BuildError("Hong Kong group must use the upstream region filter")
+    if "香港" not in names:
+        raise BuildError("Hong Kong group is missing")
+    hong_kong_group = groups[names.index("香港")]
+    if (
+        hong_kong_group.get("policies") != ["订阅", "订阅2"]
+        or hong_kong_group.get("flatten") is not True
+        or hong_kong_group.get("filter") != regex_text(next(entry for entry in model["regions"] if entry["name"] == "香港"))
+    ):
+        raise BuildError("Hong Kong group must filter both subscription groups")
     if "YouTube" not in names or groups[names.index("YouTube")].get("policies") != []:
         raise BuildError("YouTube group must have no policy options")
     if "绕过日本" not in names or groups[names.index("绕过日本")].get("policies") != []:
