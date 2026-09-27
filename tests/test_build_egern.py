@@ -204,7 +204,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(
             by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
         )
-        self.assertEqual(by_name["YouTube"]["policies"], by_name["媒体"]["policies"])
+        self.assertEqual(by_name["YouTube"]["policies"], [])
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,

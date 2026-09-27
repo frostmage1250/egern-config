@@ -161,9 +161,10 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
     if any(source["name"] == "订阅2" for source in model["groups"]):
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
-    has_youtube_group = any(source["name"] == "YouTube" for source in model["groups"])
     for source in model["groups"]:
         name = source["name"]
+        if name == "YouTube":
+            continue
         if name == "订阅":
             groups.append({
                 "select": {
@@ -199,8 +200,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
-        if name == "媒体" and not has_youtube_group:
-            groups.append({"select": {"name": "YouTube", "policies": policies.copy()}})
+        if name == "媒体":
+            groups.append({"select": {"name": "YouTube", "policies": []}})
     return groups, filters
 
 
@@ -534,7 +535,9 @@ def validate_profile(
         raise BuildError("Egern default proxy group must be 代理")
     if "auto_update" in profile:
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
-    for target in ("Telegram", "媒体", "YouTube"):
+    if "YouTube" not in names or groups[names.index("YouTube")].get("policies") != []:
+        raise BuildError("YouTube group must have no policy options")
+    for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
         for subscription in ("订阅", "订阅2"):
