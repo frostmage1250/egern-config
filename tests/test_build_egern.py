@@ -94,6 +94,22 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ],
         )
 
+    def test_bypass_japan_rule_precedes_foreign_fallback(self):
+        model = {
+            "rules": [
+                "RULE-SET,bypass_japan,绕过日本",
+                "RULE-SET,geolocation-!cn,Proxy",
+                "MATCH,Final",
+            ]
+        }
+        rules = render_rules(model, {
+            "bypass_japan": ["bypass-japan.yaml"],
+            "geolocation-!cn": ["geolocation-non-cn.yaml"],
+        })
+        self.assertEqual(rules[2]["rule_set"]["policy"], "绕过日本")
+        self.assertTrue(rules[2]["rule_set"]["match"].endswith("/bypass-japan.yaml"))
+        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
+
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
         valid = {
             "providers": {
@@ -201,6 +217,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "低倍率节点", "proxies": ["__低倍率节点__"]},
                 {"name": "Telegram", "proxies": ["Proxy", "低倍率节点"]},
                 {"name": "媒体", "proxies": ["Proxy", "低倍率节点"]},
+                {"name": "绕过日本", "proxies": []},
                 {"name": "Final", "proxies": ["Proxy", "Direct"]},
             ],
         }
@@ -228,6 +245,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
         )
         self.assertEqual(by_name["YouTube"]["policies"], [])
+        self.assertEqual(by_name["绕过日本"]["policies"], [])
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,

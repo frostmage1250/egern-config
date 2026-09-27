@@ -166,6 +166,9 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         name = source["name"]
         if name == "YouTube":
             continue
+        if name == "绕过日本":
+            groups.append({"select": {"name": name, "policies": []}})
+            continue
         if name == "订阅":
             groups.append({
                 "select": {
@@ -557,6 +560,8 @@ def validate_profile(
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
     if "YouTube" not in names or groups[names.index("YouTube")].get("policies") != []:
         raise BuildError("YouTube group must have no policy options")
+    if "绕过日本" not in names or groups[names.index("绕过日本")].get("policies") != []:
+        raise BuildError("绕过日本 group must have no policy options")
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
@@ -574,6 +579,16 @@ def validate_profile(
             for rule in profile["rules"]
         ):
             raise BuildError(f"YouTube rule set must use the YouTube group: {filename}")
+    bypass_files = provider_files.get("bypass_japan")
+    if not bypass_files or len(bypass_files) != 1:
+        raise BuildError("绕过日本 native rule set is missing")
+    bypass_match = f"{RAW_BASE}/dist/egern/{bypass_files[0]}"
+    if not any(
+        rule.get("rule_set", {}).get("match") == bypass_match
+        and rule["rule_set"].get("policy") == "绕过日本"
+        for rule in profile["rules"]
+    ):
+        raise BuildError("绕过日本 rule set must use the empty 绕过日本 group")
     priority_positions: list[int] = []
     for provider in ("claude", "ai", "github"):
         filenames = provider_files.get(provider)
@@ -812,6 +827,7 @@ def main() -> int:
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
+                "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
                 "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
                 "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
