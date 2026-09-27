@@ -39,6 +39,7 @@
     "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
     "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
+    "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
     "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
     "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
@@ -661,7 +662,7 @@
     }
   ],
   "policy_groups": 20,
-  "profile_sha256": "16ba0994bf6454efac08ffade7532f932986d36bc02705bd7340425f508e890e",
+  "profile_sha256": "ced38faaf8aaad56881ec3fc52e97b1a5ced11d2f721667469451e64fab85b25",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "d2a0bfb1c061b785cf312383fc88e73070c9b75a",

@@ -258,6 +258,14 @@ rules:
     policy: Direct
     update_interval: 86400
 - rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/claude.yaml
+    policy: Claude
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/ai.yaml
+    policy: AI
+    update_interval: 86400
+- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/github.yaml
     policy: GitHub
     update_interval: 86400
@@ -323,14 +331,6 @@ rules:
     policy: Google
     update_interval: 86400
     no_resolve: true
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/claude.yaml
-    policy: Claude
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/ai.yaml
-    policy: AI
-    update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/pikpak.yaml
     policy: PikPak
