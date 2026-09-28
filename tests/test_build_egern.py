@@ -248,6 +248,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         model = {
             "regions": [
                 {"name": "香港", "source": "HK|香港", "flags": "i"},
+                {"name": "新加坡", "source": "SG|新加坡", "flags": "i"},
                 {"name": "日本", "source": "JP|日本", "flags": "i"},
             ],
             "rateRegions": [
@@ -264,6 +265,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "AI", "proxies": ["Proxy", "日本", "其他节点"]},
                 {"name": "日本", "proxies": ["__日本__"]},
                 {"name": "香港", "proxies": ["__香港__"]},
+                {"name": "新加坡", "proxies": ["__新加坡__"]},
                 {"name": "其他节点", "proxies": ["__其他节点__"]},
                 {"name": "低倍率节点", "proxies": ["__低倍率节点__"]},
                 {"name": "Telegram", "proxies": ["Proxy", "低倍率节点"]},
@@ -302,7 +304,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
-        self.assertEqual(by_name["绕过日本"]["policies"], [])
+        self.assertEqual(by_name["绕过日本"]["policies"], ["香港", "新加坡"])
+        self.assertFalse(by_name["绕过日本"].get("flatten", False))
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,

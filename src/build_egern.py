@@ -166,7 +166,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         if name == "YouTube":
             continue
         if name == "绕过日本":
-            groups.append({"select": {"name": name, "policies": []}})
+            groups.append({"select": {"name": name, "policies": ["香港", "新加坡"]}})
             continue
         if name == "订阅":
             groups.append({
@@ -609,8 +609,12 @@ def validate_profile(
     for target in ("YouTube", "媒体", "PikPak", "Telegram"):
         if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the Hong Kong policy group")
-    if "绕过日本" not in names or groups[names.index("绕过日本")].get("policies") != []:
-        raise BuildError("绕过日本 group must have no policy options")
+    if (
+        "绕过日本" not in names
+        or groups[names.index("绕过日本")].get("policies") != ["香港", "新加坡"]
+        or groups[names.index("绕过日本")].get("flatten", False)
+    ):
+        raise BuildError("绕过日本 must offer Hong Kong and Singapore groups without flattening nodes")
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
@@ -637,7 +641,7 @@ def validate_profile(
         and rule["rule_set"].get("policy") == "绕过日本"
         for rule in profile["rules"]
     ):
-        raise BuildError("绕过日本 rule set must use the empty 绕过日本 group")
+        raise BuildError("绕过日本 rule set must use the 绕过日本 group")
     priority_positions: list[int] = []
     for provider in ("claude", "ai", "github"):
         filenames = provider_files.get(provider)
@@ -878,7 +882,7 @@ def main() -> int:
                 "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
-                "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
+                "The user-requested 绕过日本 group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
                 "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
