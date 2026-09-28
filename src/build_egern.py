@@ -204,7 +204,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
         if name == "媒体":
-            groups.append({"select": {"name": "YouTube", "policies": ["Proxy", "香港"]}})
+            groups.append({"select": {"name": "YouTube", "policies": ["Proxy", "香港", "低倍率节点"]}})
     return groups, filters
 
 
@@ -568,10 +568,10 @@ def validate_profile(
         raise BuildError("Hong Kong group must filter both subscription groups")
     if (
         "YouTube" not in names
-        or groups[names.index("YouTube")].get("policies") != ["Proxy", "香港"]
+        or groups[names.index("YouTube")].get("policies") != ["Proxy", "香港", "低倍率节点"]
         or groups[names.index("YouTube")].get("flatten", False)
     ):
-        raise BuildError("YouTube must offer Proxy and Hong Kong without flattening nodes")
+        raise BuildError("YouTube must offer Proxy, Hong Kong, and low-rate choices without flattening nodes")
     for target in ("YouTube", "媒体", "PikPak", "Telegram"):
         if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the Hong Kong policy group")

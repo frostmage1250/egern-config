@@ -251,7 +251,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "香港", "订阅", "订阅2"]
         )
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
-        self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港"])
+        self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
         self.assertEqual(by_name["绕过日本"]["policies"], [])
         self.assertEqual(
