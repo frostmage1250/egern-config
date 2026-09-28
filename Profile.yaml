@@ -76,6 +76,22 @@ dns:
       match: '*'
       value: Foreign
   hosts:
+    mcdn.bilivideo.com:
+    - 0.0.0.0
+    '*.mcdn.bilivideo.com':
+    - 0.0.0.0
+    mcdn.bilivideo.cn:
+    - 0.0.0.0
+    '*.mcdn.bilivideo.cn':
+    - 0.0.0.0
+    edge.mountaintoys.cn:
+    - 0.0.0.0
+    '*.edge.mountaintoys.cn':
+    - 0.0.0.0
+    h2.smtcdns.net:
+    - 0.0.0.0
+    '*.h2.smtcdns.net':
+    - 0.0.0.0
     doh.pub:
     - 1.12.12.12
     - 120.53.53.53
