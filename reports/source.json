@@ -40,6 +40,7 @@
     "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
     "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
+    "The user-requested Bilibili MCDN domain suffixes mcdn.bilivideo.com and mcdn.bilivideo.cn use REJECT before general routing rules.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
     "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
     "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
@@ -682,7 +683,7 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "611459c8555d330ad4348cac1fd31a99d04333dbfbfc6513c00005f7b0b6c74f",
+  "profile_sha256": "0b1d4bcac4c4d2c9c3f3862c98c7c62e46636634e574e612c79c74947938df51",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "188d31d3ec30134c751d2c59282a4bbd64ef8338",
@@ -690,7 +691,7 @@
     "manifest_sha256": "3f018ee4eb3015d7bd9d96c5a35aece2558212d25def164857de444bafdcc925",
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 35,
+  "routing_rules": 37,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
