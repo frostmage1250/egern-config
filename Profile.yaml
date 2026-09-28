@@ -76,22 +76,6 @@ dns:
       match: '*'
       value: Foreign
   hosts:
-    mcdn.bilivideo.com:
-    - 0.0.0.0
-    '*.mcdn.bilivideo.com':
-    - 0.0.0.0
-    mcdn.bilivideo.cn:
-    - 0.0.0.0
-    '*.mcdn.bilivideo.cn':
-    - 0.0.0.0
-    edge.mountaintoys.cn:
-    - 0.0.0.0
-    '*.edge.mountaintoys.cn':
-    - 0.0.0.0
-    h2.smtcdns.net:
-    - 0.0.0.0
-    '*.h2.smtcdns.net':
-    - 0.0.0.0
     doh.pub:
     - 1.12.12.12
     - 120.53.53.53
@@ -256,12 +240,11 @@ rules:
 - protocol:
     match: stun
     policy: REJECT
-- domain_suffix:
-    match: mcdn.bilivideo.com
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/mcdn-block.yaml
     policy: REJECT
-- domain_suffix:
-    match: mcdn.bilivideo.cn
-    policy: REJECT
+    name: mcdn屏蔽
+    update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
     policy: Direct

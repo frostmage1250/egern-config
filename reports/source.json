@@ -40,8 +40,7 @@
     "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
     "The user-requested STUN block immediately follows the APNs routing rule set with REJECT.",
-    "The user-requested Bilibili MCDN domain suffixes mcdn.bilivideo.com and mcdn.bilivideo.cn use REJECT before general routing rules.",
-    "The four user-requested PCDN Hosts domains mcdn.bilivideo.com, mcdn.bilivideo.cn, edge.mountaintoys.cn, and h2.smtcdns.net map their apex and subdomains to 0.0.0.0 before other Hosts mappings.",
+    "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
     "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
     "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
@@ -49,7 +48,7 @@
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "36539296751601251c1168f7812a06fece7fddde",
+    "commit": "4cec916c7467ef65c714e79034669183479839fb",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -68,6 +67,24 @@
       "source_repository": "ttyyss2233/Tool",
       "source_sha256": "ded3d82585de3d5a896c609d3d27a1935a381a5bc670f05b6b5f0dcda92cc0a4",
       "source_url": "https://raw.githubusercontent.com/ttyyss2233/Tool/24ad892385d9a377ec5bd5945d0d1dc3d9681d73/shadowrocket/rules/apns.list"
+    },
+    {
+      "behavior": "domain",
+      "entries": 4,
+      "native_entries_sha256": "e62b3061a44888972b0d51c4e07fc944ea65606ced66803be85eafcb2b75619e",
+      "output": "dist/egern/mcdn-block.yaml",
+      "output_sha256": "18539f30b5dbca3db9e0582566a3d18e27e3d7024ce630ce1f950a5ca15824d5",
+      "provider": "mcdn屏蔽",
+      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/mcdn-block.mrs",
+      "source_commit": null,
+      "source_entries": 4,
+      "source_generated_in_same_run": true,
+      "source_order_sha256": "e62b3061a44888972b0d51c4e07fc944ea65606ced66803be85eafcb2b75619e",
+      "source_path": "dist/mihomo/mcdn-block.list",
+      "source_ref": "main",
+      "source_repository": "frostmage1250/proxy-rules-converter",
+      "source_sha256": "cddecdbcac22e7b00667ca215bdb11f393557b7942245032e49993d967a7e830",
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/mcdn-block.list"
     },
     {
       "behavior": "domain",
@@ -684,15 +701,15 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "84aa7f5151029e4d5659c98c5c6b717468ef41b0fb819e1e1775e5a9fa5c70ca",
+  "profile_sha256": "20d01b2e8f234b6f703201d39cf170c93bb301ac491a09f7e72f671e47f1e70a",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "188d31d3ec30134c751d2c59282a4bbd64ef8338",
+    "commit": "1114d4859815836a5733722d7cf5663af732c500",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "3f018ee4eb3015d7bd9d96c5a35aece2558212d25def164857de444bafdcc925",
+    "manifest_sha256": "4d191ee81efa84e130a0212e86a1d5037663352f7e7513856a25b214cd7ec2e8",
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 37,
+  "routing_rules": 36,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
