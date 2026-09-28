@@ -42,7 +42,7 @@
     "The user-requested STUN block immediately follows the APNs routing rule set with REJECT.",
     "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
-    "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
+    "The user-requested 绕过日本 group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
     "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
     "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
@@ -701,7 +701,7 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "20d01b2e8f234b6f703201d39cf170c93bb301ac491a09f7e72f671e47f1e70a",
+  "profile_sha256": "37041cc7521b6ed6d72eb497f5220ecb48a9cc8132f7c6fb3535d2392a1baa2f",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "1114d4859815836a5733722d7cf5663af732c500",
