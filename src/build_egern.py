@@ -194,6 +194,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         ]
         if name == "Direct":
             policies = ["DIRECT"]
+        if name in {"Telegram", "媒体", "PikPak"} and "香港" not in policies:
+            policies.append("香港")
         if name in {"Telegram", "媒体"}:
             for subscription in ("订阅", "订阅2"):
                 if subscription not in policies:
@@ -202,7 +204,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
         if name == "媒体":
-            groups.append({"select": {"name": "YouTube", "policies": []}})
+            groups.append({"select": {"name": "YouTube", "policies": ["Proxy", "香港"]}})
     return groups, filters
 
 
@@ -564,8 +566,15 @@ def validate_profile(
         or hong_kong_group.get("filter") != regex_text(next(entry for entry in model["regions"] if entry["name"] == "香港"))
     ):
         raise BuildError("Hong Kong group must filter both subscription groups")
-    if "YouTube" not in names or groups[names.index("YouTube")].get("policies") != []:
-        raise BuildError("YouTube group must have no policy options")
+    if (
+        "YouTube" not in names
+        or groups[names.index("YouTube")].get("policies") != ["Proxy", "香港"]
+        or groups[names.index("YouTube")].get("flatten", False)
+    ):
+        raise BuildError("YouTube must offer Proxy and Hong Kong without flattening nodes")
+    for target in ("YouTube", "媒体", "PikPak", "Telegram"):
+        if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
+            raise BuildError(f"{target} must include the Hong Kong policy group")
     if "绕过日本" not in names or groups[names.index("绕过日本")].get("policies") != []:
         raise BuildError("绕过日本 group must have no policy options")
     for target in ("Telegram", "媒体"):

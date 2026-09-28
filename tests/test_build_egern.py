@@ -219,6 +219,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "低倍率节点", "proxies": ["__低倍率节点__"]},
                 {"name": "Telegram", "proxies": ["Proxy", "低倍率节点"]},
                 {"name": "媒体", "proxies": ["Proxy", "低倍率节点"]},
+                {"name": "PikPak", "proxies": ["Proxy", "Direct", "低倍率节点"]},
                 {"name": "绕过日本", "proxies": []},
                 {"name": "Final", "proxies": ["Proxy", "Direct"]},
             ],
@@ -244,12 +245,14 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertTrue(by_name["香港"]["flatten"])
         self.assertIsNotNone(re.search(by_name["香港"]["filter"], "HK Node"))
         self.assertEqual(
-            by_name["Telegram"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
+            by_name["Telegram"]["policies"], ["Proxy", "低倍率节点", "香港", "订阅", "订阅2"]
         )
         self.assertEqual(
-            by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "订阅", "订阅2"]
+            by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "香港", "订阅", "订阅2"]
         )
-        self.assertEqual(by_name["YouTube"]["policies"], [])
+        self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
+        self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港"])
+        self.assertFalse(by_name["YouTube"].get("flatten", False))
         self.assertEqual(by_name["绕过日本"]["policies"], [])
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
