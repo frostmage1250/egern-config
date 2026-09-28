@@ -42,12 +42,35 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertTrue(rules[1]["rule_set"]["match"].endswith("/apns.yaml"))
         self.assertEqual(rules[1]["rule_set"]["policy"], "Proxy")
         self.assertTrue(rules[1]["rule_set"]["no_resolve"])
-        self.assertEqual(list(rules[2]), ["domain_suffix"])
-        self.assertTrue(rules[3]["rule_set"]["match"].endswith("/domain.yaml"))
-        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[4]["rule_set"]["match"].endswith("/ip.yaml"))
-        self.assertTrue(rules[4]["rule_set"]["no_resolve"])
+        self.assertEqual(list(rules[4]), ["domain_suffix"])
+        self.assertTrue(rules[5]["rule_set"]["match"].endswith("/domain.yaml"))
+        self.assertEqual(rules[5]["rule_set"]["policy"], "Proxy")
+        self.assertTrue(rules[6]["rule_set"]["match"].endswith("/ip.yaml"))
+        self.assertTrue(rules[6]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
+
+    def test_mcdn_blocks_precede_bilibili_and_mainland_direct_rules(self):
+        model = {
+            "rules": [
+                "DOMAIN-SUFFIX,bilivideo.com,Direct",
+                "DOMAIN-SUFFIX,bilivideo.cn,Direct",
+                "RULE-SET,cn,Direct",
+                "MATCH,Final",
+            ]
+        }
+        rules = render_rules(model, {"cn": ["cn.yaml"]})
+        self.assertEqual(
+            rules[2:6],
+            [
+                {"domain_suffix": {"match": "mcdn.bilivideo.com", "policy": "REJECT"}},
+                {"domain_suffix": {"match": "mcdn.bilivideo.cn", "policy": "REJECT"}},
+                {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}},
+                {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}},
+            ],
+        )
+        self.assertTrue(rules[6]["rule_set"]["match"].endswith("/cn.yaml"))
+        self.assertEqual(rules[6]["rule_set"]["policy"], "Direct")
+        self.assertEqual(rules[-1], {"default": {"policy": "Final"}})
 
     def test_youtube_rule_uses_its_own_group(self):
         model = {
@@ -58,8 +81,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ]
         }
         rules = render_rules(model, {"youtube": ["youtube.yaml"], "meta": ["meta.yaml"]})
-        self.assertEqual(rules[2]["rule_set"]["policy"], "YouTube")
-        self.assertEqual(rules[3]["rule_set"]["policy"], "媒体")
+        self.assertEqual(rules[4]["rule_set"]["policy"], "YouTube")
+        self.assertEqual(rules[5]["rule_set"]["policy"], "媒体")
 
     def test_claude_and_ai_rules_precede_github_without_dropping_rules(self):
         model = {
@@ -107,9 +130,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "bypass_japan": ["bypass-japan.yaml"],
             "geolocation-!cn": ["geolocation-non-cn.yaml"],
         })
-        self.assertEqual(rules[2]["rule_set"]["policy"], "绕过日本")
-        self.assertEqual(rules[2]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
-        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
+        self.assertEqual(rules[4]["rule_set"]["policy"], "绕过日本")
+        self.assertEqual(rules[4]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
+        self.assertEqual(rules[5]["rule_set"]["policy"], "Proxy")
 
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
         valid = {

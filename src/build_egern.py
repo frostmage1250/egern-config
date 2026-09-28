@@ -56,6 +56,7 @@ REAL_IP_DOMAINS = [
     "appboot.netflix.com",
     "*-appboot.netflix.com",
 ]
+MCDN_REJECT_DOMAINS = ("mcdn.bilivideo.com", "mcdn.bilivideo.cn")
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
 NON_SERVICE_IP_PROVIDERS = {"cn_ip", "private_ip"}
 DNS_ROUTE_EXCLUDED_HOSTS = {"cloudflare-dns.com", "dns.google"}
@@ -297,6 +298,11 @@ def render_rules(
             }
         })
     rules.extend(render_nameserver_route_rules(model))
+    # Block Bilibili MCDN before general domain and mainland routing rules.
+    rules.extend(
+        {"domain_suffix": {"match": domain, "policy": "REJECT"}}
+        for domain in MCDN_REJECT_DOMAINS
+    )
     for raw in prioritize_ai_rules(model["rules"]):
         parts = raw.split(",")
         kind = parts[0]
@@ -533,6 +539,13 @@ def validate_profile(
     offset = 1 + len(apns_files)
     if profile["rules"][offset:offset + len(expected_nameserver_routes)] != expected_nameserver_routes:
         raise BuildError("Mihomo DNS nameserver policy suffixes were not preserved")
+    mcdn_offset = offset + len(expected_nameserver_routes)
+    expected_mcdn_rules = [
+        {"domain_suffix": {"match": domain, "policy": "REJECT"}}
+        for domain in MCDN_REJECT_DOMAINS
+    ]
+    if profile["rules"][mcdn_offset:mcdn_offset + len(expected_mcdn_rules)] != expected_mcdn_rules:
+        raise BuildError("Bilibili MCDN blocking must precede general routing rules")
     for index, filename in enumerate(apns_files):
         first_dns_rule = profile["dns"]["forward"][index].get("proxy_rule_set", {})
         if (
@@ -841,6 +854,7 @@ def main() -> int:
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
+                "The user-requested Bilibili MCDN domain suffixes mcdn.bilivideo.com and mcdn.bilivideo.cn use REJECT before general routing rules.",
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
                 "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
