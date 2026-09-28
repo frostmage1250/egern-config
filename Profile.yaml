@@ -163,6 +163,7 @@ policy_groups:
     policies:
     - Proxy
     - 香港
+    - 低倍率节点
 - select:
     name: Telegram
     policies:
