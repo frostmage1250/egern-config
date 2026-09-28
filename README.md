@@ -43,8 +43,9 @@ and the consolidated Meta domain/IP pair without redundant Facebook or Threads
 providers. Every paired business IP rule must immediately follow its domain rule
 and is emitted with Egern's native `no_resolve: true`; the build fails if a future
 Mihomo update breaks that invariant.
-User-requested Egern overrides precede the Mihomo routing rules: a global
-`protocol: stun` rule routed to `REJECT`, followed by the APNs override.
+User-requested Egern overrides precede the Mihomo routing rules: the APNs
+override is first, immediately followed by a global `protocol: stun` rule
+routed to `REJECT`.
 After any explicit DNS endpoint routes, Bilibili MCDN suffix rules block
 `mcdn.bilivideo.com` and `mcdn.bilivideo.cn` (including their subdomains) with
 `REJECT` before general service and mainland routing.

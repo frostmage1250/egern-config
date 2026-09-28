@@ -285,9 +285,7 @@ def prioritize_ai_rules(rules: list[str]) -> list[str]:
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
-    rules: list[dict[str, Any]] = [
-        {"protocol": {"match": "stun", "policy": "REJECT"}},
-    ]
+    rules: list[dict[str, Any]] = []
     for filename in provider_files.get("apns", [APNS_FILENAME]):
         rules.append({
             "rule_set": {
@@ -297,6 +295,7 @@ def render_rules(
                 "no_resolve": True,
             }
         })
+    rules.append({"protocol": {"match": "stun", "policy": "REJECT"}})
     rules.extend(render_nameserver_route_rules(model))
     # Block Bilibili MCDN before general domain and mainland routing rules.
     rules.extend(
@@ -524,17 +523,17 @@ def validate_profile(
     apns_files = provider_files.get("apns")
     if not apns_files or any(filename not in generated for filename in apns_files):
         raise BuildError("APNs native rule set was not generated")
-    first_rule = profile["rules"][0].get("protocol", {})
-    if first_rule != {"match": "stun", "policy": "REJECT"}:
-        raise BuildError("STUN blocking must be the first routing rule")
-    for index, filename in enumerate(apns_files, start=1):
+    for index, filename in enumerate(apns_files):
         apns_rule = profile["rules"][index].get("rule_set", {})
         if (
             apns_rule.get("match") != f"{RAW_BASE}/dist/egern/{filename}"
             or apns_rule.get("policy") != "Proxy"
             or apns_rule.get("no_resolve") is not True
         ):
-            raise BuildError("APNs rule set must follow STUN")
+            raise BuildError("APNs rule set must be first")
+    stun_rule = profile["rules"][len(apns_files)].get("protocol", {})
+    if stun_rule != {"match": "stun", "policy": "REJECT"}:
+        raise BuildError("STUN blocking must immediately follow APNs")
     expected_nameserver_routes = render_nameserver_route_rules(model)
     offset = 1 + len(apns_files)
     if profile["rules"][offset:offset + len(expected_nameserver_routes)] != expected_nameserver_routes:
@@ -853,11 +852,11 @@ def main() -> int:
                 "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
-                "The user-requested STUN block is emitted as the first Egern routing rule with REJECT.",
+                "The user-requested STUN block immediately follows the APNs routing rule set with REJECT.",
                 "The user-requested Bilibili MCDN domain suffixes mcdn.bilivideo.com and mcdn.bilivideo.cn use REJECT before general routing rules.",
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
-                "The converter's APNs rule set follows STUN blocking with Proxy/Foreign DNS handling.",
+                "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
                 "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
             ],

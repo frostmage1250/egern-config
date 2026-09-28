@@ -38,10 +38,10 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ]
         }
         rules = render_rules(model, {"domain": ["domain.yaml"], "ip": ["ip.yaml"]})
-        self.assertEqual(rules[0], {"protocol": {"match": "stun", "policy": "REJECT"}})
-        self.assertTrue(rules[1]["rule_set"]["match"].endswith("/apns.yaml"))
-        self.assertEqual(rules[1]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[1]["rule_set"]["no_resolve"])
+        self.assertTrue(rules[0]["rule_set"]["match"].endswith("/apns.yaml"))
+        self.assertEqual(rules[0]["rule_set"]["policy"], "Proxy")
+        self.assertTrue(rules[0]["rule_set"]["no_resolve"])
+        self.assertEqual(rules[1], {"protocol": {"match": "stun", "policy": "REJECT"}})
         self.assertEqual(list(rules[4]), ["domain_suffix"])
         self.assertTrue(rules[5]["rule_set"]["match"].endswith("/domain.yaml"))
         self.assertEqual(rules[5]["rule_set"]["policy"], "Proxy")
