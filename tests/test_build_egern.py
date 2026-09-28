@@ -227,7 +227,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         )
         self.assertEqual(render_dns_upstreams(model)["Foreign"], nameservers(model))
         self.assertEqual(render_nameserver_route_rules(model), expected)
-        self.assertEqual(render_rules(model, {})[2:3], expected)
+        self.assertEqual(render_rules(model, {})[3:4], expected)
 
     def test_nameserver_policy_suffix_cannot_be_silently_dropped(self):
         with self.assertRaises(BuildError):
