@@ -29,28 +29,18 @@ from build_egern import (  # noqa: E402
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
-    def test_pcdn_hosts_override_source_entries_before_broad_globs(self):
+    def test_hosts_preserve_source_without_injecting_pcdn_blocks(self):
         source_hosts = {
-            "*": ["203.0.113.10"],
-            "mcdn.bilivideo.com": ["203.0.113.11"],
-            "*.mcdn.bilivideo.com": ["203.0.113.12"],
             "example.com": ["203.0.113.13"],
             "alias.example.com": "target.example.com",
             "dns.alidns.com": ["223.5.5.5"],
         }
         source_snapshot = json.dumps(source_hosts, sort_keys=True)
-        model = {"hosts": source_hosts}
-        rendered = hosts(model)
-        expected_patterns = [
-            "mcdn.bilivideo.com", "*.mcdn.bilivideo.com",
-            "mcdn.bilivideo.cn", "*.mcdn.bilivideo.cn",
-            "edge.mountaintoys.cn", "*.edge.mountaintoys.cn",
-            "h2.smtcdns.net", "*.h2.smtcdns.net",
-        ]
-        self.assertEqual(list(rendered)[:8], expected_patterns)
-        for pattern in expected_patterns:
-            self.assertEqual(rendered[pattern], ["0.0.0.0"])
-        self.assertEqual(rendered["*"], ["203.0.113.10"])
+        rendered = hosts({"hosts": source_hosts})
+        for domain in ("mcdn.bilivideo.com", "mcdn.bilivideo.cn",
+                       "edge.mountaintoys.cn", "h2.smtcdns.net"):
+            self.assertNotIn(domain, rendered)
+            self.assertNotIn(f"*.{domain}", rendered)
         self.assertEqual(rendered["example.com"], ["203.0.113.13"])
         self.assertEqual(rendered["alias.example.com"], "target.example.com")
         self.assertEqual(rendered["dns.alidns.com"], ["223.5.5.5", "223.6.6.6"])
@@ -58,8 +48,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             rendered["11612bj3-b76c.aws-agent.biz"],
             "06996bj6-79x5.apt-agent.com",
         )
-        self.assertEqual(json.dumps(model["hosts"], sort_keys=True), source_snapshot)
-        self.assertNotIn("*.mcdn.bilivideo.cn", source_hosts)
+        self.assertEqual(json.dumps(source_hosts, sort_keys=True), source_snapshot)
 
     def test_rules_preserve_order_and_no_resolve(self):
         model = {
@@ -75,34 +64,37 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(rules[0]["rule_set"]["policy"], "Proxy")
         self.assertTrue(rules[0]["rule_set"]["no_resolve"])
         self.assertEqual(rules[1], {"protocol": {"match": "stun", "policy": "REJECT"}})
-        self.assertEqual(list(rules[4]), ["domain_suffix"])
-        self.assertTrue(rules[5]["rule_set"]["match"].endswith("/domain.yaml"))
-        self.assertEqual(rules[5]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[6]["rule_set"]["match"].endswith("/ip.yaml"))
-        self.assertTrue(rules[6]["rule_set"]["no_resolve"])
+        self.assertEqual(list(rules[3]), ["domain_suffix"])
+        self.assertTrue(rules[4]["rule_set"]["match"].endswith("/domain.yaml"))
+        self.assertEqual(rules[4]["rule_set"]["policy"], "Proxy")
+        self.assertTrue(rules[5]["rule_set"]["match"].endswith("/ip.yaml"))
+        self.assertTrue(rules[5]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
-    def test_mcdn_blocks_precede_bilibili_and_mainland_direct_rules(self):
+    def test_mcdn_set_follows_stun_once_and_precedes_mainland_direct_rules(self):
         model = {
             "rules": [
+                "RULE-SET,mcdn屏蔽,REJECT",
                 "DOMAIN-SUFFIX,bilivideo.com,Direct",
                 "DOMAIN-SUFFIX,bilivideo.cn,Direct",
                 "RULE-SET,cn,Direct",
                 "MATCH,Final",
             ]
         }
-        rules = render_rules(model, {"cn": ["cn.yaml"]})
+        rules = render_rules(model, {
+            "mcdn屏蔽": ["mcdn-block.yaml"], "cn": ["cn.yaml"]
+        })
+        self.assertEqual(rules[1], {"protocol": {"match": "stun", "policy": "REJECT"}})
+        self.assertEqual(rules[2], {"rule_set": {
+            "match": f"{RAW_BASE}/dist/egern/mcdn-block.yaml",
+            "policy": "REJECT", "name": "mcdn屏蔽", "update_interval": 86400,
+        }})
         self.assertEqual(
-            rules[2:6],
-            [
-                {"domain_suffix": {"match": "mcdn.bilivideo.com", "policy": "REJECT"}},
-                {"domain_suffix": {"match": "mcdn.bilivideo.cn", "policy": "REJECT"}},
-                {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}},
-                {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}},
-            ],
+            sum(rule.get("rule_set", {}).get("name") == "mcdn屏蔽" for rule in rules), 1
         )
-        self.assertTrue(rules[6]["rule_set"]["match"].endswith("/cn.yaml"))
-        self.assertEqual(rules[6]["rule_set"]["policy"], "Direct")
+        self.assertEqual(rules[3], {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}})
+        self.assertEqual(rules[4], {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}})
+        self.assertTrue(rules[5]["rule_set"]["match"].endswith("/cn.yaml"))
         self.assertEqual(rules[-1], {"default": {"policy": "Final"}})
 
     def test_youtube_rule_uses_its_own_group(self):
@@ -114,8 +106,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ]
         }
         rules = render_rules(model, {"youtube": ["youtube.yaml"], "meta": ["meta.yaml"]})
-        self.assertEqual(rules[4]["rule_set"]["policy"], "YouTube")
-        self.assertEqual(rules[5]["rule_set"]["policy"], "媒体")
+        self.assertEqual(rules[3]["rule_set"]["policy"], "YouTube")
+        self.assertEqual(rules[4]["rule_set"]["policy"], "媒体")
 
     def test_claude_and_ai_rules_precede_github_without_dropping_rules(self):
         model = {
@@ -137,7 +129,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         ordered = [
             (rule["rule_set"]["match"].rsplit("/", 1)[-1], rule["rule_set"]["policy"])
             for rule in rules
-            if "rule_set" in rule and not rule["rule_set"]["match"].endswith("/apns.yaml")
+            if "rule_set" in rule and rule["rule_set"].get("name") != "mcdn屏蔽"
+            and not rule["rule_set"]["match"].endswith("/apns.yaml")
         ]
         self.assertEqual(
             ordered,
@@ -163,9 +156,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "bypass_japan": ["bypass-japan.yaml"],
             "geolocation-!cn": ["geolocation-non-cn.yaml"],
         })
-        self.assertEqual(rules[4]["rule_set"]["policy"], "绕过日本")
-        self.assertEqual(rules[4]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
-        self.assertEqual(rules[5]["rule_set"]["policy"], "Proxy")
+        self.assertEqual(rules[3]["rule_set"]["policy"], "绕过日本")
+        self.assertEqual(rules[3]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
+        self.assertEqual(rules[4]["rule_set"]["policy"], "Proxy")
 
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
         valid = {

@@ -56,13 +56,8 @@ REAL_IP_DOMAINS = [
     "appboot.netflix.com",
     "*-appboot.netflix.com",
 ]
-MCDN_REJECT_DOMAINS = ("mcdn.bilivideo.com", "mcdn.bilivideo.cn")
-PCDN_BLOCK_DOMAINS = (
-    "mcdn.bilivideo.com",
-    "mcdn.bilivideo.cn",
-    "edge.mountaintoys.cn",
-    "h2.smtcdns.net",
-)
+MCDN_PROVIDER = "mcdn屏蔽"
+MCDN_FILENAME = "mcdn-block.yaml"
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
 NON_SERVICE_IP_PROVIDERS = {"cn_ip", "private_ip"}
 DNS_ROUTE_EXCLUDED_HOSTS = {"cloudflare-dns.com", "dns.google"}
@@ -302,12 +297,16 @@ def render_rules(
             }
         })
     rules.append({"protocol": {"match": "stun", "policy": "REJECT"}})
+    for filename in provider_files.get(MCDN_PROVIDER, [MCDN_FILENAME]):
+        rules.append({
+            "rule_set": {
+                "match": f"{RAW_BASE}/dist/egern/{filename}",
+                "policy": "REJECT",
+                "name": MCDN_PROVIDER,
+                "update_interval": 86400,
+            }
+        })
     rules.extend(render_nameserver_route_rules(model))
-    # Block Bilibili MCDN before general domain and mainland routing rules.
-    rules.extend(
-        {"domain_suffix": {"match": domain, "policy": "REJECT"}}
-        for domain in MCDN_REJECT_DOMAINS
-    )
     for raw in prioritize_ai_rules(model["rules"]):
         parts = raw.split(",")
         kind = parts[0]
@@ -315,6 +314,10 @@ def render_rules(
             rules.append({"default": {"policy": parts[1]}})
         elif kind == "RULE-SET" and len(parts) >= 3:
             provider = parts[1]
+            if provider == MCDN_PROVIDER:
+                if raw != f"RULE-SET,{MCDN_PROVIDER},REJECT":
+                    raise BuildError("MCDN blocking must use REJECT without extra flags")
+                continue
             filenames = provider_files.get(provider)
             if not filenames:
                 raise BuildError(f"Rule references missing generated provider: {provider}")
@@ -512,16 +515,7 @@ def hosts(model: dict[str, Any]) -> dict[str, Any]:
             raise BuildError(f"DNS host mapping must be an IP list: {hostname}")
         result[hostname] = existing + [address for address in additions if address not in existing]
     result.update(FLOWER_HOSTS)
-    # Egern Hosts uses glob patterns: pair each apex with its subdomain glob.
-    # Put these explicit blocks first because Egern uses the first Hosts match.
-    blocked_hosts = {
-        pattern: ["0.0.0.0"]
-        for domain in PCDN_BLOCK_DOMAINS
-        for pattern in (domain, f"*.{domain}")
-    }
-    for hostname, value in result.items():
-        blocked_hosts.setdefault(hostname, value)
-    return blocked_hosts
+    return result
 
 
 def validate_profile(
@@ -549,17 +543,30 @@ def validate_profile(
     stun_rule = profile["rules"][len(apns_files)].get("protocol", {})
     if stun_rule != {"match": "stun", "policy": "REJECT"}:
         raise BuildError("STUN blocking must immediately follow APNs")
+    mcdn_files = provider_files.get(MCDN_PROVIDER)
+    if not mcdn_files or any(filename not in generated for filename in mcdn_files):
+        raise BuildError("MCDN native rule set was not published")
+    if model["rules"].count(f"RULE-SET,{MCDN_PROVIDER},REJECT") != 1:
+        raise BuildError("Mihomo must reference the MCDN REJECT rule exactly once")
+    mcdn_offset = 1 + len(apns_files)
+    expected_mcdn_rules = [
+        {"rule_set": {
+            "match": f"{RAW_BASE}/dist/egern/{filename}",
+            "policy": "REJECT",
+            "name": MCDN_PROVIDER,
+            "update_interval": 86400,
+        }}
+        for filename in mcdn_files
+    ]
+    if profile["rules"][mcdn_offset:mcdn_offset + len(mcdn_files)] != expected_mcdn_rules:
+        raise BuildError("MCDN blocking must immediately follow STUN")
+    mcdn_matches = {rule["rule_set"]["match"] for rule in expected_mcdn_rules}
+    if sum(rule.get("rule_set", {}).get("match") in mcdn_matches for rule in profile["rules"]) != len(mcdn_files):
+        raise BuildError("MCDN blocking must not be duplicated")
     expected_nameserver_routes = render_nameserver_route_rules(model)
-    offset = 1 + len(apns_files)
+    offset = mcdn_offset + len(mcdn_files)
     if profile["rules"][offset:offset + len(expected_nameserver_routes)] != expected_nameserver_routes:
         raise BuildError("Mihomo DNS nameserver policy suffixes were not preserved")
-    mcdn_offset = offset + len(expected_nameserver_routes)
-    expected_mcdn_rules = [
-        {"domain_suffix": {"match": domain, "policy": "REJECT"}}
-        for domain in MCDN_REJECT_DOMAINS
-    ]
-    if profile["rules"][mcdn_offset:mcdn_offset + len(expected_mcdn_rules)] != expected_mcdn_rules:
-        raise BuildError("Bilibili MCDN blocking must precede general routing rules")
     for index, filename in enumerate(apns_files):
         first_dns_rule = profile["dns"]["forward"][index].get("proxy_rule_set", {})
         if (
@@ -696,16 +703,6 @@ def validate_profile(
     for hostname, target in FLOWER_HOSTS.items():
         if dns["hosts"].get(hostname) != target:
             raise BuildError(f"Flower host mapping missing: {hostname}")
-    block_patterns = [
-        pattern
-        for domain in PCDN_BLOCK_DOMAINS
-        for pattern in (domain, f"*.{domain}")
-    ]
-    for pattern in block_patterns:
-        if dns["hosts"].get(pattern) != ["0.0.0.0"]:
-            raise BuildError(f"PCDN DNS host block missing: {pattern}")
-    if list(dns["hosts"])[:len(block_patterns)] != block_patterns:
-        raise BuildError("PCDN DNS host blocks must precede other Hosts mappings")
 
 
 
@@ -878,8 +875,7 @@ def main() -> int:
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block immediately follows the APNs routing rule set with REJECT.",
-                "The user-requested Bilibili MCDN domain suffixes mcdn.bilivideo.com and mcdn.bilivideo.cn use REJECT before general routing rules.",
-                "The four user-requested PCDN Hosts domains mcdn.bilivideo.com, mcdn.bilivideo.cn, edge.mountaintoys.cn, and h2.smtcdns.net map their apex and subdomains to 0.0.0.0 before other Hosts mappings.",
+                "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",

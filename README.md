@@ -46,9 +46,12 @@ Mihomo update breaks that invariant.
 User-requested Egern overrides precede the Mihomo routing rules: the APNs
 override is first, immediately followed by a global `protocol: stun` rule
 routed to `REJECT`.
-After any explicit DNS endpoint routes, Bilibili MCDN suffix rules block
-`mcdn.bilivideo.com` and `mcdn.bilivideo.cn` (including their subdomains) with
-`REJECT` before general service and mainland routing.
+The converter's **mcdn屏蔽** native rule set immediately follows STUN and uses
+`REJECT` before explicit DNS endpoint routes, general service rules, and mainland
+routing. The shared `dist/egern/mcdn-block.yaml` contains the four reviewed
+suffixes: `mcdn.bilivideo.com`, `mcdn.bilivideo.cn`,
+`edge.mountaintoys.cn`, and `h2.smtcdns.net`, including their apex and
+subdomains. The two former inline MCDN rules are replaced by this one reference.
 The APNs classical domain/IPv4/IPv6 entries are converted in the rule converter
 into one Egern-native YAML file. Egern routes that rule set through `Proxy`
 and puts the same file first in DNS Forward with `Foreign`.
@@ -65,12 +68,8 @@ build instead of being silently discarded. The generated `real_ip_domains`
 list mirrors [Repcz's Egern profile](https://github.com/Repcz/Tool/blob/X/Egern/Egern.yaml);
 other Fake-IP behavior follows Egern defaults. DNS hijacking targets port 53.
 The existing DNS Hosts mappings are preserved, with AliDNS IPv4 addresses
-added. Four user-requested PCDN domains (`mcdn.bilivideo.com`,
-`mcdn.bilivideo.cn`, `edge.mountaintoys.cn`, and `h2.smtcdns.net`) have
-explicit `dns.hosts` mappings to `0.0.0.0`. Each domain is emitted as an exact
-entry plus a `*.` subdomain glob to retain Mihomo's `+.` matching scope.
-These eight mappings come first because Egern uses the first matching Hosts
-pattern; the two Bilibili MCDN routing rules continue to use `REJECT`.
+added. The eight supplemental MCDN/PCDN `0.0.0.0` Hosts mappings are removed;
+blocking is handled by the shared connection-routing rule set.
 MESL private DNS is used only as Egern `proxy_nameservers`, while
 normal DNS forwarding stays separate. Egern cannot reproduce Mihomo's runtime
 `direct-nameserver` re-resolution when a selectable policy group is switched to
