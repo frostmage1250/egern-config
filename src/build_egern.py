@@ -57,6 +57,12 @@ REAL_IP_DOMAINS = [
     "*-appboot.netflix.com",
 ]
 MCDN_REJECT_DOMAINS = ("mcdn.bilivideo.com", "mcdn.bilivideo.cn")
+PCDN_BLOCK_DOMAINS = (
+    "mcdn.bilivideo.com",
+    "mcdn.bilivideo.cn",
+    "edge.mountaintoys.cn",
+    "h2.smtcdns.net",
+)
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
 NON_SERVICE_IP_PROVIDERS = {"cn_ip", "private_ip"}
 DNS_ROUTE_EXCLUDED_HOSTS = {"cloudflare-dns.com", "dns.google"}
@@ -506,7 +512,16 @@ def hosts(model: dict[str, Any]) -> dict[str, Any]:
             raise BuildError(f"DNS host mapping must be an IP list: {hostname}")
         result[hostname] = existing + [address for address in additions if address not in existing]
     result.update(FLOWER_HOSTS)
-    return result
+    # Egern Hosts uses glob patterns: pair each apex with its subdomain glob.
+    # Put these explicit blocks first because Egern uses the first Hosts match.
+    blocked_hosts = {
+        pattern: ["0.0.0.0"]
+        for domain in PCDN_BLOCK_DOMAINS
+        for pattern in (domain, f"*.{domain}")
+    }
+    for hostname, value in result.items():
+        blocked_hosts.setdefault(hostname, value)
+    return blocked_hosts
 
 
 def validate_profile(
@@ -681,6 +696,16 @@ def validate_profile(
     for hostname, target in FLOWER_HOSTS.items():
         if dns["hosts"].get(hostname) != target:
             raise BuildError(f"Flower host mapping missing: {hostname}")
+    block_patterns = [
+        pattern
+        for domain in PCDN_BLOCK_DOMAINS
+        for pattern in (domain, f"*.{domain}")
+    ]
+    for pattern in block_patterns:
+        if dns["hosts"].get(pattern) != ["0.0.0.0"]:
+            raise BuildError(f"PCDN DNS host block missing: {pattern}")
+    if list(dns["hosts"])[:len(block_patterns)] != block_patterns:
+        raise BuildError("PCDN DNS host blocks must precede other Hosts mappings")
 
 
 
@@ -854,6 +879,8 @@ def main() -> int:
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
                 "The user-requested STUN block immediately follows the APNs routing rule set with REJECT.",
                 "The user-requested Bilibili MCDN domain suffixes mcdn.bilivideo.com and mcdn.bilivideo.cn use REJECT before general routing rules.",
+                "The four user-requested PCDN Hosts domains mcdn.bilivideo.com, mcdn.bilivideo.cn, edge.mountaintoys.cn, and h2.smtcdns.net map their apex and subdomains to 0.0.0.0 before other Hosts mappings.",
+
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The user-requested 绕过日本 group starts empty and routes the converter bypass-japan native rule set.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",

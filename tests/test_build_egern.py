@@ -15,6 +15,7 @@ from build_egern import (  # noqa: E402
     BuildError,
     RAW_BASE,
     bootstrap_nameservers,
+    hosts,
     load_manifest_rules,
     nameservers,
     referenced_providers,
@@ -28,6 +29,38 @@ from build_egern import (  # noqa: E402
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
+    def test_pcdn_hosts_override_source_entries_before_broad_globs(self):
+        source_hosts = {
+            "*": ["203.0.113.10"],
+            "mcdn.bilivideo.com": ["203.0.113.11"],
+            "*.mcdn.bilivideo.com": ["203.0.113.12"],
+            "example.com": ["203.0.113.13"],
+            "alias.example.com": "target.example.com",
+            "dns.alidns.com": ["223.5.5.5"],
+        }
+        source_snapshot = json.dumps(source_hosts, sort_keys=True)
+        model = {"hosts": source_hosts}
+        rendered = hosts(model)
+        expected_patterns = [
+            "mcdn.bilivideo.com", "*.mcdn.bilivideo.com",
+            "mcdn.bilivideo.cn", "*.mcdn.bilivideo.cn",
+            "edge.mountaintoys.cn", "*.edge.mountaintoys.cn",
+            "h2.smtcdns.net", "*.h2.smtcdns.net",
+        ]
+        self.assertEqual(list(rendered)[:8], expected_patterns)
+        for pattern in expected_patterns:
+            self.assertEqual(rendered[pattern], ["0.0.0.0"])
+        self.assertEqual(rendered["*"], ["203.0.113.10"])
+        self.assertEqual(rendered["example.com"], ["203.0.113.13"])
+        self.assertEqual(rendered["alias.example.com"], "target.example.com")
+        self.assertEqual(rendered["dns.alidns.com"], ["223.5.5.5", "223.6.6.6"])
+        self.assertEqual(
+            rendered["11612bj3-b76c.aws-agent.biz"],
+            "06996bj6-79x5.apt-agent.com",
+        )
+        self.assertEqual(json.dumps(model["hosts"], sort_keys=True), source_snapshot)
+        self.assertNotIn("*.mcdn.bilivideo.cn", source_hosts)
+
     def test_rules_preserve_order_and_no_resolve(self):
         model = {
             "rules": [

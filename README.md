@@ -65,7 +65,13 @@ build instead of being silently discarded. The generated `real_ip_domains`
 list mirrors [Repcz's Egern profile](https://github.com/Repcz/Tool/blob/X/Egern/Egern.yaml);
 other Fake-IP behavior follows Egern defaults. DNS hijacking targets port 53.
 The existing DNS Hosts mappings are preserved, with AliDNS IPv4 addresses
-added. MESL private DNS is used only as Egern `proxy_nameservers`, while
+added. Four user-requested PCDN domains (`mcdn.bilivideo.com`,
+`mcdn.bilivideo.cn`, `edge.mountaintoys.cn`, and `h2.smtcdns.net`) have
+explicit `dns.hosts` mappings to `0.0.0.0`. Each domain is emitted as an exact
+entry plus a `*.` subdomain glob to retain Mihomo's `+.` matching scope.
+These eight mappings come first because Egern uses the first matching Hosts
+pattern; the two Bilibili MCDN routing rules continue to use `REJECT`.
+MESL private DNS is used only as Egern `proxy_nameservers`, while
 normal DNS forwarding stays separate. Egern cannot reproduce Mihomo's runtime
 `direct-nameserver` re-resolution when a selectable policy group is switched to
 Direct, so the generator preserves every statically identifiable Direct domain
