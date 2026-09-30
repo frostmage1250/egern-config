@@ -57,6 +57,17 @@ jobs:
         run: |
           node src/extract_mihomo_model.js \
             "${RUNNER_TEMP}/mihomoScript.js" > "${RUNNER_TEMP}/mihomo-model.json"
+          python - "${RUNNER_TEMP}/mihomo-model.json" "${RUNNER_TEMP}/egern-source.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          model, manifest = [json.loads(Path(path).read_text(encoding="utf-8")) for path in sys.argv[1:]]
+          provider = model["providers"]["apple"]
+          assert provider["url"] == "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/apple-merged.mrs"
+          record = next(item for item in manifest["native_rule_sets"] if item["provider"] == "apple")
+          assert record["output"] == "dist/egern/apple-merged.yaml"
+          assert record["provider_url"] == provider["url"]
+          print("Verified shared Apple merge in the pinned model and published manifest.")
+          PY
 
       - name: Generate Egern profile from published rules
         run: |

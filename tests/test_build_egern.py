@@ -29,6 +29,28 @@ from build_egern import (  # noqa: E402
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
+    def test_apple_merge_keeps_cn_priority_and_separate_ip_rule(self):
+        model = {"rules": [
+            "RULE-SET,apple_cn,Direct",
+            "RULE-SET,apple,Proxy",
+            "RULE-SET,apple_ip,Proxy,no-resolve",
+            "MATCH,Final",
+        ]}
+        rules = render_rules(model, {
+            "apple_cn": ["apple-cn.yaml"],
+            "apple": ["apple-merged.yaml"],
+            "apple_ip": ["apple-ip.yaml"],
+        })
+        selected = [rule["rule_set"] for rule in rules if (
+            "rule_set" in rule and rule["rule_set"]["match"].rsplit("/", 1)[-1]
+            in {"apple-cn.yaml", "apple-merged.yaml", "apple-ip.yaml"}
+        )]
+        self.assertEqual(
+            [(rule["match"].rsplit("/", 1)[-1], rule["policy"]) for rule in selected],
+            [("apple-cn.yaml", "Direct"), ("apple-merged.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
+        )
+        self.assertTrue(selected[2]["no_resolve"])
+
     def test_hosts_preserve_source_without_injecting_pcdn_blocks(self):
         source_hosts = {
             "example.com": ["203.0.113.13"],
