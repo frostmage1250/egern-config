@@ -23,6 +23,48 @@
       ]
     }
   },
+  "egern_only_rule_sets": [
+    {
+      "behavior": "domain",
+      "bett_entries": 3,
+      "bett_order_and_duplicates_preserved": true,
+      "egern_only": true,
+      "entries": 6,
+      "excluded_domains": [
+        "7h15.ru1353t.1s.m4d3.by.5ukk4w.skk.moe"
+      ],
+      "native_entries_sha256": "dd481a8f2e7058483c4bbee6b41f2945f7042781a804b9cb0095e24bad4a5b43",
+      "output": "dist/egern/privaterelay.yaml",
+      "output_sha256": "057aecc4a799e7e64a2106f7b2609c21a53c9f351d243315b7fa24c2dab12242",
+      "provider": "privaterelay",
+      "source_entries": 6,
+      "source_order_sha256": "dd481a8f2e7058483c4bbee6b41f2945f7042781a804b9cb0095e24bad4a5b43",
+      "source_sha256": "328335b20b80b1a54aeed81be7522f4221fdf253f2770705515e409e6c75d59d",
+      "sukka_eligible_entries": 6,
+      "supplemented_entries": 3,
+      "supplemented_rules": [
+        "mask.apple-dns.net",
+        "mask-canary.icloud.com",
+        "canary.mask.apple-dns.net"
+      ],
+      "upstream_sources": [
+        {
+          "commit": "cfec5ac87567f84d1b06629eaf1cc481bfc11e9a",
+          "name": "bett-rules",
+          "path": "geo/geosite/icloudprivaterelay.list",
+          "ref": "meta",
+          "repository": "appshubcc/bett-rules",
+          "sha256": "19d752f38c2999695b945629f1ba7be61e591222340fc50204600ed4b3e246d4",
+          "url": "https://raw.githubusercontent.com/appshubcc/bett-rules/cfec5ac87567f84d1b06629eaf1cc481bfc11e9a/geo/geosite/icloudprivaterelay.list"
+        },
+        {
+          "name": "Sukka",
+          "sha256": "118e0ab653e296c8c588c9dbcee303d3ea9692031ec62aa2d9d01980670a53a8",
+          "url": "https://ruleset.skk.moe/Clash/domainset/icloud_private_relay.txt"
+        }
+      ]
+    }
+  ],
   "group_filters": {
     "低倍率节点": "(?i)^(?!.*(?:剩|期)).*(?:(?<!\\d)0\\.[0-5]|(?<=[ \\[\\(|｜丨∣┃\\-‐–—−－﹣])0[*×✕✖⨯⨉x倍])|(?:(?<=[ \\[\\(|｜丨∣┃\\-‐–—−－﹣])[*×✕✖⨯⨉x]0(?=[ \\)\\]]|倍|$))|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])",
     "其他节点": "(?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|圣地亚哥|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$",
@@ -43,6 +85,7 @@
     "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
     "The user-requested 绕过日本 group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
+    "The Egern-only Private Relay rule set uses Proxy immediately before Apple CN.",
     "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
     "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
@@ -701,15 +744,15 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "0b9c7d02353ccbe9b4a63cedb2c434c103f77325d2f1f0444d95df23f3cdd635",
+  "profile_sha256": "ed5213512680cef884f3cf5f5af0eeccf4729aadfb3ded48ef6e3d65cf47b8dd",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "b7a8ee33b23e7d48f2cf1aeac9e0d9d186666e47",
+    "commit": "7a08ee3a3795d7b9f3c6f0be1ecf576789059f10",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "78d464e0360ad5084ebbfc266cc1b06ceb3cadda6c25e7f8699d5d709681d0e3",
+    "manifest_sha256": "be0595cbf17a67dcb9c990c22c44434c623b466eb422afd376e80a1c5cb71031",
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 36,
+  "routing_rules": 37,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
