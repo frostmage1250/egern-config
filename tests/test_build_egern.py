@@ -280,6 +280,12 @@ class EgernProfileBuilderTests(unittest.TestCase):
             next(iter(item.values()))["name"]: next(iter(item.values()))
             for item in groups
         }
+        self.assertEqual(
+            by_name["Proxy"],
+            {"name": "Proxy", "policies": ["订阅", "订阅2", "日本"], "flatten": True},
+        )
+        self.assertFalse(by_name["AI"].get("flatten", False))
+        self.assertFalse(by_name["Claude"].get("flatten", False))
         self.assertEqual(by_name["订阅"]["urls"], [])
         self.assertEqual(by_name["订阅2"], {"name": "订阅2", "policies": [], "urls": [], "filter": filters["订阅"]})
         self.assertEqual(by_name["订阅2"]["filter"], by_name["订阅"]["filter"])

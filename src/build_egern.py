@@ -194,6 +194,12 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             value for value in source.get("proxies", [])
             if not value.startswith("__") and value not in {"IPv4优先", "IPv6优先"}
         ]
+        if name == "Proxy":
+            policies = ["订阅", "订阅2"] + [
+                policy for policy in policies if policy not in {"订阅", "订阅2"}
+            ]
+            groups.append({"select": {"name": name, "policies": policies, "flatten": True}})
+            continue
         if name == "Direct":
             policies = ["DIRECT"]
         if name in {"Telegram", "媒体", "PikPak"} and "香港" not in policies:
@@ -528,6 +534,15 @@ def validate_profile(
     names = [item["name"] for item in groups]
     if len(names) != len(set(names)):
         raise BuildError("Policy group names are not unique")
+    if "Proxy" not in names:
+        raise BuildError("Proxy policy group is missing")
+    proxy_group = groups[names.index("Proxy")]
+    if (
+        proxy_group.get("flatten") is not True
+        or proxy_group.get("policies", [])[:2] != ["订阅", "订阅2"]
+        or "filter" in proxy_group
+    ):
+        raise BuildError("Proxy must flatten all nodes from both subscription groups without a regional filter")
     known = set(names) | BUILTIN_POLICIES
     apns_files = provider_files.get("apns")
     if not apns_files or any(filename not in generated for filename in apns_files):
