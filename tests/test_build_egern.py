@@ -384,12 +384,16 @@ class EgernProfileBuilderTests(unittest.TestCase):
         }
         self.assertEqual(
             bootstrap_nameservers(model),
-            ["114.114.114.114", "223.5.5.5", "1.12.12.12"],
+            ["114.114.114.114", "223.5.5.5", "1.12.12.12", "119.29.29.29"],
         )
         with self.assertRaises(BuildError):
             bootstrap_nameservers(
                 {"dns": {"default-nameserver": ["1.1.1.1#Proxy"]}}
             )
+
+    def test_bootstrap_does_not_duplicate_required_dns_ip(self):
+        model = {"dns": {"default-nameserver": ["119.29.29.29#DIRECT", "223.5.5.5"]}}
+        self.assertEqual(bootstrap_nameservers(model), ["119.29.29.29", "223.5.5.5"])
 
     def test_dns_forward_preserves_cn_policy_and_direct_domain_rules(self):
         model = {
