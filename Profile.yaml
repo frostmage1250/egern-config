@@ -99,6 +99,7 @@ policy_groups:
     name: Proxy
     policies:
     - 订阅
+    - 订阅2
     - 香港
     - 台湾
     - 新加坡
@@ -106,6 +107,7 @@ policy_groups:
     - 美国
     - 其他节点
     - 低倍率节点
+    flatten: true
 - select:
     name: 订阅
     policies:
