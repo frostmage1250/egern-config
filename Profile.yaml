@@ -271,7 +271,7 @@ rules:
     policy: Direct
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-merged.yaml
     policy: Proxy
     update_interval: 86400
 - rule_set:
