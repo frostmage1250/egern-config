@@ -66,7 +66,12 @@ jobs:
           record = next(item for item in manifest["native_rule_sets"] if item["provider"] == "apple")
           assert record["output"] == "dist/egern/apple-merged.yaml"
           assert record["provider_url"] == provider["url"]
-          print("Verified shared Apple merge in the pinned model and published manifest.")
+          private_records = manifest["egern_only_rule_sets"]
+          assert len(private_records) == 1 and private_records[0]["provider"] == "privaterelay"
+          assert private_records[0]["egern_only"] is True
+          assert private_records[0]["output"] == "dist/egern/privaterelay.yaml"
+          assert "privaterelay" not in model["providers"]
+          print("Verified shared Apple merge and Egern-only Private Relay publication.")
           PY
 
       - name: Generate Egern profile from published rules

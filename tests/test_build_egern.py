@@ -29,6 +29,30 @@ from build_egern import (  # noqa: E402
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
+    def test_privaterelay_is_immediately_before_apple_cn_and_uses_proxy(self):
+        model = {"rules": [
+            "RULE-SET,steam,Proxy", "RULE-SET,apple_cn,Direct",
+            "RULE-SET,apple,Proxy", "RULE-SET,apple_ip,Proxy,no-resolve", "MATCH,Final",
+        ]}
+        files = {
+            "steam": ["steam.yaml"], "privaterelay": ["privaterelay.yaml"],
+            "apple_cn": ["apple-cn.yaml"], "apple": ["apple-merged.yaml"],
+            "apple_ip": ["apple-ip.yaml"],
+        }
+        rules = render_rules(model, files)
+        selected = [rule["rule_set"] for rule in rules if "rule_set" in rule
+                    and rule["rule_set"]["match"].rsplit("/", 1)[-1] in
+                    {"privaterelay.yaml", "apple-cn.yaml", "apple-merged.yaml", "apple-ip.yaml"}]
+        self.assertEqual(
+            [(rule["match"].rsplit("/", 1)[-1], rule["policy"]) for rule in selected],
+            [("privaterelay.yaml", "Proxy"), ("apple-cn.yaml", "Direct"),
+             ("apple-merged.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
+        )
+        self.assertEqual(selected[0]["name"], "privaterelay")
+        self.assertTrue(selected[-1]["no_resolve"])
+        with self.assertRaises(BuildError):
+            render_rules({"rules": ["MATCH,Final"]}, {"privaterelay": ["privaterelay.yaml"]})
+
     def test_apple_merge_keeps_cn_priority_and_separate_ip_rule(self):
         model = {"rules": [
             "RULE-SET,apple_cn,Direct",
@@ -541,6 +565,44 @@ class EgernProfileBuilderTests(unittest.TestCase):
             self.assertEqual(files["service"], ["service.yaml"])
             self.assertEqual(generated["service.yaml"]["domain_set"], ["a.example", "a.example"])
             service["native_entries_sha256"] = sequence_hash([("domain_set", "different.example")])
+            with self.assertRaises(BuildError):
+                load_manifest_rules(model, manifest, "converter-commit")
+
+    def test_manifest_loads_egern_only_privaterelay_and_checks_its_digest(self):
+        model = {"providers": {}, "rules": ["MATCH,Final"]}
+        texts = {
+            "apns.yaml": "domain_set:\n- push.apple.com\n",
+            "privaterelay.yaml": "domain_suffix_set:\n- mask.icloud.com\ndomain_set:\n- mask.apple-dns.net\n",
+        }
+        def record(provider, filename, sequence):
+            digest = hashlib.sha256(
+                json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode()
+            ).hexdigest()
+            return {
+                "provider": provider, "behavior": "domain", "source_entries": len(sequence),
+                "entries": len(sequence), "source_order_sha256": digest,
+                "native_entries_sha256": digest, "output": "dist/egern/" + filename,
+                "output_sha256": hashlib.sha256(texts[filename].encode()).hexdigest(),
+            }
+        apns = record("apns", "apns.yaml", [("domain_set", "push.apple.com")])
+        apns.update({"source_repository": "ttyyss2233/Tool", "source_path": "shadowrocket/rules/apns.list"})
+        private = record("privaterelay", "privaterelay.yaml", [
+            ("domain_suffix_set", "mask.icloud.com"), ("domain_set", "mask.apple-dns.net"),
+        ])
+        private["egern_only"] = True
+        manifest = {
+            "schema_version": 3, "mihomo_script": {"repository": "frostmage1250/mihomo-script"},
+            "native_rule_sets": [apns], "egern_only_rule_sets": [private],
+        }
+        with patch("build_egern.download_text", side_effect=lambda url: texts[url.rsplit("/", 1)[-1]]):
+            generated, files = load_manifest_rules(model, manifest, "converter-commit")
+            self.assertEqual(files["privaterelay"], ["privaterelay.yaml"])
+            self.assertEqual(generated["privaterelay.yaml"]["domain_set"], ["mask.apple-dns.net"])
+            private["output_sha256"] = "0" * 64
+            with self.assertRaises(BuildError):
+                load_manifest_rules(model, manifest, "converter-commit")
+        with patch("build_egern.download_text", side_effect=lambda url: texts[url.rsplit("/", 1)[-1]]):
+            private["egern_only"] = False
             with self.assertRaises(BuildError):
                 load_manifest_rules(model, manifest, "converter-commit")
 

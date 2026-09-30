@@ -24,6 +24,8 @@ MIHOMO_REPO = "frostmage1250/mihomo-script"
 CONVERTER_REPO = "frostmage1250/proxy-rules-converter"
 CONVERTER_MANIFEST_PATH = "reports/egern-source.json"
 APNS_FILENAME = "apns.yaml"
+PRIVATERELAY_PROVIDER = "privaterelay"
+PRIVATERELAY_FILENAME = "privaterelay.yaml"
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -313,6 +315,8 @@ def render_rules(
             }
         })
     rules.extend(render_nameserver_route_rules(model))
+    privaterelay_files = provider_files.get(PRIVATERELAY_PROVIDER, [])
+    privaterelay_inserted = False
     for raw in prioritize_ai_rules(model["rules"]):
         parts = raw.split(",")
         kind = parts[0]
@@ -324,6 +328,17 @@ def render_rules(
                 if raw != f"RULE-SET,{MCDN_PROVIDER},REJECT":
                     raise BuildError("MCDN blocking must use REJECT without extra flags")
                 continue
+            if provider == "apple_cn" and privaterelay_files and not privaterelay_inserted:
+                for filename in privaterelay_files:
+                    rules.append({
+                        "rule_set": {
+                            "match": f"{RAW_BASE}/dist/egern/{filename}",
+                            "policy": "Proxy",
+                            "name": PRIVATERELAY_PROVIDER,
+                            "update_interval": 86400,
+                        }
+                    })
+                privaterelay_inserted = True
             filenames = provider_files.get(provider)
             if not filenames:
                 raise BuildError(f"Rule references missing generated provider: {provider}")
@@ -344,6 +359,8 @@ def render_rules(
             rules.append({"domain": {"match": parts[1], "policy": parts[2]}})
         else:
             raise BuildError(f"Unsupported Mihomo rule: {raw}")
+    if privaterelay_files and not privaterelay_inserted:
+        raise BuildError("Private Relay requires an Apple CN routing anchor")
     return rules
 
 
@@ -657,6 +674,22 @@ def validate_profile(
         for rule in profile["rules"]
     ):
         raise BuildError("绕过日本 rule set must use the 绕过日本 group")
+    if provider_files.get(PRIVATERELAY_PROVIDER) != [PRIVATERELAY_FILENAME]:
+        raise BuildError("Egern-only Private Relay rule set is missing")
+    private_positions = [
+        index for index, rule in enumerate(profile["rules"])
+        if rule.get("rule_set", {}).get("match") == f"{RAW_BASE}/dist/egern/{PRIVATERELAY_FILENAME}"
+    ]
+    apple_cn_positions = [
+        index for index, rule in enumerate(profile["rules"])
+        if rule.get("rule_set", {}).get("match") == f"{RAW_BASE}/dist/egern/apple-cn.yaml"
+    ]
+    if (
+        len(private_positions) != 1 or len(apple_cn_positions) != 1
+        or private_positions[0] + 1 != apple_cn_positions[0]
+        or profile["rules"][private_positions[0]]["rule_set"].get("policy") != "Proxy"
+    ):
+        raise BuildError("Private Relay must use Proxy immediately before Apple CN")
     priority_positions: list[int] = []
     for provider in ("claude", "ai", "github"):
         filenames = provider_files.get(provider)
@@ -739,9 +772,17 @@ def load_manifest_rules(
     ] != ["apns", *wanted] or len(records) != len(wanted) + 1:
         raise BuildError("Rule manifest does not match the Mihomo provider model")
 
+    egern_only_records = manifest.get("egern_only_rule_sets", [])
+    if (
+        not isinstance(egern_only_records, list)
+        or any(not isinstance(record, dict) for record in egern_only_records)
+        or [record.get("provider") for record in egern_only_records] not in ([], [PRIVATERELAY_PROVIDER])
+    ):
+        raise BuildError("Unsupported Egern-only rule manifest")
+
     generated: dict[str, dict[str, Any]] = {}
     provider_files: dict[str, list[str]] = {}
-    for record in records:
+    for record in [*records, *egern_only_records]:
         name = record["provider"]
         if name == "apns":
             if (
@@ -749,6 +790,13 @@ def load_manifest_rules(
                 or record.get("source_path") != "shadowrocket/rules/apns.list"
             ):
                 raise BuildError("APNs rule manifest source changed")
+        elif name == PRIVATERELAY_PROVIDER:
+            if (
+                record.get("egern_only") is not True
+                or record.get("behavior") != "domain"
+                or record.get("output") != f"dist/egern/{PRIVATERELAY_FILENAME}"
+            ):
+                raise BuildError("Invalid Egern-only Private Relay source")
         else:
             provider = model["providers"].get(name)
             if (
@@ -785,6 +833,8 @@ def load_manifest_rules(
         rule = yaml.safe_load(rule_text)
         if not isinstance(rule, dict):
             raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
+        if name == PRIVATERELAY_PROVIDER and not set(rule) <= {"domain_set", "domain_suffix_set"}:
+            raise BuildError("Private Relay must contain domain rules only")
         sequence: list[tuple[str, str]] = []
         for field, values in rule.items():
             if isinstance(values, list):
@@ -872,6 +922,7 @@ def main() -> int:
             "policy_groups": len(groups),
             "routing_rules": len(rules),
             "native_rule_sets": manifest["native_rule_sets"],
+            "egern_only_rule_sets": manifest.get("egern_only_rule_sets", []),
             "group_filters": filters,
             "dns": {
                 "bootstrap": profile["dns"]["bootstrap"],
@@ -898,6 +949,7 @@ def main() -> int:
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The user-requested 绕过日本 group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
+                "The Egern-only Private Relay rule set uses Proxy immediately before Apple CN.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
                 "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
