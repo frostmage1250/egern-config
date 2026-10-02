@@ -85,7 +85,7 @@
     "The user-requested STUN block immediately follows the APNs routing rule set with REJECT.",
     "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
-    "The user-requested 绕过日本 group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
+    "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
     "The Egern-only Private Relay rule set uses Proxy immediately before Apple CN.",
     "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
     "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
@@ -745,10 +745,10 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "535c77ac8c36b475803336634604ee4e370547bf06e71a1d61ff79825e085650",
+  "profile_sha256": "7e8d5297bcdc2d2c0fc18533e176a7bd83053dbb0482866404811f0207b1ea81",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "364cd146edf8ad47063bbdc954718a04bf5b48d9",
+    "commit": "ea9925097920d6fb0a73ab5c9fef14045c70e6e1",
     "manifest_path": "reports/egern-source.json",
     "manifest_sha256": "0d8848f720b6dac5584e5460184fc63e897a388fb9e8f25dc8c74d4f00272b92",
     "repository": "frostmage1250/proxy-rules-converter"
