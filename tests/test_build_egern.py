@@ -193,7 +193,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
     def test_bypass_japan_rule_precedes_foreign_fallback(self):
         model = {
             "rules": [
-                "RULE-SET,bypass_japan,绕过日本",
+                "RULE-SET,bypass_japan,pron",
                 "RULE-SET,geolocation-!cn,Proxy",
                 "MATCH,Final",
             ]
@@ -202,7 +202,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "bypass_japan": ["bypass-japan.yaml"],
             "geolocation-!cn": ["geolocation-non-cn.yaml"],
         })
-        self.assertEqual(rules[3]["rule_set"]["policy"], "绕过日本")
+        self.assertEqual(rules[3]["rule_set"]["policy"], "pron")
         self.assertEqual(rules[3]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
         self.assertEqual(rules[4]["rule_set"]["policy"], "Proxy")
 
@@ -317,7 +317,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "Telegram", "proxies": ["Proxy", "低倍率节点"]},
                 {"name": "媒体", "proxies": ["Proxy", "低倍率节点"]},
                 {"name": "PikPak", "proxies": ["Proxy", "Direct", "低倍率节点"]},
-                {"name": "绕过日本", "proxies": []},
+                {"name": "pron", "proxies": []},
                 {"name": "Final", "proxies": ["Proxy", "Direct"]},
             ],
         }
@@ -356,8 +356,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
-        self.assertEqual(by_name["绕过日本"]["policies"], ["香港", "新加坡"])
-        self.assertFalse(by_name["绕过日本"].get("flatten", False))
+        self.assertEqual(by_name["pron"]["policies"], ["香港", "新加坡"])
+        self.assertFalse(by_name["pron"].get("flatten", False))
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,

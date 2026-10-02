@@ -147,7 +147,7 @@ policy_groups:
     - 台湾
     - 其他节点
 - select:
-    name: 绕过日本
+    name: pron
     policies:
     - 香港
     - 新加坡
@@ -374,7 +374,7 @@ rules:
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/bypass-japan.yaml
-    policy: 绕过日本
+    policy: pron
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-non-cn.yaml

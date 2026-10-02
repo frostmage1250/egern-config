@@ -165,10 +165,10 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
     for source in model["groups"]:
-        name = source["name"]
+        name = "pron" if source["name"] == "绕过日本" else source["name"]
         if name == "YouTube":
             continue
-        if name == "绕过日本":
+        if name == "pron":
             groups.append({"select": {"name": name, "policies": ["香港", "新加坡"]}})
             continue
         if name == "订阅":
@@ -346,7 +346,7 @@ def render_rules(
             if not filenames:
                 raise BuildError(f"Rule references missing generated provider: {provider}")
             no_resolve = parts[-1] == "no-resolve"
-            policy = "YouTube" if provider == "youtube" else (parts[-2] if no_resolve else parts[-1])
+            policy = {"youtube": "YouTube", "bypass_japan": "pron"}.get(provider, parts[-2] if no_resolve else parts[-1])
             for filename in filenames:
                 item: dict[str, Any] = {
                     "match": f"{RAW_BASE}/dist/egern/{filename}",
@@ -646,11 +646,11 @@ def validate_profile(
         if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the Hong Kong policy group")
     if (
-        "绕过日本" not in names
-        or groups[names.index("绕过日本")].get("policies") != ["香港", "新加坡"]
-        or groups[names.index("绕过日本")].get("flatten", False)
+        "pron" not in names
+        or groups[names.index("pron")].get("policies") != ["香港", "新加坡"]
+        or groups[names.index("pron")].get("flatten", False)
     ):
-        raise BuildError("绕过日本 must offer Hong Kong and Singapore groups without flattening nodes")
+        raise BuildError("pron must offer Hong Kong and Singapore groups without flattening nodes")
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
@@ -670,14 +670,14 @@ def validate_profile(
             raise BuildError(f"YouTube rule set must use the YouTube group: {filename}")
     bypass_files = provider_files.get("bypass_japan")
     if not bypass_files or len(bypass_files) != 1:
-        raise BuildError("绕过日本 native rule set is missing")
+        raise BuildError("pron native rule set is missing")
     bypass_match = f"{RAW_BASE}/dist/egern/{bypass_files[0]}"
     if not any(
         rule.get("rule_set", {}).get("match") == bypass_match
-        and rule["rule_set"].get("policy") == "绕过日本"
+        and rule["rule_set"].get("policy") == "pron"
         for rule in profile["rules"]
     ):
-        raise BuildError("绕过日本 rule set must use the 绕过日本 group")
+        raise BuildError("pron rule set must use the pron group")
     if provider_files.get(PRIVATERELAY_PROVIDER) != [PRIVATERELAY_FILENAME]:
         raise BuildError("Egern-only Private Relay rule set is missing")
     private_positions = [
@@ -952,7 +952,7 @@ def main() -> int:
                 "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
-                "The user-requested 绕过日本 group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
+                "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
                 "The Egern-only Private Relay rule set uses Proxy immediately before Apple CN.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
