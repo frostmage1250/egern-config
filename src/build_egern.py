@@ -737,8 +737,8 @@ def validate_profile(
         raise BuildError("Egern must include all system network traffic")
     if profile.get("include_apns") is not True:
         raise BuildError("Egern must include APNs traffic")
-    if "close_connections_on_policy_change" in profile:
-        raise BuildError("Unsourced Egern connection-closing behavior must not be enabled")
+    if profile.get("close_connections_on_policy_change") is not True:
+        raise BuildError("Egern must close old connections when a policy group selection changes")
     if dns.get("bootstrap") != bootstrap_nameservers(model):
         raise BuildError("Mihomo default-nameserver was not preserved as Egern bootstrap")
     if dns.get("upstreams") != render_dns_upstreams(model):
@@ -894,6 +894,7 @@ def main() -> int:
             "ipv6": True,
             "hijack_dns": ["*:53"],
             "block_quic": False,
+            "close_connections_on_policy_change": True,
             "include_all_networks": True,
             "include_apns": True,
             "real_ip_domains": REAL_IP_DOMAINS,
