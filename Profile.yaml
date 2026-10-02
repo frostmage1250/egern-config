@@ -155,6 +155,7 @@ policy_groups:
     name: Google
     policies:
     - Proxy
+    - 订阅
 - select:
     name: 媒体
     policies:

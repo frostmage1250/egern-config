@@ -205,6 +205,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             continue
         if name == "Direct":
             policies = ["DIRECT"]
+        if name == "Google" and "订阅" not in policies:
+            policies.append("订阅")
         if name in {"Telegram", "媒体", "PikPak"} and "香港" not in policies:
             policies.append("香港")
         if name in {"Telegram", "媒体"}:
