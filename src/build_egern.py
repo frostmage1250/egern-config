@@ -952,7 +952,7 @@ def main() -> int:
                 "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
-                "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter bypass-japan native rule set.",
+                "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
                 "The Egern-only Private Relay rule set uses Proxy immediately before Apple CN.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
