@@ -94,7 +94,7 @@
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "933441ff78abee546095165191d3f7f488eba916",
+    "commit": "b24a6ec5d6d4f24b189045161c65b4d67cde69be",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -476,6 +476,42 @@
     },
     {
       "behavior": "domain",
+      "entries": 60,
+      "native_entries_sha256": "d450cdb80144c576593f1c47e09aa8c3ce769448241cdccd089933c02b221555",
+      "output": "dist/egern/steam.yaml",
+      "output_sha256": "f31dec7d71e0f102bdf252f8050fb8089529a57ae4a1d698f9335be01e341e87",
+      "provider": "steam",
+      "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/steam.mrs",
+      "source_commit": "3ab11685d346c28709e29d7f650f9e9a59ede6b2",
+      "source_entries": 60,
+      "source_generated_in_same_run": false,
+      "source_order_sha256": "77a95872807226d1412e452aa4dab928329cebaab5b0cedee155ee5b80df3d0c",
+      "source_path": "geo/geosite/steam.list",
+      "source_ref": "meta",
+      "source_repository": "appshubcc/bett-rules",
+      "source_sha256": "63e7cfe27eedb6660abd763618129cf46e3a39ebf436886bfb8a8eedde5b49bb",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/3ab11685d346c28709e29d7f650f9e9a59ede6b2/geo/geosite/steam.list"
+    },
+    {
+      "behavior": "ipcidr",
+      "entries": 24,
+      "native_entries_sha256": "c9fdf1ef43ead5b9d1c5246f36f1bce4f1bf30e521bc6fe09e5f2f59f207e35d",
+      "output": "dist/egern/steam-ip.yaml",
+      "output_sha256": "ab40fabcde27456c8e6106b526873910f11a1f5a82d7a562cff2e3c5390fa92b",
+      "provider": "steam_ip",
+      "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/steam.mrs",
+      "source_commit": "3ab11685d346c28709e29d7f650f9e9a59ede6b2",
+      "source_entries": 24,
+      "source_generated_in_same_run": false,
+      "source_order_sha256": "c9fdf1ef43ead5b9d1c5246f36f1bce4f1bf30e521bc6fe09e5f2f59f207e35d",
+      "source_path": "geo/geoip/steam.list",
+      "source_ref": "meta",
+      "source_repository": "appshubcc/bett-rules",
+      "source_sha256": "a8e99ae31d0f096501eb5e821191dc9bbaca3d38d88e2ad33a68b53e6b40c738",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/3ab11685d346c28709e29d7f650f9e9a59ede6b2/geo/geoip/steam.list"
+    },
+    {
+      "behavior": "domain",
       "entries": 7,
       "native_entries_sha256": "32f5653e35eda17d5ae70453569ea8b5aea9ed7bad9fae0b8878fb68493e1fee",
       "output": "dist/egern/pikpak.yaml",
@@ -527,42 +563,6 @@
       "source_repository": "frostmage1250/proxy-rules-converter",
       "source_sha256": "225f7a47ba93a18bbb0d46f4b9ddcaab87f35508d92f92f024ce074a9aaffbae",
       "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/bypass-japan.list"
-    },
-    {
-      "behavior": "domain",
-      "entries": 60,
-      "native_entries_sha256": "d450cdb80144c576593f1c47e09aa8c3ce769448241cdccd089933c02b221555",
-      "output": "dist/egern/steam.yaml",
-      "output_sha256": "f31dec7d71e0f102bdf252f8050fb8089529a57ae4a1d698f9335be01e341e87",
-      "provider": "steam",
-      "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/steam.mrs",
-      "source_commit": "3ab11685d346c28709e29d7f650f9e9a59ede6b2",
-      "source_entries": 60,
-      "source_generated_in_same_run": false,
-      "source_order_sha256": "77a95872807226d1412e452aa4dab928329cebaab5b0cedee155ee5b80df3d0c",
-      "source_path": "geo/geosite/steam.list",
-      "source_ref": "meta",
-      "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "63e7cfe27eedb6660abd763618129cf46e3a39ebf436886bfb8a8eedde5b49bb",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/3ab11685d346c28709e29d7f650f9e9a59ede6b2/geo/geosite/steam.list"
-    },
-    {
-      "behavior": "ipcidr",
-      "entries": 24,
-      "native_entries_sha256": "c9fdf1ef43ead5b9d1c5246f36f1bce4f1bf30e521bc6fe09e5f2f59f207e35d",
-      "output": "dist/egern/steam-ip.yaml",
-      "output_sha256": "ab40fabcde27456c8e6106b526873910f11a1f5a82d7a562cff2e3c5390fa92b",
-      "provider": "steam_ip",
-      "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geoip/steam.mrs",
-      "source_commit": "3ab11685d346c28709e29d7f650f9e9a59ede6b2",
-      "source_entries": 24,
-      "source_generated_in_same_run": false,
-      "source_order_sha256": "c9fdf1ef43ead5b9d1c5246f36f1bce4f1bf30e521bc6fe09e5f2f59f207e35d",
-      "source_path": "geo/geoip/steam.list",
-      "source_ref": "meta",
-      "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "a8e99ae31d0f096501eb5e821191dc9bbaca3d38d88e2ad33a68b53e6b40c738",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/3ab11685d346c28709e29d7f650f9e9a59ede6b2/geo/geoip/steam.list"
     },
     {
       "behavior": "domain",
@@ -768,9 +768,9 @@
   "profile_sha256": "632f292f08a9718fee74ed6db60988f7b880597673e22712069446f7387bc382",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "1f6b26246c81e21bbc684e349f8eae35c6a12947",
+    "commit": "100794c3cc3299ee514a422d09e6d871681aad78",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "6c6da54d0a4b34e09e53d9d1380245d8914bf6935c708202611ab22f08da587a",
+    "manifest_sha256": "be2e47380c27893415580d2b5e6837da5d7935c040e97b5bd33036ebefc8c078",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_rules": 38,
