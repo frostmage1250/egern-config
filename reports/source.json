@@ -85,6 +85,7 @@
     "The user-requested STUN block uses REJECT immediately after APNs and Private domain/IP routing.",
     "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
+    "The Steam domain/IP pair immediately precedes PikPak and the remaining cloud-storage/site rule block.",
     "AppleTV uses the converter's full Bett native rule set and the media policy; media business groups follow AppleTV, Twitch, Twitter, TikTok, YouTube, Meta with adjacent IP fallbacks.",
     "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
     "The Egern-only Private Relay rule set uses Proxy immediately before the Apple merged domain rule set; Apple CN remains in the direct-exception block.",
@@ -764,7 +765,7 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "04deb02933f5f8fc40c46e3ce76600a0cbfa865ea370350d81d09ba61b6aba75",
+  "profile_sha256": "632f292f08a9718fee74ed6db60988f7b880597673e22712069446f7387bc382",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "1f6b26246c81e21bbc684e349f8eae35c6a12947",

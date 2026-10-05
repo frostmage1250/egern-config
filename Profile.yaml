@@ -334,6 +334,15 @@ rules:
     policy: Direct
     update_interval: 86400
 - rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam.yaml
+    policy: Proxy
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-ip.yaml
+    policy: Proxy
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/pikpak.yaml
     policy: PikPak
     update_interval: 86400
@@ -345,15 +354,6 @@ rules:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/bypass-japan.yaml
     policy: pron
     update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam.yaml
-    policy: Proxy
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-ip.yaml
-    policy: Proxy
-    update_interval: 86400
-    no_resolve: true
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/google.yaml
     policy: Google
