@@ -29,7 +29,7 @@ from build_egern import (  # noqa: E402
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
-    def test_privaterelay_is_immediately_before_apple_cn_and_uses_proxy(self):
+    def test_privaterelay_is_immediately_before_apple_merge_and_uses_proxy(self):
         model = {"rules": [
             "RULE-SET,steam,Proxy", "RULE-SET,apple_cn,Direct",
             "RULE-SET,apple,Proxy", "RULE-SET,apple_ip,Proxy,no-resolve", "MATCH,Final",
@@ -45,10 +45,10 @@ class EgernProfileBuilderTests(unittest.TestCase):
                     {"privaterelay.yaml", "apple-cn.yaml", "apple-merged.yaml", "apple-ip.yaml"}]
         self.assertEqual(
             [(rule["match"].rsplit("/", 1)[-1], rule["policy"]) for rule in selected],
-            [("privaterelay.yaml", "Proxy"), ("apple-cn.yaml", "Direct"),
+            [("apple-cn.yaml", "Direct"), ("privaterelay.yaml", "Proxy"),
              ("apple-merged.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
         )
-        self.assertEqual(selected[0]["name"], "privaterelay")
+        self.assertEqual(selected[1]["name"], "privaterelay")
         self.assertTrue(selected[-1]["no_resolve"])
         with self.assertRaises(BuildError):
             render_rules({"rules": ["MATCH,Final"]}, {"privaterelay": ["privaterelay.yaml"]})

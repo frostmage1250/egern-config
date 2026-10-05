@@ -367,7 +367,7 @@ def render_rules(
                 continue
             if provider in {"private", "private_ip"}:
                 continue
-            if provider == "apple_cn" and privaterelay_files and not privaterelay_inserted:
+            if provider == "apple" and privaterelay_files and not privaterelay_inserted:
                 for filename in privaterelay_files:
                     rules.append({
                         "rule_set": {
@@ -399,7 +399,7 @@ def render_rules(
         else:
             raise BuildError(f"Unsupported Mihomo rule: {raw}")
     if privaterelay_files and not privaterelay_inserted:
-        raise BuildError("Private Relay requires an Apple CN routing anchor")
+        raise BuildError("Private Relay requires an Apple merge routing anchor")
     return rules
 
 
@@ -728,16 +728,16 @@ def validate_profile(
         index for index, rule in enumerate(profile["rules"])
         if rule.get("rule_set", {}).get("match") == f"{RAW_BASE}/dist/egern/{PRIVATERELAY_FILENAME}"
     ]
-    apple_cn_positions = [
+    apple_merge_positions = [
         index for index, rule in enumerate(profile["rules"])
-        if rule.get("rule_set", {}).get("match") == f"{RAW_BASE}/dist/egern/apple-cn.yaml"
+        if rule.get("rule_set", {}).get("match") == f"{RAW_BASE}/dist/egern/apple-merged.yaml"
     ]
     if (
-        len(private_positions) != 1 or len(apple_cn_positions) != 1
-        or private_positions[0] + 1 != apple_cn_positions[0]
+        len(private_positions) != 1 or len(apple_merge_positions) != 1
+        or private_positions[0] + 1 != apple_merge_positions[0]
         or profile["rules"][private_positions[0]]["rule_set"].get("policy") != "Proxy"
     ):
-        raise BuildError("Private Relay must use Proxy immediately before Apple CN")
+        raise BuildError("Private Relay must use Proxy immediately before Apple merge")
     appletv_files = provider_files.get("appletv")
     if not appletv_files:
         raise BuildError("AppleTV native rule set is missing")
@@ -1010,7 +1010,7 @@ def main() -> int:
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "AppleTV uses the converter's full Bett native rule set and the media policy; media business groups follow AppleTV, Twitch, Twitter, TikTok, YouTube, Meta with adjacent IP fallbacks.",
                 "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
-                "The Egern-only Private Relay rule set uses Proxy immediately before Apple CN.",
+                "The Egern-only Private Relay rule set uses Proxy immediately before the Apple merged domain rule set; Apple CN remains in the direct-exception block.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
                 "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
