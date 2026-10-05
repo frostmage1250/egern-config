@@ -117,9 +117,11 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertTrue(rules[5]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
-    def test_mcdn_set_follows_stun_once_and_precedes_mainland_direct_rules(self):
+    def test_private_routing_precedes_stun_and_mcdn_then_mainland_direct_rules(self):
         model = {
             "rules": [
+                "RULE-SET,private,Direct",
+                "RULE-SET,private_ip,Direct,no-resolve",
                 "RULE-SET,mcdn屏蔽,REJECT",
                 "DOMAIN-SUFFIX,bilivideo.com,Direct",
                 "DOMAIN-SUFFIX,bilivideo.cn,Direct",
@@ -128,19 +130,24 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ]
         }
         rules = render_rules(model, {
+            "private": ["private.yaml"], "private_ip": ["private-ip.yaml"],
             "mcdn屏蔽": ["mcdn-block.yaml"], "cn": ["cn.yaml"]
         })
-        self.assertEqual(rules[1], {"protocol": {"match": "stun", "policy": "REJECT"}})
-        self.assertEqual(rules[2], {"rule_set": {
+        self.assertTrue(rules[1]["rule_set"]["match"].endswith("/private.yaml"))
+        self.assertEqual(rules[1]["rule_set"]["policy"], "Direct")
+        self.assertTrue(rules[2]["rule_set"]["match"].endswith("/private-ip.yaml"))
+        self.assertTrue(rules[2]["rule_set"]["no_resolve"])
+        self.assertEqual(rules[3], {"protocol": {"match": "stun", "policy": "REJECT"}})
+        self.assertEqual(rules[4], {"rule_set": {
             "match": f"{RAW_BASE}/dist/egern/mcdn-block.yaml",
             "policy": "REJECT", "name": "mcdn屏蔽", "update_interval": 86400,
         }})
         self.assertEqual(
             sum(rule.get("rule_set", {}).get("name") == "mcdn屏蔽" for rule in rules), 1
         )
-        self.assertEqual(rules[3], {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}})
-        self.assertEqual(rules[4], {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}})
-        self.assertTrue(rules[5]["rule_set"]["match"].endswith("/cn.yaml"))
+        self.assertEqual(rules[5], {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}})
+        self.assertEqual(rules[6], {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}})
+        self.assertTrue(rules[7]["rule_set"]["match"].endswith("/cn.yaml"))
         self.assertEqual(rules[-1], {"default": {"policy": "Final"}})
 
     def test_youtube_rule_uses_its_own_group(self):

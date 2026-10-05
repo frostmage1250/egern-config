@@ -294,6 +294,39 @@ def prioritize_ai_rules(rules: list[str]) -> list[str]:
     return remaining[:anchor] + selected + remaining[anchor:]
 
 
+def render_private_route_rules(
+    model: dict[str, Any], provider_files: dict[str, list[str]]
+) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for provider in ("private", "private_ip"):
+        matches = [
+            raw for raw in model["rules"]
+            if raw.split(",")[:2] == ["RULE-SET", provider]
+        ]
+        if not matches:
+            continue
+        if len(matches) != 1:
+            raise BuildError(f"Expected one Private routing rule: {provider}")
+        parts = matches[0].split(",")
+        no_resolve = parts[-1] == "no-resolve"
+        policy = parts[-2] if no_resolve else parts[-1]
+        if policy != "Direct":
+            raise BuildError(f"Private routing must use Direct: {provider}")
+        filenames = provider_files.get(provider)
+        if not filenames:
+            raise BuildError(f"Missing Private native rule set: {provider}")
+        for filename in filenames:
+            item: dict[str, Any] = {
+                "match": f"{RAW_BASE}/dist/egern/{filename}",
+                "policy": policy,
+                "update_interval": 86400,
+            }
+            if no_resolve or provider == "private_ip":
+                item["no_resolve"] = True
+            result.append({"rule_set": item})
+    return result
+
+
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
@@ -307,6 +340,7 @@ def render_rules(
                 "no_resolve": True,
             }
         })
+    rules.extend(render_private_route_rules(model, provider_files))
     rules.append({"protocol": {"match": "stun", "policy": "REJECT"}})
     for filename in provider_files.get(MCDN_PROVIDER, [MCDN_FILENAME]):
         rules.append({
@@ -331,6 +365,8 @@ def render_rules(
                 if raw != f"RULE-SET,{MCDN_PROVIDER},REJECT":
                     raise BuildError("MCDN blocking must use REJECT without extra flags")
                 continue
+            if provider in {"private", "private_ip"}:
+                continue
             if provider == "apple_cn" and privaterelay_files and not privaterelay_inserted:
                 for filename in privaterelay_files:
                     rules.append({
@@ -346,7 +382,7 @@ def render_rules(
             if not filenames:
                 raise BuildError(f"Rule references missing generated provider: {provider}")
             no_resolve = parts[-1] == "no-resolve"
-            policy = {"youtube": "YouTube", "bypass_japan": "pron"}.get(provider, parts[-2] if no_resolve else parts[-1])
+            policy = {"youtube": "YouTube", "appletv": "媒体", "bypass_japan": "pron"}.get(provider, parts[-2] if no_resolve else parts[-1])
             for filename in filenames:
                 item: dict[str, Any] = {
                     "match": f"{RAW_BASE}/dist/egern/{filename}",
@@ -576,15 +612,23 @@ def validate_profile(
             or apns_rule.get("no_resolve") is not True
         ):
             raise BuildError("APNs rule set must be first")
-    stun_rule = profile["rules"][len(apns_files)].get("protocol", {})
+    private_rules = render_private_route_rules(model, provider_files)
+    private_offset = len(apns_files)
+    if profile["rules"][private_offset:private_offset + len(private_rules)] != private_rules:
+        raise BuildError("Private routing must immediately follow APNs")
+    private_matches = {rule["rule_set"]["match"] for rule in private_rules}
+    if sum(rule.get("rule_set", {}).get("match") in private_matches for rule in profile["rules"]) != len(private_rules):
+        raise BuildError("Private routing must not be duplicated")
+    stun_offset = private_offset + len(private_rules)
+    stun_rule = profile["rules"][stun_offset].get("protocol", {})
     if stun_rule != {"match": "stun", "policy": "REJECT"}:
-        raise BuildError("STUN blocking must immediately follow APNs")
+        raise BuildError("STUN blocking must immediately follow Private routing")
     mcdn_files = provider_files.get(MCDN_PROVIDER)
     if not mcdn_files or any(filename not in generated for filename in mcdn_files):
         raise BuildError("MCDN native rule set was not published")
     if model["rules"].count(f"RULE-SET,{MCDN_PROVIDER},REJECT") != 1:
         raise BuildError("Mihomo must reference the MCDN REJECT rule exactly once")
-    mcdn_offset = 1 + len(apns_files)
+    mcdn_offset = stun_offset + 1
     expected_mcdn_rules = [
         {"rule_set": {
             "match": f"{RAW_BASE}/dist/egern/{filename}",
@@ -694,6 +738,17 @@ def validate_profile(
         or profile["rules"][private_positions[0]]["rule_set"].get("policy") != "Proxy"
     ):
         raise BuildError("Private Relay must use Proxy immediately before Apple CN")
+    appletv_files = provider_files.get("appletv")
+    if not appletv_files:
+        raise BuildError("AppleTV native rule set is missing")
+    for filename in appletv_files:
+        match = f"{RAW_BASE}/dist/egern/{filename}"
+        if not any(
+            rule.get("rule_set", {}).get("match") == match
+            and rule["rule_set"].get("policy") == "媒体"
+            for rule in profile["rules"]
+        ):
+            raise BuildError("AppleTV must target the media policy group")
     priority_positions: list[int] = []
     for provider in ("claude", "ai", "github"):
         filenames = provider_files.get(provider)
@@ -949,10 +1004,11 @@ def main() -> int:
                 "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
-                "The user-requested STUN block immediately follows the APNs routing rule set with REJECT.",
-                "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after APNs and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
+                "The user-requested STUN block uses REJECT immediately after APNs and Private domain/IP routing.",
+                "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
+                "AppleTV uses the converter's full Bett native rule set and the media policy; media business groups follow AppleTV, Twitch, Twitter, TikTok, YouTube, Meta with adjacent IP fallbacks.",
                 "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
                 "The Egern-only Private Relay rule set uses Proxy immediately before Apple CN.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
