@@ -294,6 +294,24 @@ def prioritize_ai_rules(rules: list[str]) -> list[str]:
     return remaining[:anchor] + selected + remaining[anchor:]
 
 
+def prioritize_steam_rules(rules: list[str]) -> list[str]:
+    """Keep the Steam domain/IP pair together immediately before PikPak."""
+    def provider(raw: str) -> str | None:
+        parts = raw.split(",", 2)
+        return parts[1] if len(parts) >= 3 and parts[0] == "RULE-SET" else None
+
+    if not any(provider(raw) == "pikpak" for raw in rules):
+        return rules
+    selected = [raw for raw in rules if provider(raw) in {"steam", "steam_ip"}]
+    if not selected:
+        return rules
+    if [provider(raw) for raw in selected] != ["steam", "steam_ip"]:
+        raise BuildError("Expected one Steam domain rule followed by its IP rule")
+    remaining = [raw for raw in rules if provider(raw) not in {"steam", "steam_ip"}]
+    anchor = next(index for index, raw in enumerate(remaining) if provider(raw) == "pikpak")
+    return remaining[:anchor] + selected + remaining[anchor:]
+
+
 def render_private_route_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
@@ -354,7 +372,7 @@ def render_rules(
     rules.extend(render_nameserver_route_rules(model))
     privaterelay_files = provider_files.get(PRIVATERELAY_PROVIDER, [])
     privaterelay_inserted = False
-    for raw in prioritize_ai_rules(model["rules"]):
+    for raw in prioritize_steam_rules(prioritize_ai_rules(model["rules"])):
         parts = raw.split(",")
         kind = parts[0]
         if kind == "MATCH" and len(parts) == 2:
@@ -749,6 +767,21 @@ def validate_profile(
             for rule in profile["rules"]
         ):
             raise BuildError("AppleTV must target the media policy group")
+    steam_positions: list[int] = []
+    for provider in ("steam", "steam_ip", "pikpak"):
+        filenames = provider_files.get(provider)
+        if not filenames or len(filenames) != 1:
+            raise BuildError(f"Expected one native rule set for {provider}")
+        match = f"{RAW_BASE}/dist/egern/{filenames[0]}"
+        positions = [
+            index for index, rule in enumerate(profile["rules"])
+            if rule.get("rule_set", {}).get("match") == match
+        ]
+        if len(positions) != 1:
+            raise BuildError(f"Expected one Egern routing rule for {provider}")
+        steam_positions.append(positions[0])
+    if steam_positions != list(range(steam_positions[0], steam_positions[0] + 3)):
+        raise BuildError("Steam domain/IP routing must immediately precede PikPak")
     priority_positions: list[int] = []
     for provider in ("claude", "ai", "github"):
         filenames = provider_files.get(provider)
@@ -1008,6 +1041,7 @@ def main() -> int:
                 "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
+                "The Steam domain/IP pair immediately precedes PikPak and the remaining cloud-storage/site rule block.",
                 "AppleTV uses the converter's full Bett native rule set and the media policy; media business groups follow AppleTV, Twitch, Twitter, TikTok, YouTube, Meta with adjacent IP fallbacks.",
                 "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
                 "The Egern-only Private Relay rule set uses Proxy immediately before the Apple merged domain rule set; Apple CN remains in the direct-exception block.",
