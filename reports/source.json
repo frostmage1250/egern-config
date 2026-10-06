@@ -67,7 +67,7 @@
     }
   ],
   "group_filters": {
-    "低倍率节点": "(?i)^(?!.*(?:剩|期)).*(?:(?<!\\d)0\\.[0-5]|(?<=[ \\[\\(|｜丨∣┃\\-‐–—−－﹣])0[*×✕✖⨯⨉x倍])|(?:(?<=[ \\[\\(|｜丨∣┃\\-‐–—−－﹣])[*×✕✖⨯⨉x]0(?=[ \\)\\]]|倍|$))|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])",
+    "低倍率节点": "(?i)^(?!.*(?:剩|期)).*(?:(?<!\\d)0\\.[0-5]|(?<=[\\s\\[\\(【|｜丨∣┃\\-‐–—−－﹣])0[*×✕✖⨯⨉x倍])|(?:(?<=[\\s\\[\\(【|｜丨∣┃\\-‐–—−－﹣])[*×✕✖⨯⨉x]0(?=[\\s】\\)\\]]|倍|$))|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])",
     "其他节点": "(?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|圣地亚哥|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$",
     "台湾": "(?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan",
     "新加坡": "(?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore",
@@ -94,7 +94,7 @@
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "b24a6ec5d6d4f24b189045161c65b4d67cde69be",
+    "commit": "2f3bdcf3aede0c40e5bf233b940ce89947e5618a",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -765,12 +765,12 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "632f292f08a9718fee74ed6db60988f7b880597673e22712069446f7387bc382",
+  "profile_sha256": "6943c63b031ab85e866b87775333544d300c6942b8a9d3b3efabc765359b242b",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "0ef8d4722fd242352a3c5cb40b8e78bf32a8b974",
+    "commit": "0b0166c587626995e024fb4f5d6df789bd630e04",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "ef42e9c61eb1f4d70584dca8073c1228fa0af7c1206c1ba04782d8e32f0530b8",
+    "manifest_sha256": "44cd325f9f23dc85425fcc17d7a08add95b112d47a19a71b67e8a9ff489816d9",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_rules": 38,
