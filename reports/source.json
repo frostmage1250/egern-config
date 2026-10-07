@@ -768,9 +768,9 @@
   "profile_sha256": "1515d6d1628c6850d557b58963363e9ca30d22c409c179a3d5d114873a79ee83",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "c8e67c98fb3f35ed63bbda6b2ba247be523d75f2",
+    "commit": "b8145ec61ecbab91f683323ed4df633c631298df",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "792163e780ce6fd974935857fc82c578e0ea0943174921ff5960c0899dde11dd",
+    "manifest_sha256": "b20b350bc101eaa845e56241a235a402b4c286ba29ac7090171969de28e5e070",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_rules": 38,
