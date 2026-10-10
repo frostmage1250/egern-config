@@ -73,7 +73,7 @@
     "新加坡": "(?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore",
     "日本": "(?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan",
     "美国": "(?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|圣地亚哥|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\\s*states",
-    "订阅": "(?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|使用|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\\.me\\/\\+|\\bexpire\\b|\\bhttps?:\\/\\/|\\.com|\\btraffic\\b)).*$",
+    "订阅": "(?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\\.me\\/\\+|\\bexpire\\b|\\bhttps?:\\/\\/|\\.com|\\btraffic\\b)).*$",
     "香港": "(?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\\s*kong"
   },
   "migration_boundaries": [
@@ -94,7 +94,7 @@
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "608e852f34016a205a4ef8b236949874d494a7f8",
+    "commit": "1c17c807529904638a66394be8d3d58176de2c43",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -765,12 +765,12 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "1515d6d1628c6850d557b58963363e9ca30d22c409c179a3d5d114873a79ee83",
+  "profile_sha256": "c89305961138d445c521230816cf9233426fb09c89713062e8d62068e6c3be15",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "d60287c9e6a97121140319f04b8aeb7c0f3a32cb",
+    "commit": "dd40974d517c1a3a454d9c6c1b1914f0a8f12f62",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "d616b18e6c64bc125d0652848b1dbefc057b000ce0c732069514499582acd093",
+    "manifest_sha256": "a8c55f63c0aa297871f81d503cd35c787eedcba295ec1b72e10eb3d4795af3df",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_rules": 38,
