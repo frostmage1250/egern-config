@@ -94,7 +94,7 @@
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "1c343f534a5130cd2c4271aa55018c06f48cb763",
+    "commit": "4d3a1029995d54270b4abd499986fb95ca2a6312",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -283,7 +283,7 @@
       "output": "dist/egern/twitch.yaml",
       "output_sha256": "731eb65f6ea60be18d6b96707d90e80dfe73d531f586313d100909702cec1966",
       "provider": "twitch",
-      "provider_url": "https://fastly.jsdelivr.net/gh/appshubcc/bett-rules@meta/geo/geosite/twitch.mrs",
+      "provider_url": "https://cdn.jsdmirror.com/gh/appshubcc/bett-rules@meta/geo/geosite/twitch.mrs",
       "source_commit": "8705c2e31dd17c99f13f18a731dfca598d20abcd",
       "source_entries": 34,
       "source_generated_in_same_run": false,
@@ -768,9 +768,9 @@
   "profile_sha256": "c89305961138d445c521230816cf9233426fb09c89713062e8d62068e6c3be15",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "79c14d2955c960fb3661b40aaa4c78a17242af71",
+    "commit": "6eea5bea41daec582a0f1ae0278cd77db4c748b4",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "c8cadf1d07a0eb20fcd237ff93cafdb8049cf53b581e65839779b5c1512a8cf6",
+    "manifest_sha256": "5153fc71ca127870d63ea385ad11f911504e78c0fbf3931f18aa4bfe9af593f2",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_rules": 38,
