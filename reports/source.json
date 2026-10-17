@@ -94,7 +94,7 @@
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "c9e9ff057f18a71376b75456716cd6adefe52656",
+    "commit": "bf389bed54d7fb51be92400b71006d0536a35782",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -422,21 +422,21 @@
     },
     {
       "behavior": "domain",
-      "entries": 37,
-      "native_entries_sha256": "b5963863c1c4b9622245b0ee03eed1f5786de37a832912bb97a545b5190fa230",
-      "output": "dist/egern/games-cn.yaml",
-      "output_sha256": "834cc74d75ee0c9ff87fdaf1246033571a2e0dbf76ead2fef944224b1fae11e2",
-      "provider": "games_cn",
-      "provider_url": "https://cdn.jsdmirror.com/gh/appshubcc/bett-rules@meta/geo/geosite/category-games@cn.mrs",
+      "entries": 19,
+      "native_entries_sha256": "17e1ecc40d222c53294e52eefe5139ce7bfd6ea49a1c8255d59661c121c0c6c5",
+      "output": "dist/egern/steam-cn.yaml",
+      "output_sha256": "23c4b91f3adb7a1e8b27ef27138cf701b76bfbe95e1aa277c2f22776ec23cd3f",
+      "provider": "steam_cn",
+      "provider_url": "https://cdn.jsdmirror.com/gh/appshubcc/bett-rules@meta/geo/geosite/steam@cn.mrs",
       "source_commit": "0113fd36d26841720a134ea681c5aa447433761c",
-      "source_entries": 37,
+      "source_entries": 19,
       "source_generated_in_same_run": false,
-      "source_order_sha256": "f8fe8777e7da38bd3cbfa342d4293d926d03bf768e2cb9c302653218ad59ea19",
-      "source_path": "geo/geosite/category-games@cn.list",
+      "source_order_sha256": "5891594213d9b347db2e8fad2dcd6456f6ca8123b2b575e29bf8aefaeb0b686c",
+      "source_path": "geo/geosite/steam@cn.list",
       "source_ref": "meta",
       "source_repository": "appshubcc/bett-rules",
-      "source_sha256": "885624ab62a5205406d6c05ac9456e2eb314411f9cbb70f65cc0ddd5dcf24757",
-      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/0113fd36d26841720a134ea681c5aa447433761c/geo/geosite/category-games@cn.list"
+      "source_sha256": "e6b5348e481a87eba0a3a9e4131f3247d92a365cb980d45863399b216c3fde58",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/0113fd36d26841720a134ea681c5aa447433761c/geo/geosite/steam@cn.list"
     },
     {
       "behavior": "domain",
@@ -765,12 +765,12 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "5798882639c48b3c0988c05ebab755ac2bd8a022a58fa865b3af128cd729ecea",
+  "profile_sha256": "a11edfcf9a43a1365d050ac30bb6da0b9de0d111e1e3f590a8b245d4e2266a78",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "2dcca01e1cdcab0dac94122f831b3a7cbde29629",
+    "commit": "9ccb1fff61cea79038dbd17c8034937031943097",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "4809b0081324edddeaac2c1b87be94bd8f4ac4d103d01de65072fa4fac2982b5",
+    "manifest_sha256": "cfeccb1f554a0f2518cded8ee4b794dbceca8b2f60a56883f786ae5cc95a24d0",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_rules": 38,
