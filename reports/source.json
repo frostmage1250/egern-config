@@ -94,7 +94,7 @@
     "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics."
   ],
   "mihomo_script": {
-    "commit": "174cf25fb6dde4a982cc062681ee040466b7adbe",
+    "commit": "59fe3eee53350ba165da0b975f158f1e6e71313f",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -768,9 +768,9 @@
   "profile_sha256": "6b460f57e594de44960e47c10eca384e9a933259c02c510e8a5a2980b8a66dae",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "3e2847d4aa8de2431d4cd151ad0fccf7c679e7be",
+    "commit": "dda5a9c475a17560137002282a75873a10b90c8d",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "0241d8c89659f87ea405536da441ea289f16408c0a0beba44ef27db9fedb082d",
+    "manifest_sha256": "60b1b32dbdd9b5a21b9571aabe57124e5571303d6c578766722a5598a95c2c72",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_rules": 38,
