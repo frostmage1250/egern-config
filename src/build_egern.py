@@ -165,10 +165,10 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
     for source in model["groups"]:
-        name = "pron" if source["name"] == "绕过日本" else source["name"]
+        name = "porn" if source["name"] in {"绕过日本", "pron"} else source["name"]
         if name == "YouTube":
             continue
-        if name == "pron":
+        if name == "porn":
             groups.append({"select": {"name": name, "policies": ["香港", "新加坡"]}})
             continue
         if name == "订阅":
@@ -399,7 +399,7 @@ def render_rules(
             if not filenames:
                 raise BuildError(f"Rule references missing generated provider: {provider}")
             no_resolve = parts[-1] == "no-resolve"
-            policy = {"youtube": "YouTube", "appletv": "媒体", "bypass_japan": "pron"}.get(provider, parts[-2] if no_resolve else parts[-1])
+            policy = {"youtube": "YouTube", "appletv": "媒体", "bypass_japan": "porn"}.get(provider, parts[-2] if no_resolve else parts[-1])
             for filename in filenames:
                 item: dict[str, Any] = {
                     "match": f"{RAW_BASE}/dist/egern/{filename}",
@@ -703,11 +703,11 @@ def validate_profile(
         if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the Hong Kong policy group")
     if (
-        "pron" not in names
-        or groups[names.index("pron")].get("policies") != ["香港", "新加坡"]
-        or groups[names.index("pron")].get("flatten", False)
+        "porn" not in names
+        or groups[names.index("porn")].get("policies") != ["香港", "新加坡"]
+        or groups[names.index("porn")].get("flatten", False)
     ):
-        raise BuildError("pron must offer Hong Kong and Singapore groups without flattening nodes")
+        raise BuildError("porn must offer Hong Kong and Singapore groups without flattening nodes")
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
@@ -727,14 +727,14 @@ def validate_profile(
             raise BuildError(f"YouTube rule set must use the YouTube group: {filename}")
     bypass_files = provider_files.get("bypass_japan")
     if not bypass_files or len(bypass_files) != 1:
-        raise BuildError("pron native rule set is missing")
+        raise BuildError("porn native rule set is missing")
     bypass_match = f"{RAW_BASE}/dist/egern/{bypass_files[0]}"
     if not any(
         rule.get("rule_set", {}).get("match") == bypass_match
-        and rule["rule_set"].get("policy") == "pron"
+        and rule["rule_set"].get("policy") == "porn"
         for rule in profile["rules"]
     ):
-        raise BuildError("pron rule set must use the pron group")
+        raise BuildError("porn rule set must use the porn group")
     if provider_files.get(PRIVATERELAY_PROVIDER) != [PRIVATERELAY_FILENAME]:
         raise BuildError("Egern-only Private Relay rule set is missing")
     private_positions = [
@@ -1037,7 +1037,7 @@ def main() -> int:
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The Steam domain/IP pair immediately precedes PikPak and the remaining cloud-storage/site rule block.",
                 "AppleTV uses the converter's full Bett native rule set and the media policy; media business groups follow AppleTV, Twitch, Twitter, TikTok, YouTube, Meta with adjacent IP fallbacks.",
-                "The user-requested pron group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
+                "The user-requested porn group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
                 "The Egern-only Private Relay rule set uses Proxy immediately before the Apple merged domain rule set; Apple CN remains in the direct-exception block.",
                 "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
                 "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",

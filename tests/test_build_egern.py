@@ -210,7 +210,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "bypass_japan": ["bypass-japan.yaml"],
             "geolocation-!cn": ["geolocation-non-cn.yaml"],
         })
-        self.assertEqual(rules[2]["rule_set"]["policy"], "pron")
+        self.assertEqual(rules[2]["rule_set"]["policy"], "porn")
         self.assertEqual(rules[2]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
         self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
 
@@ -364,8 +364,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
-        self.assertEqual(by_name["pron"]["policies"], ["香港", "新加坡"])
-        self.assertFalse(by_name["pron"].get("flatten", False))
+        self.assertEqual(by_name["porn"]["policies"], ["香港", "新加坡"])
+        self.assertFalse(by_name["porn"].get("flatten", False))
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,
