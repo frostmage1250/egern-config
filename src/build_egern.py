@@ -35,7 +35,6 @@ MESL_PROXY_DNS = [
     "https://zone.rlose.com:39933/api-query",
     "https://radar.rlose.com/api-query",
 ]
-BOOTSTRAP_DNS_ADDITIONS = ["119.29.29.29"]
 DNS_HOST_IP_ADDITIONS = {
     "dns.alidns.com": [
         "223.5.5.5",
@@ -460,7 +459,6 @@ def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
         result.append(address)
     if not result:
         raise BuildError("Mihomo DNS model contains no usable default-nameserver IPs")
-    result.extend(address for address in BOOTSTRAP_DNS_ADDITIONS if address not in result)
     return result
 
 
@@ -1028,7 +1026,7 @@ def main() -> int:
             },
             "migration_boundaries": [
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
-                "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP; the user-requested 119.29.29.29 is appended if absent.",
+                "Mihomo default-nameserver additions, removals, and order are preserved as plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
                 "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",

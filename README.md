@@ -56,7 +56,9 @@ The APNs classical domain/IPv4/IPv6 entries are converted in the rule converter
 into one Egern-native YAML file. Egern routes that rule set through `Proxy`
 and puts the same file first in DNS Forward with `Foreign`.
 Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
-Egern `bootstrap` (plain UDP is required by Egern). Mihomo `nameserver-policy` becomes ordered Egern DNS Forward rules; a policy
+Egern `bootstrap` (plain UDP is required by Egern). The Bootstrap list follows
+additions, removals, and ordering in that source on every regeneration.
+Mihomo `nameserver-policy` becomes ordered Egern DNS Forward rules; a policy
 with explicit servers uses a matching Egern upstream group preserving its server
 list, including `system`. Explicit Direct domain rules use `system`, and the
 foreign DNS group remains the final catch-all. Mihomo
