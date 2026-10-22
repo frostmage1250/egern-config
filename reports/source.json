@@ -3,8 +3,7 @@
     "bootstrap": [
       "114.114.114.114",
       "223.5.5.5",
-      "1.12.12.12",
-      "119.29.29.29"
+      "1.12.12.12"
     ],
     "forward_rules": 10,
     "nameserver_route_rules": 0,
@@ -78,7 +77,7 @@
   },
   "migration_boundaries": [
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
-    "Mihomo default-nameserver endpoints map to plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP; the user-requested 119.29.29.29 is appended if absent.",
+    "Mihomo default-nameserver additions, removals, and order are preserved as plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
     "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
     "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
@@ -764,7 +763,7 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "72921a7ea03b0b1966c62d22730619da51f670949635e502a1c40e2f62de4519",
+  "profile_sha256": "0d97fd88a78a1e68eeac8a41f26e16dea2ab0283a3cde2c18cf38bc6cad47202",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "a4960adbfb6b4db82f1dd3a59d58c52e0dbf109d",
