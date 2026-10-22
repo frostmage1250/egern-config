@@ -82,8 +82,7 @@
     "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
     "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
     "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
-    "The user-requested STUN block uses REJECT immediately after APNs and Private domain/IP routing.",
-    "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
+    "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing; no supplemental MCDN DNS Hosts mappings are emitted.",
     "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
     "The Steam domain/IP pair immediately precedes PikPak and the remaining cloud-storage/site rule block.",
     "AppleTV uses the converter's full Bett native rule set and the media policy; media business groups follow AppleTV, Twitch, Twitter, TikTok, YouTube, Meta with adjacent IP fallbacks.",
@@ -765,7 +764,7 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "6b460f57e594de44960e47c10eca384e9a933259c02c510e8a5a2980b8a66dae",
+  "profile_sha256": "d5c3ecd870a65b68df1d6ac551f01df3e596b3ba5ce2e39f743bf7be520b61c5",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "a4960adbfb6b4db82f1dd3a59d58c52e0dbf109d",
@@ -773,7 +772,7 @@
     "manifest_sha256": "81c49723617cbbfcfa3389864e2bedece7b65d7da49e05a8103743d269bfafad",
     "repository": "frostmage1250/proxy-rules-converter"
   },
-  "routing_rules": 38,
+  "routing_rules": 37,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",

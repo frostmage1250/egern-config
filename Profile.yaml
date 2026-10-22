@@ -253,9 +253,6 @@ rules:
     policy: Direct
     update_interval: 86400
     no_resolve: true
-- protocol:
-    match: stun
-    policy: REJECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/mcdn-block.yaml
     policy: REJECT
