@@ -44,9 +44,9 @@ providers. Every paired business IP rule must immediately follow its domain rule
 and is emitted with Egern's native `no_resolve: true`; the build fails if a future
 Mihomo update breaks that invariant.
 User-requested Egern overrides precede the Mihomo routing rules: the APNs
-override is first, immediately followed by a global `protocol: stun` rule
-routed to `REJECT`.
-The converter's **mcdn屏蔽** native rule set immediately follows STUN and uses
+override is first, followed by Private domain/IP routing.
+STUN connections follow the ordinary routing rules.
+The converter's **mcdn屏蔽** native rule set immediately follows Private routing and uses
 `REJECT` before explicit DNS endpoint routes, general service rules, and mainland
 routing. The shared `dist/egern/mcdn-block.yaml` contains the four reviewed
 suffixes: `mcdn.bilivideo.com`, `mcdn.bilivideo.cn`,

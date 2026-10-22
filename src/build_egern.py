@@ -359,7 +359,6 @@ def render_rules(
             }
         })
     rules.extend(render_private_route_rules(model, provider_files))
-    rules.append({"protocol": {"match": "stun", "policy": "REJECT"}})
     for filename in provider_files.get(MCDN_PROVIDER, [MCDN_FILENAME]):
         rules.append({
             "rule_set": {
@@ -637,16 +636,12 @@ def validate_profile(
     private_matches = {rule["rule_set"]["match"] for rule in private_rules}
     if sum(rule.get("rule_set", {}).get("match") in private_matches for rule in profile["rules"]) != len(private_rules):
         raise BuildError("Private routing must not be duplicated")
-    stun_offset = private_offset + len(private_rules)
-    stun_rule = profile["rules"][stun_offset].get("protocol", {})
-    if stun_rule != {"match": "stun", "policy": "REJECT"}:
-        raise BuildError("STUN blocking must immediately follow Private routing")
     mcdn_files = provider_files.get(MCDN_PROVIDER)
     if not mcdn_files or any(filename not in generated for filename in mcdn_files):
         raise BuildError("MCDN native rule set was not published")
     if model["rules"].count(f"RULE-SET,{MCDN_PROVIDER},REJECT") != 1:
         raise BuildError("Mihomo must reference the MCDN REJECT rule exactly once")
-    mcdn_offset = stun_offset + 1
+    mcdn_offset = private_offset + len(private_rules)
     expected_mcdn_rules = [
         {"rule_set": {
             "match": f"{RAW_BASE}/dist/egern/{filename}",
@@ -657,7 +652,7 @@ def validate_profile(
         for filename in mcdn_files
     ]
     if profile["rules"][mcdn_offset:mcdn_offset + len(mcdn_files)] != expected_mcdn_rules:
-        raise BuildError("MCDN blocking must immediately follow STUN")
+        raise BuildError("MCDN blocking must immediately follow Private routing")
     mcdn_matches = {rule["rule_set"]["match"] for rule in expected_mcdn_rules}
     if sum(rule.get("rule_set", {}).get("match") in mcdn_matches for rule in profile["rules"]) != len(mcdn_files):
         raise BuildError("MCDN blocking must not be duplicated")
@@ -1037,8 +1032,7 @@ def main() -> int:
                 "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
                 "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
                 "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
-                "The user-requested STUN block uses REJECT immediately after APNs and Private domain/IP routing.",
-                "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing and STUN; no supplemental MCDN DNS Hosts mappings are emitted.",
+                "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing; no supplemental MCDN DNS Hosts mappings are emitted.",
 
                 "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
                 "The Steam domain/IP pair immediately precedes PikPak and the remaining cloud-storage/site rule block.",

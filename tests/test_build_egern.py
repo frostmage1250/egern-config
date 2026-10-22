@@ -109,15 +109,17 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertTrue(rules[0]["rule_set"]["match"].endswith("/apns.yaml"))
         self.assertEqual(rules[0]["rule_set"]["policy"], "Proxy")
         self.assertTrue(rules[0]["rule_set"]["no_resolve"])
-        self.assertEqual(rules[1], {"protocol": {"match": "stun", "policy": "REJECT"}})
-        self.assertEqual(list(rules[3]), ["domain_suffix"])
-        self.assertTrue(rules[4]["rule_set"]["match"].endswith("/domain.yaml"))
-        self.assertEqual(rules[4]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[5]["rule_set"]["match"].endswith("/ip.yaml"))
-        self.assertTrue(rules[5]["rule_set"]["no_resolve"])
+        self.assertEqual(
+            sum(rule.get("protocol", {}).get("match") == "stun" for rule in rules), 0
+        )
+        self.assertEqual(list(rules[2]), ["domain_suffix"])
+        self.assertTrue(rules[3]["rule_set"]["match"].endswith("/domain.yaml"))
+        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
+        self.assertTrue(rules[4]["rule_set"]["match"].endswith("/ip.yaml"))
+        self.assertTrue(rules[4]["rule_set"]["no_resolve"])
         self.assertEqual(list(rules[-1]), ["default"])
 
-    def test_private_routing_precedes_stun_and_mcdn_then_mainland_direct_rules(self):
+    def test_private_routing_precedes_mcdn_then_mainland_direct_rules(self):
         model = {
             "rules": [
                 "RULE-SET,private,Direct",
@@ -137,17 +139,16 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(rules[1]["rule_set"]["policy"], "Direct")
         self.assertTrue(rules[2]["rule_set"]["match"].endswith("/private-ip.yaml"))
         self.assertTrue(rules[2]["rule_set"]["no_resolve"])
-        self.assertEqual(rules[3], {"protocol": {"match": "stun", "policy": "REJECT"}})
-        self.assertEqual(rules[4], {"rule_set": {
+        self.assertEqual(rules[3], {"rule_set": {
             "match": f"{RAW_BASE}/dist/egern/mcdn-block.yaml",
             "policy": "REJECT", "name": "mcdn屏蔽", "update_interval": 86400,
         }})
         self.assertEqual(
             sum(rule.get("rule_set", {}).get("name") == "mcdn屏蔽" for rule in rules), 1
         )
-        self.assertEqual(rules[5], {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}})
-        self.assertEqual(rules[6], {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}})
-        self.assertTrue(rules[7]["rule_set"]["match"].endswith("/cn.yaml"))
+        self.assertEqual(rules[4], {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}})
+        self.assertEqual(rules[5], {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}})
+        self.assertTrue(rules[6]["rule_set"]["match"].endswith("/cn.yaml"))
         self.assertEqual(rules[-1], {"default": {"policy": "Final"}})
 
     def test_youtube_rule_uses_its_own_group(self):
@@ -159,8 +160,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ]
         }
         rules = render_rules(model, {"youtube": ["youtube.yaml"], "meta": ["meta.yaml"]})
-        self.assertEqual(rules[3]["rule_set"]["policy"], "YouTube")
-        self.assertEqual(rules[4]["rule_set"]["policy"], "媒体")
+        self.assertEqual(rules[2]["rule_set"]["policy"], "YouTube")
+        self.assertEqual(rules[3]["rule_set"]["policy"], "媒体")
 
     def test_claude_and_ai_rules_precede_github_without_dropping_rules(self):
         model = {
@@ -209,9 +210,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "bypass_japan": ["bypass-japan.yaml"],
             "geolocation-!cn": ["geolocation-non-cn.yaml"],
         })
-        self.assertEqual(rules[3]["rule_set"]["policy"], "pron")
-        self.assertEqual(rules[3]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
-        self.assertEqual(rules[4]["rule_set"]["policy"], "Proxy")
+        self.assertEqual(rules[2]["rule_set"]["policy"], "pron")
+        self.assertEqual(rules[2]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
+        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
 
     def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
         valid = {
