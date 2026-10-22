@@ -148,7 +148,7 @@ policy_groups:
     - 台湾
     - 其他节点
 - select:
-    name: pron
+    name: porn
     policies:
     - 香港
     - 新加坡
@@ -349,7 +349,7 @@ rules:
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/bypass-japan.yaml
-    policy: pron
+    policy: porn
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/google.yaml
