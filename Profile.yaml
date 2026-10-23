@@ -57,10 +57,6 @@ dns:
       match: cdn.jsdmirror.com
       value: system
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
-      value: system
-      update_interval: 86400
-  - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
       value: system
       update_interval: 86400
@@ -161,7 +157,7 @@ policy_groups:
     - 台湾
     - 其他节点
 - select:
-    name: porn
+    name: pron
     policies:
     - 香港
     - 新加坡
@@ -258,20 +254,6 @@ rules:
     update_interval: 86400
     no_resolve: true
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
-    policy: Direct
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private-ip.yaml
-    policy: Direct
-    update_interval: 86400
-    no_resolve: true
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/mcdn-block.yaml
-    policy: REJECT
-    name: mcdn屏蔽
-    update_interval: 86400
-- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/claude.yaml
     policy: Claude
     update_interval: 86400
@@ -335,6 +317,19 @@ rules:
     match: cdn.jsdmirror.com
     policy: Direct
 - rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private-ip.yaml
+    policy: Direct
+    update_interval: 86400
+    no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/mcdn-block.yaml
+    policy: REJECT
+    update_interval: 86400
+- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
     policy: Direct
     update_interval: 86400
@@ -375,7 +370,7 @@ rules:
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/bypass-japan.yaml
-    policy: porn
+    policy: pron
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/google.yaml
@@ -386,11 +381,6 @@ rules:
     policy: Google
     update_interval: 86400
     no_resolve: true
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/privaterelay.yaml
-    policy: Proxy
-    name: privaterelay
-    update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-merged.yaml
     policy: Proxy
