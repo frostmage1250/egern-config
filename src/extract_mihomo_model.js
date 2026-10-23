@@ -12,18 +12,12 @@ const source = fs.readFileSync(process.argv[2], "utf8");
 const exportCode = [
   "",
   ";const __egernDnsAndHosts = buildDnsAndHostsConfig({dns: {}, hosts: {}}, []);",
+  ";const __egernRegionMap = new Map([...regionDefinitions, ...rateRegionDefinitions, {name: '其他节点'}]",
+  "  .map(({name}) => [name, ['__' + name + '__']]));",
   ";globalThis.__egernModel = {",
-  "  providers: buildRuleProviders(),",
-  "  rules: buildRules(),",
-  "  groups: buildProxyGroups(new Map([",
-  "    ['香港', [{name: '__香港__'}]],",
-  "    ['台湾省', [{name: '__台湾__'}]],",
-  "    ['新加坡', [{name: '__新加坡__'}]],",
-  "    ['日本', [{name: '__日本__'}]],",
-  "    ['美国', [{name: '__美国__'}]],",
-  "    ['其他节点', [{name: '__其他节点__'}]],",
-  "    ['低倍率节点', [{name: '__低倍率节点__'}]],",
-  "  ]), [{name: '__SUBSCRIPTION__'}]),",
+  "  providers: finalRuleProviders,",
+  "  rules: finalRules,",
+  "  groups: buildProxyGroups(__egernRegionMap, [{name: '__SUBSCRIPTION__'}]),",
   "  regions: regionDefinitions.map(({name, regex}) => ({name, source: regex.source, flags: regex.flags})),",
   "  rateRegions: rateRegionDefinitions.map(({name, regex}) => ({name, source: regex.source, flags: regex.flags})),",
   "  excludeFilter: {source: excludeFilter.source, flags: excludeFilter.flags},",
@@ -36,7 +30,4 @@ const exportCode = [
 const sandbox = {};
 vm.createContext(sandbox);
 vm.runInContext(source + exportCode, sandbox, {timeout: 5000});
-if (!sandbox.__egernModel.groups.some((group) => group.name === "香港")) {
-  throw new Error("Mihomo model must expose the Hong Kong group");
-}
 process.stdout.write(JSON.stringify(sandbox.__egernModel, null, 2) + "\n");

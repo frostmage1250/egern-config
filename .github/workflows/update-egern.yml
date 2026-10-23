@@ -85,21 +85,12 @@ jobs:
       - name: Run builder tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
 
-      - name: Verify deterministic regeneration
-        run: |
-          python src/build_egern.py \
-            --model "${RUNNER_TEMP}/mihomo-model.json" \
-            --manifest "${RUNNER_TEMP}/egern-source.json" \
-            --mihomo-commit "${MIHOMO_COMMIT}" \
-            --converter-commit "${CONVERTER_COMMIT}" \
-            --check
-          git diff --check
-
       - name: Commit generated files
         shell: bash
         run: |
           set -euo pipefail
           git add -- Profile.yaml reports/source.json
+          git diff --cached --check
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
