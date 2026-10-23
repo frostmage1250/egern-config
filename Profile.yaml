@@ -53,12 +53,19 @@ dns:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn.yaml
       value: system
       update_interval: 86400
+  - domain:
+      match: cdn.jsdmirror.com
+      value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
       value: system
       update_interval: 86400
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/nvidia-cn.yaml
       value: system
       update_interval: 86400
   - proxy_rule_set:
@@ -69,6 +76,12 @@ dns:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml
       value: system
       update_interval: 86400
+  - domain:
+      match: international-gfe.download.nvidia.com
+      value: system
+  - domain_suffix:
+      match: ctaiot.com
+      value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-cn.yaml
       value: system
@@ -86,6 +99,7 @@ dns:
     dns.google:
     - 8.8.8.8
     - 8.8.4.4
+    services.googleapis.cn: services.googleapis.com
     dns.alidns.com:
     - 223.5.5.5
     - 223.6.6.6
@@ -102,10 +116,10 @@ policy_groups:
     - 订阅
     - 订阅2
     - 香港
-    - 台湾
-    - 新加坡
     - 日本
     - 美国
+    - 新加坡
+    - 台湾
     - 其他节点
     - 低倍率节点
     flatten: true
@@ -197,18 +211,6 @@ policy_groups:
     flatten: true
     filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
 - select:
-    name: 台湾
-    policies:
-    - 订阅
-    flatten: true
-    filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
-- select:
-    name: 新加坡
-    policies:
-    - 订阅
-    flatten: true
-    filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
-- select:
     name: 日本
     policies:
     - 订阅
@@ -220,6 +222,18 @@ policy_groups:
     - 订阅
     flatten: true
     filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
+- select:
+    name: 新加坡
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
+- select:
+    name: 台湾
+    policies:
+    - 订阅
+    flatten: true
+    filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
 - select:
     name: 其他节点
     policies:
@@ -317,8 +331,15 @@ rules:
     policy: 媒体
     update_interval: 86400
     no_resolve: true
+- domain:
+    match: cdn.jsdmirror.com
+    policy: Direct
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/nvidia-cn.yaml
     policy: Direct
     update_interval: 86400
 - rule_set:
@@ -329,6 +350,12 @@ rules:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml
     policy: Direct
     update_interval: 86400
+- domain:
+    match: international-gfe.download.nvidia.com
+    policy: Direct
+- domain_suffix:
+    match: ctaiot.com
+    policy: Direct
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam.yaml
     policy: Proxy
