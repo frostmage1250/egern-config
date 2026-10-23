@@ -26,6 +26,7 @@ CONVERTER_MANIFEST_PATH = "reports/egern-source.json"
 APNS_FILENAME = "apns.yaml"
 PRIVATERELAY_PROVIDER = "privaterelay"
 PRIVATERELAY_FILENAME = "privaterelay.yaml"
+POLICY_ALIASES = {"pron": "porn"}
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -124,8 +125,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
     for source in model["groups"]:
-        name = source["name"]
-        if name == "pron":
+        name = POLICY_ALIASES.get(source["name"], source["name"])
+        if name == "porn":
             groups.append({"select": {"name": name, "policies": ["香港", "新加坡"]}})
             continue
         if name == "订阅":
@@ -151,7 +152,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             })
             continue
         policies = [
-            value for value in source.get("proxies", [])
+            POLICY_ALIASES.get(value, value) for value in source.get("proxies", [])
             if not value.startswith("__") and value not in {"IPv4优先", "IPv6优先"}
         ]
         if name == "Proxy":
@@ -210,7 +211,7 @@ def render_rules(
         parts = raw.split(",")
         kind = parts[0]
         if kind == "MATCH" and len(parts) == 2:
-            rules.append({"default": {"policy": parts[1]}})
+            rules.append({"default": {"policy": POLICY_ALIASES.get(parts[1], parts[1])}})
         elif kind == "RULE-SET" and (
             len(parts) == 3 or (len(parts) == 4 and parts[-1] == "no-resolve")
         ):
@@ -228,16 +229,16 @@ def render_rules(
             no_resolve = len(parts) == 4
             item: dict[str, Any] = {
                 "match": f"{RAW_BASE}/dist/egern/{filenames[0]}",
-                "policy": parts[2],
+                "policy": POLICY_ALIASES.get(parts[2], parts[2]),
                 "update_interval": 86400,
             }
             if no_resolve:
                 item["no_resolve"] = True
             rules.append({"rule_set": item})
         elif kind == "DOMAIN-SUFFIX" and len(parts) == 3:
-            rules.append({"domain_suffix": {"match": parts[1], "policy": parts[2]}})
+            rules.append({"domain_suffix": {"match": parts[1], "policy": POLICY_ALIASES.get(parts[2], parts[2])}})
         elif kind == "DOMAIN" and len(parts) == 3:
-            rules.append({"domain": {"match": parts[1], "policy": parts[2]}})
+            rules.append({"domain": {"match": parts[1], "policy": POLICY_ALIASES.get(parts[2], parts[2])}})
         else:
             raise BuildError(f"Unsupported Mihomo rule: {raw}")
     if private_files and not private_inserted:
@@ -312,10 +313,16 @@ def validate_rule_alignment(
         else:
             raise BuildError(f"Unexpected routing matcher: {kind}")
         actual.append(raw)
-    if actual != model["rules"]:
+    expected: list[str] = []
+    for raw in model["rules"]:
+        parts = raw.split(",")
+        policy_index = 1 if parts[0] == "MATCH" else 2
+        parts[policy_index] = POLICY_ALIASES.get(parts[policy_index], parts[policy_index])
+        expected.append(",".join(parts))
+    if actual != expected:
         raise BuildError(
             "Egern routing differs from Mihomo in order, count, policy, or no-resolve; "
-            "only APNs and standalone Private Relay may be added"
+            "only the declared policy aliases and APNs/Private Relay additions are allowed"
         )
 
 
@@ -572,11 +579,11 @@ def validate_profile(
         if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the Hong Kong policy group")
     if (
-        "pron" not in names
-        or groups[names.index("pron")].get("policies") != ["香港", "新加坡"]
-        or groups[names.index("pron")].get("flatten", False)
+        "porn" not in names
+        or groups[names.index("porn")].get("policies") != ["香港", "新加坡"]
+        or groups[names.index("porn")].get("flatten", False)
     ):
-        raise BuildError("pron must offer Hong Kong and Singapore groups without flattening nodes")
+        raise BuildError("porn must offer Hong Kong and Singapore groups without flattening nodes")
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
@@ -791,6 +798,7 @@ def main() -> int:
             "egern_only_rule_sets": manifest.get("egern_only_rule_sets", []),
             "routing_alignment": {
                 "exceptions": ["apns-first", "privaterelay-before-apple"],
+                "policy_aliases": POLICY_ALIASES,
                 "privaterelay_rules": 1,
                 "apns_rules": 1,
                 "mihomo_rules": model["rules"],
@@ -812,10 +820,10 @@ def main() -> int:
             },
             "migration_boundaries": [
                 "APNs is first with Proxy/Foreign DNS; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
-                "All remaining routing rules preserve the Mihomo source order, duplicates, policies, and no-resolve flags exactly.",
-                "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering or target overrides.",
+                "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use only the declared Egern name aliases.",
+                "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; the only policy-name mapping is pron to porn.",
                 "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
-                "The pron policy group keeps the source name; local subscription and service-group choices remain Egern settings.",
+                "The Egern policy group is named porn; source pron targets and group references map to porn, preserving Hong Kong and Singapore choices.",
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",

@@ -150,7 +150,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         rules = render_rules(model, files)
         self.assertEqual(
             [rule["rule_set"]["policy"] for rule in rules[1:-1]],
-            ["媒体", "Proxy", "pron"],
+            ["媒体", "Proxy", "porn"],
         )
         validate_rule_alignment(rules, model, files)
 
@@ -171,15 +171,18 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(len(rules), len(source) + 1)
         validate_rule_alignment(rules, {"rules": source}, files)
 
-    def test_porn_preserves_the_source_policy_name(self):
+    def test_porn_alias_updates_the_target_and_alignment_check(self):
         model = {"rules": [
             "RULE-SET,porn,pron", "RULE-SET,geolocation-!cn,Proxy", "MATCH,Final",
         ]}
         files = {"porn": ["porn.yaml"], "geolocation-!cn": ["geolocation-non-cn.yaml"]}
         rules = render_rules(model, files)
-        self.assertEqual(rules[1]["rule_set"]["policy"], "pron")
+        self.assertEqual(rules[1]["rule_set"]["policy"], "porn")
         self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
         validate_rule_alignment(rules, model, files)
+        rules[1]["rule_set"]["policy"] = "pron"
+        with self.assertRaises(BuildError):
+            validate_rule_alignment(rules, model, files)
 
     def test_alignment_rejects_reorder_extra_missing_policy_and_flag_changes(self):
         model = {"rules": [
@@ -260,7 +263,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "YouTube", "proxies": ["Proxy", "香港", "低倍率节点"]},
                 {"name": "PikPak", "proxies": ["Proxy", "Direct", "低倍率节点"]},
                 {"name": "pron", "proxies": []},
-                {"name": "Final", "proxies": ["Proxy", "Direct"]},
+                {"name": "Final", "proxies": ["Proxy", "Direct", "pron"]},
             ],
         }
         groups, filters = render_policy_groups(model)
@@ -298,8 +301,10 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
-        self.assertEqual(by_name["pron"]["policies"], ["香港", "新加坡"])
-        self.assertFalse(by_name["pron"].get("flatten", False))
+        self.assertEqual(by_name["porn"]["policies"], ["香港", "新加坡"])
+        self.assertFalse(by_name["porn"].get("flatten", False))
+        self.assertNotIn("pron", by_name)
+        self.assertEqual(by_name["Final"]["policies"], ["Proxy", "Direct", "porn"])
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,

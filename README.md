@@ -9,20 +9,22 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 **APNs is first.** Its rule uses `Proxy`. The independent `privaterelay.yaml`
 rule is retained immediately before Apple merge and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
-`finalRules` list, preserving order, duplicate occurrences, target policy names,
-and `no-resolve` flags. The generator never independently moves Private, MCDN,
-Claude/AI, Steam, or any other business rule. It never rewrites YouTube,
-AppleTV, or porn target policies.
+`finalRules` list, preserving order, duplicate occurrences, and `no-resolve`
+flags. The sole policy-name alias is Mihomo `pron` to Egern `porn`; rule targets
+and references from other policy groups use the same alias. The generator never independently moves Private, MCDN,
+Claude/AI, Steam, or any other business rule. Service targets follow the source
+with the declared policy-name alias applied.
 
-The `pron` policy name follows Mihomo literally. The independent Private Relay
+The Egern policy group is named `porn`. The independent Private Relay
 rule is fetched, hash/count verified, and
 referenced explicitly; it is retained separately from the shared Apple merge.
 The renamed rule-set is `porn.yaml` with provider key `porn`; its existing
-policy group remains `pron`.
+policy group is also named `porn`.
 
 Validation reverses the generated rules into Mihomo rule strings and compares
-the shared list with the unmodified source after checking both Egern additions.
-Reordering, extra or missing rules, changed policies, and changed `no-resolve` flags fail the build.
+the shared list with the source after applying the declared name alias and
+checking both Egern additions.
+Reordering, extra or missing rules, policy changes outside the declared alias, and changed `no-resolve` flags fail the build.
 `reports/source.json` records this source rule list and both approved Egern additions.
 
 ## Subscriptions and Egern settings
@@ -35,7 +37,7 @@ and `default_proxy_group: 代理`.
 Proxy flattens both subscription groups. Hong Kong filters both; the other
 regional and low-rate groups filter 订阅. Telegram and 媒体 expose both
 subscriptions. Region/exclusion patterns come from the pinned Mihomo model.
-The pron group retains Hong Kong and Singapore as choices. YouTube is rendered
+The porn group retains Hong Kong and Singapore as choices. YouTube is rendered
 at its source group position with its source policy choices, rather than being
 discarded and reconstructed after 媒体.
 
