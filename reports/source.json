@@ -76,10 +76,10 @@
   },
   "migration_boundaries": [
     "APNs is first with Proxy/Foreign DNS; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
-    "All remaining routing rules preserve the Mihomo source order, duplicates, policies, and no-resolve flags exactly.",
-    "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering or target overrides.",
+    "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use only the declared Egern name aliases.",
+    "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; the only policy-name mapping is pron to porn.",
     "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
-    "The pron policy group keeps the source name; local subscription and service-group choices remain Egern settings.",
+    "The Egern policy group is named porn; source pron targets and group references map to porn, preserving Hong Kong and Singapore choices.",
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
     "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
     "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
@@ -779,7 +779,7 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "3c782552f85ca590c7353a9b95ac24ea3849bc89a71a8a6bae1f124b58fb00be",
+  "profile_sha256": "278b3b96fb1ff283e6bec1285c0a6d3354d6bed5083cc559da551b301a975087",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "2283d9ecc9aedc5069835e0a31fa8502027059b6",
@@ -834,6 +834,9 @@
       "RULE-SET,cn_ip,Direct",
       "MATCH,Final"
     ],
+    "policy_aliases": {
+      "pron": "porn"
+    },
     "privaterelay_rules": 1,
     "shared_rule_count": 39
   },
