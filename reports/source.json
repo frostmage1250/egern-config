@@ -22,6 +22,48 @@
       ]
     }
   },
+  "egern_only_rule_sets": [
+    {
+      "behavior": "domain",
+      "bett_entries": 3,
+      "bett_order_and_duplicates_preserved": true,
+      "egern_only": true,
+      "entries": 6,
+      "excluded_domains": [
+        "7h15.ru1353t.1s.m4d3.by.5ukk4w.skk.moe"
+      ],
+      "native_entries_sha256": "dd481a8f2e7058483c4bbee6b41f2945f7042781a804b9cb0095e24bad4a5b43",
+      "output": "dist/egern/privaterelay.yaml",
+      "output_sha256": "057aecc4a799e7e64a2106f7b2609c21a53c9f351d243315b7fa24c2dab12242",
+      "provider": "privaterelay",
+      "source_entries": 6,
+      "source_order_sha256": "dd481a8f2e7058483c4bbee6b41f2945f7042781a804b9cb0095e24bad4a5b43",
+      "source_sha256": "328335b20b80b1a54aeed81be7522f4221fdf253f2770705515e409e6c75d59d",
+      "sukka_eligible_entries": 6,
+      "supplemented_entries": 3,
+      "supplemented_rules": [
+        "mask.apple-dns.net",
+        "mask-canary.icloud.com",
+        "canary.mask.apple-dns.net"
+      ],
+      "upstream_sources": [
+        {
+          "commit": "9e0079263d933a23c7b0a7dc1c24b604298648e2",
+          "name": "bett-rules",
+          "path": "geo/geosite/icloudprivaterelay.list",
+          "ref": "meta",
+          "repository": "appshubcc/bett-rules",
+          "sha256": "19d752f38c2999695b945629f1ba7be61e591222340fc50204600ed4b3e246d4",
+          "url": "https://raw.githubusercontent.com/appshubcc/bett-rules/9e0079263d933a23c7b0a7dc1c24b604298648e2/geo/geosite/icloudprivaterelay.list"
+        },
+        {
+          "name": "Sukka",
+          "sha256": "118e0ab653e296c8c588c9dbcee303d3ea9692031ec62aa2d9d01980670a53a8",
+          "url": "https://ruleset.skk.moe/Clash/domainset/icloud_private_relay.txt"
+        }
+      ]
+    }
+  ],
   "group_filters": {
     "低倍率节点": "(?i)^(?!.*(?:剩|期)).*(?:(?<![\\d.])0(\\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])",
     "其他节点": "(?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$",
@@ -32,14 +74,11 @@
     "订阅": "(?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\\.me\\/\\+|\\bexpire\\b|\\bhttps?:\\/\\/|\\.com|\\btraffic\\b)).*$",
     "香港": "(?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\\s*kong"
   },
-  "ignored_egern_only_providers": [
-    "privaterelay"
-  ],
   "migration_boundaries": [
-    "APNs is the only routing exception: one Proxy rule is prepended and its DNS Forward uses Foreign.",
+    "APNs is first with Proxy/Foreign DNS; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
     "All remaining routing rules preserve the Mihomo source order, duplicates, policies, and no-resolve flags exactly.",
     "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering or target overrides.",
-    "Optional converter-only rule sets are not loaded or inserted into the profile.",
+    "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
     "The pron policy group keeps the source name; local subscription and service-group choices remain Egern settings.",
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
     "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
@@ -51,7 +90,7 @@
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
   ],
   "mihomo_script": {
-    "commit": "e2df3bbb433b9277d51f114f553a24bd31cd5dff",
+    "commit": "6c7b8602a94e13dc4d491d442b3789496fbcbaf4",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -525,19 +564,19 @@
       "behavior": "domain",
       "entries": 76,
       "native_entries_sha256": "98b307de468ff0d75d00b0280b691f110469e94f54f67926263bd902a52b22ad",
-      "output": "dist/egern/bypass-japan.yaml",
+      "output": "dist/egern/porn.yaml",
       "output_sha256": "69d06513dba665fb44d84b2c1d08bf1d692cb7808a030209f9b19ce7400bcb84",
-      "provider": "bypass_japan",
-      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/bypass-japan.mrs",
+      "provider": "porn",
+      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/porn.mrs",
       "source_commit": null,
       "source_entries": 76,
       "source_generated_in_same_run": true,
       "source_order_sha256": "116f54460303e087a1092862cf7b321b62c1af4c6a066840e27fb26313b9dafc",
-      "source_path": "dist/mihomo/bypass-japan.list",
+      "source_path": "dist/mihomo/porn.list",
       "source_ref": "main",
       "source_repository": "frostmage1250/proxy-rules-converter",
       "source_sha256": "1359da5c1c86ec09a040035f4ef2e87e2669358edadcda3635ea735ecc29bed9",
-      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/bypass-japan.list"
+      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/porn.list"
     },
     {
       "behavior": "domain",
@@ -740,16 +779,20 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "fe8d4b47bb5cb7c3086fc72bc54c545aceab1437c97d9fb4e72a6632711126fd",
+  "profile_sha256": "3c782552f85ca590c7353a9b95ac24ea3849bc89a71a8a6bae1f124b58fb00be",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "8ad1e8aa68f91d01c33b4354468087640aa7c640",
+    "commit": "2283d9ecc9aedc5069835e0a31fa8502027059b6",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "55f5a87b6828c68f5dc79c761df6a5ae10fa7996009e188869c1d8d8141a80cb",
+    "manifest_sha256": "7c6d93a46ceeab77ee49c5dca6e1aca69752d770fa1663c114d0a233388e75de",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_alignment": {
     "apns_rules": 1,
+    "exceptions": [
+      "apns-first",
+      "privaterelay-before-apple"
+    ],
     "mihomo_rules": [
       "RULE-SET,claude,Claude",
       "RULE-SET,ai,AI",
@@ -779,7 +822,7 @@
       "RULE-SET,steam_ip,Proxy,no-resolve",
       "RULE-SET,pikpak,PikPak",
       "RULE-SET,ehentai,EHentai",
-      "RULE-SET,bypass_japan,pron",
+      "RULE-SET,porn,pron",
       "RULE-SET,google,Google",
       "RULE-SET,google_ip,Google,no-resolve",
       "RULE-SET,apple,Proxy",
@@ -791,10 +834,10 @@
       "RULE-SET,cn_ip,Direct",
       "MATCH,Final"
     ],
-    "only_apns_exception": true,
+    "privaterelay_rules": 1,
     "shared_rule_count": 39
   },
-  "routing_rules": 40,
+  "routing_rules": 41,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
