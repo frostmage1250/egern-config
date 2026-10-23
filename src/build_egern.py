@@ -24,6 +24,8 @@ MIHOMO_REPO = "frostmage1250/mihomo-script"
 CONVERTER_REPO = "frostmage1250/proxy-rules-converter"
 CONVERTER_MANIFEST_PATH = "reports/egern-source.json"
 APNS_FILENAME = "apns.yaml"
+PRIVATERELAY_PROVIDER = "privaterelay"
+PRIVATERELAY_FILENAME = "privaterelay.yaml"
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -189,7 +191,7 @@ def split_nameserver_policy(value: str) -> tuple[str, str | None]:
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
-    """Prepend APNs, then translate every Mihomo rule exactly once in source order."""
+    """Keep shared source order, with APNs first and Private Relay before Apple."""
     rules: list[dict[str, Any]] = []
     for filename in provider_files.get("apns", [APNS_FILENAME]):
         rules.append({
@@ -200,6 +202,10 @@ def render_rules(
                 "no_resolve": True,
             }
         })
+    private_files = provider_files.get(PRIVATERELAY_PROVIDER, [])
+    if private_files and private_files != [PRIVATERELAY_FILENAME]:
+        raise BuildError("Expected one standalone Private Relay rule set")
+    private_inserted = False
     for raw in model["rules"]:
         parts = raw.split(",")
         kind = parts[0]
@@ -209,6 +215,13 @@ def render_rules(
             len(parts) == 3 or (len(parts) == 4 and parts[-1] == "no-resolve")
         ):
             provider = parts[1]
+            if provider == "apple" and private_files and not private_inserted:
+                rules.append({"rule_set": {
+                    "match": f"{RAW_BASE}/dist/egern/{PRIVATERELAY_FILENAME}",
+                    "policy": "Proxy", "name": PRIVATERELAY_PROVIDER,
+                    "update_interval": 86400,
+                }})
+                private_inserted = True
             filenames = provider_files.get(provider)
             if not filenames or len(filenames) != 1:
                 raise BuildError(f"Expected one native file for Mihomo provider: {provider}")
@@ -227,6 +240,8 @@ def render_rules(
             rules.append({"domain": {"match": parts[1], "policy": parts[2]}})
         else:
             raise BuildError(f"Unsupported Mihomo rule: {raw}")
+    if private_files and not private_inserted:
+        raise BuildError("Standalone Private Relay requires the shared Apple anchor")
     return rules
 
 
@@ -246,15 +261,36 @@ def validate_rule_alignment(
         }
     }:
         raise BuildError("Exactly one APNs rule must be first")
+    shared_rules = rules[1:]
+    private_files = provider_files.get(PRIVATERELAY_PROVIDER, [])
+    if private_files:
+        private_url = f"{RAW_BASE}/dist/egern/{PRIVATERELAY_FILENAME}"
+        positions = [i for i, rule in enumerate(shared_rules)
+                     if rule.get("rule_set", {}).get("match") == private_url]
+        expected = {"rule_set": {
+            "match": private_url, "policy": "Proxy", "name": PRIVATERELAY_PROVIDER,
+            "update_interval": 86400,
+        }}
+        apple_files = provider_files.get("apple", [])
+        if private_files != [PRIVATERELAY_FILENAME] or len(positions) != 1 or len(apple_files) != 1:
+            raise BuildError("Expected one standalone Private Relay rule before Apple")
+        index = positions[0]
+        if (
+            shared_rules[index] != expected or index + 1 >= len(shared_rules)
+            or shared_rules[index + 1].get("rule_set", {}).get("match")
+            != f"{RAW_BASE}/dist/egern/{apple_files[0]}"
+        ):
+            raise BuildError("Standalone Private Relay must use Proxy immediately before Apple")
+        shared_rules = shared_rules[:index] + shared_rules[index + 1:]
     provider_by_url = {
         f"{RAW_BASE}/dist/egern/{filename}": provider
         for provider, filenames in provider_files.items()
-        if provider != "apns"
+        if provider not in {"apns", PRIVATERELAY_PROVIDER}
         for filename in filenames
     }
     actual: list[str] = []
     kinds = {"domain": "DOMAIN", "domain_suffix": "DOMAIN-SUFFIX"}
-    for wrapper in rules[1:]:
+    for wrapper in shared_rules:
         if len(wrapper) != 1:
             raise BuildError("Routing rule must contain exactly one matcher")
         kind, item = next(iter(wrapper.items()))
@@ -279,7 +315,7 @@ def validate_rule_alignment(
     if actual != model["rules"]:
         raise BuildError(
             "Egern routing differs from Mihomo in order, count, policy, or no-resolve; "
-            "APNs is the only permitted extra rule"
+            "only APNs and standalone Private Relay may be added"
         )
 
 
@@ -605,8 +641,14 @@ def load_manifest_rules(
 
     generated: dict[str, dict[str, Any]] = {}
     provider_files: dict[str, list[str]] = {}
-    # Optional converter-only artifacts are not Egern routing exceptions.
-    for record in records:
+    egern_only = manifest.get("egern_only_rule_sets", [])
+    if (
+        not isinstance(egern_only, list)
+        or any(not isinstance(record, dict) for record in egern_only)
+        or [record.get("provider") for record in egern_only] not in ([], [PRIVATERELAY_PROVIDER])
+    ):
+        raise BuildError("Unsupported Egern-only rule manifest")
+    for record in [*records, *egern_only]:
         name = record["provider"]
         if name == "apns":
             if (
@@ -614,6 +656,13 @@ def load_manifest_rules(
                 or record.get("source_path") != "shadowrocket/rules/apns.list"
             ):
                 raise BuildError("APNs rule manifest source changed")
+        elif name == PRIVATERELAY_PROVIDER:
+            if (
+                record.get("egern_only") is not True
+                or record.get("behavior") != "domain"
+                or record.get("output") != f"dist/egern/{PRIVATERELAY_FILENAME}"
+            ):
+                raise BuildError("Invalid standalone Private Relay manifest")
         else:
             provider = model["providers"].get(name)
             if (
@@ -650,6 +699,8 @@ def load_manifest_rules(
         rule = yaml.safe_load(rule_text)
         if not isinstance(rule, dict):
             raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
+        if name == PRIVATERELAY_PROVIDER and not set(rule) <= {"domain_set", "domain_suffix_set"}:
+            raise BuildError("Standalone Private Relay must contain domain rules only")
         sequence: list[tuple[str, str]] = []
         for field, values in rule.items():
             if isinstance(values, list):
@@ -737,13 +788,10 @@ def main() -> int:
             "policy_groups": len(groups),
             "routing_rules": len(rules),
             "native_rule_sets": manifest["native_rule_sets"],
-            "ignored_egern_only_providers": [
-                record.get("provider")
-                for record in manifest.get("egern_only_rule_sets", [])
-                if isinstance(record, dict)
-            ],
+            "egern_only_rule_sets": manifest.get("egern_only_rule_sets", []),
             "routing_alignment": {
-                "only_apns_exception": True,
+                "exceptions": ["apns-first", "privaterelay-before-apple"],
+                "privaterelay_rules": 1,
                 "apns_rules": 1,
                 "mihomo_rules": model["rules"],
                 "shared_rule_count": len(model["rules"]),
@@ -763,10 +811,10 @@ def main() -> int:
                 "reason": "Default group names are public; subscription credentials remain local.",
             },
             "migration_boundaries": [
-                "APNs is the only routing exception: one Proxy rule is prepended and its DNS Forward uses Foreign.",
+                "APNs is first with Proxy/Foreign DNS; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
                 "All remaining routing rules preserve the Mihomo source order, duplicates, policies, and no-resolve flags exactly.",
                 "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering or target overrides.",
-                "Optional converter-only rule sets are not loaded or inserted into the profile.",
+                "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
                 "The pron policy group keeps the source name; local subscription and service-group choices remain Egern settings.",
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",

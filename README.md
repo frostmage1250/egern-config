@@ -6,23 +6,24 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 
 ## Routing contract
 
-**APNs is the only exception.** One APNs rule using `Proxy` is first. Every
-remaining rule is a one-to-one syntax translation of the pinned Mihomo
+**APNs is first.** Its rule uses `Proxy`. The independent `privaterelay.yaml`
+rule is retained immediately before Apple merge and also uses `Proxy`.
+All shared rules are a one-to-one syntax translation of the pinned Mihomo
 `finalRules` list, preserving order, duplicate occurrences, target policy names,
 and `no-resolve` flags. The generator never independently moves Private, MCDN,
 Claude/AI, Steam, or any other business rule. It never rewrites YouTube,
-AppleTV, or bypass-japan target policies.
+AppleTV, or porn target policies.
 
-The `pron` policy name follows Mihomo literally. The former Egern-only `porn`
-rename is removed. There is no extra Private Relay routing reference; optional
-converter-only artifacts remain available in the converter repository but are
-not downloaded, loaded, or inserted here. Private Relay coverage supplied by
-Mihomo's shared Apple rule set continues to follow that source.
+The `pron` policy name follows Mihomo literally. The independent Private Relay
+rule is fetched, hash/count verified, and
+referenced explicitly; it is retained separately from the shared Apple merge.
+The renamed rule-set is `porn.yaml` with provider key `porn`; its existing
+policy group remains `pron`.
 
 Validation reverses the generated rules into Mihomo rule strings and compares
-the entire list with the unmodified source. Reordering, extra or missing
-rules, changed policies, and changed `no-resolve` flags fail the build.
-`reports/source.json` records this source rule list and the sole APNs exception.
+the shared list with the unmodified source after checking both Egern additions.
+Reordering, extra or missing rules, changed policies, and changed `no-resolve` flags fail the build.
+`reports/source.json` records this source rule list and both approved Egern additions.
 
 ## Subscriptions and Egern settings
 
@@ -58,8 +59,7 @@ Mihomo `default-nameserver` IPs retain source order in Egern's plain-UDP
 bootstrap. Foreign resolver URLs retain their server order. The two existing
 excluded DoH endpoints, cloudflare-dns.com and dns.google, keep their clean
 URLs without injected routing rules. Any new DNS routing suffix fails with an
-explicit error requiring a corresponding rule in Mihomo; it cannot create a
-second Egern routing exception.
+explicit error requiring a corresponding rule in Mihomo; it cannot create any additional Egern endpoint rules.
 
 Egern cannot reproduce Mihomo's runtime `direct-nameserver` re-resolution
 after a selectable policy switches to Direct. IPv4/IPv6-preferred DIRECT
@@ -75,8 +75,9 @@ no npm dependencies. The workflow uses one setup step for each runtime.
 
 [`proxy-rules-converter`](https://github.com/frostmage1250/proxy-rules-converter/tree/main/dist/egern)
 publishes native rule sets and `reports/egern-source.json` first. This repository
-pins that converter commit and the manifest's Mihomo commit. It downloads only
-APNs and providers referenced by Mihomo routing/DNS, checking each file's hash,
+pins that converter commit and the manifest's Mihomo commit. It downloads
+APNs, standalone Private Relay, and providers referenced by Mihomo routing/DNS,
+checking each file's hash,
 entry count, and native-field-order digest. There is no separate inline
 Apple/Private Relay assertion block in the workflow duplicating the generator's
 manifest validation.

@@ -28,7 +28,7 @@ from build_egern import (  # noqa: E402
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
-    def test_converter_only_privaterelay_is_not_injected(self):
+    def test_standalone_privaterelay_is_retained_before_apple(self):
         model = {"rules": [
             "RULE-SET,apple_cn,Direct", "RULE-SET,apple,Proxy",
             "RULE-SET,apple_ip,Proxy,no-resolve", "MATCH,Final",
@@ -38,12 +38,26 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "apple_ip": ["apple-ip.yaml"], "privaterelay": ["privaterelay.yaml"],
         }
         rules = render_rules(model, files)
-        self.assertEqual(len(rules), len(model["rules"]) + 1)
-        self.assertFalse(any(
-            rule.get("rule_set", {}).get("match", "").endswith("/privaterelay.yaml")
-            for rule in rules
-        ))
+        self.assertEqual(len(rules), len(model["rules"]) + 2)
+        self.assertEqual(rules[2], {"rule_set": {
+            "match": f"{RAW_BASE}/dist/egern/privaterelay.yaml",
+            "policy": "Proxy", "name": "privaterelay", "update_interval": 86400,
+        }})
+        self.assertTrue(rules[3]["rule_set"]["match"].endswith("/apple-merged.yaml"))
         validate_rule_alignment(rules, model, files)
+        for mutation in ("missing", "duplicate", "position", "policy"):
+            with self.subTest(mutation=mutation):
+                changed = json.loads(json.dumps(rules))
+                if mutation == "missing":
+                    changed.pop(2)
+                elif mutation == "duplicate":
+                    changed.insert(2, changed[2])
+                elif mutation == "position":
+                    changed[1], changed[2] = changed[2], changed[1]
+                else:
+                    changed[2]["rule_set"]["policy"] = "Direct"
+                with self.assertRaises(BuildError):
+                    validate_rule_alignment(changed, model, files)
 
     def test_apple_merge_keeps_cn_priority_and_separate_ip_rule(self):
         model = {"rules": [
@@ -130,9 +144,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
     def test_service_rule_policies_are_not_overridden(self):
         model = {"rules": [
             "RULE-SET,youtube,媒体", "RULE-SET,appletv,Proxy",
-            "RULE-SET,bypass_japan,pron", "MATCH,Final",
+            "RULE-SET,porn,pron", "MATCH,Final",
         ]}
-        files = {name: [name + ".yaml"] for name in ("youtube", "appletv", "bypass_japan")}
+        files = {name: [name + ".yaml"] for name in ("youtube", "appletv", "porn")}
         rules = render_rules(model, files)
         self.assertEqual(
             [rule["rule_set"]["policy"] for rule in rules[1:-1]],
@@ -157,11 +171,11 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(len(rules), len(source) + 1)
         validate_rule_alignment(rules, {"rules": source}, files)
 
-    def test_bypass_japan_preserves_the_source_policy_name(self):
+    def test_porn_preserves_the_source_policy_name(self):
         model = {"rules": [
-            "RULE-SET,bypass_japan,pron", "RULE-SET,geolocation-!cn,Proxy", "MATCH,Final",
+            "RULE-SET,porn,pron", "RULE-SET,geolocation-!cn,Proxy", "MATCH,Final",
         ]}
-        files = {"bypass_japan": ["bypass-japan.yaml"], "geolocation-!cn": ["geolocation-non-cn.yaml"]}
+        files = {"porn": ["porn.yaml"], "geolocation-!cn": ["geolocation-non-cn.yaml"]}
         rules = render_rules(model, files)
         self.assertEqual(rules[1]["rule_set"]["policy"], "pron")
         self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
@@ -529,33 +543,39 @@ class EgernProfileBuilderTests(unittest.TestCase):
             with self.assertRaises(BuildError):
                 load_manifest_rules(model, manifest, "converter-commit")
 
-    def test_manifest_does_not_load_converter_only_artifacts(self):
-        text = "domain_set:\n- push.apple.com\n"
-        sequence = [("domain_set", "push.apple.com")]
-        digest = hashlib.sha256(
-            json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode()
-        ).hexdigest()
-        apns = {
-            "provider": "apns", "source_entries": 1, "entries": 1,
-            "source_order_sha256": digest, "native_entries_sha256": digest,
-            "output": "dist/egern/apns.yaml",
-            "output_sha256": hashlib.sha256(text.encode()).hexdigest(),
-            "source_repository": "ttyyss2233/Tool", "source_path": "shadowrocket/rules/apns.list",
+    def test_manifest_loads_and_verifies_standalone_privaterelay(self):
+        texts = {
+            "apns.yaml": "domain_set:\n- push.apple.com\n",
+            "privaterelay.yaml": "domain_suffix_set:\n- mask.icloud.com\n",
         }
+        def record(provider, filename, sequence):
+            digest = hashlib.sha256(
+                json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode()
+            ).hexdigest()
+            return {
+                "provider": provider, "behavior": "domain", "source_entries": 1, "entries": 1,
+                "source_order_sha256": digest, "native_entries_sha256": digest,
+                "output": "dist/egern/" + filename,
+                "output_sha256": hashlib.sha256(texts[filename].encode()).hexdigest(),
+            }
+        apns = record("apns", "apns.yaml", [("domain_set", "push.apple.com")])
+        apns.update({"source_repository": "ttyyss2233/Tool", "source_path": "shadowrocket/rules/apns.list"})
+        private = record("privaterelay", "privaterelay.yaml", [("domain_suffix_set", "mask.icloud.com")])
+        private["egern_only"] = True
         manifest = {
             "schema_version": 3, "mihomo_script": {"repository": "frostmage1250/mihomo-script"},
-            "native_rule_sets": [apns],
-            "egern_only_rule_sets": [{"provider": "privaterelay", "output": "dist/egern/privaterelay.yaml"}],
+            "native_rule_sets": [apns], "egern_only_rule_sets": [private],
         }
-        with patch("build_egern.download_text", return_value=text) as download:
+        with patch("build_egern.download_text", side_effect=lambda url: texts[url.rsplit("/", 1)[-1]]) as download:
             generated, files = load_manifest_rules(
                 {"providers": {}, "rules": ["MATCH,Final"]}, manifest, "converter-commit"
             )
-            self.assertEqual(list(files), ["apns"])
-            self.assertEqual(list(generated), ["apns.yaml"])
-            download.assert_called_once_with(
-                "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/converter-commit/dist/egern/apns.yaml"
-            )
+            self.assertEqual(list(files), ["apns", "privaterelay"])
+            self.assertEqual(generated["privaterelay.yaml"]["domain_suffix_set"], ["mask.icloud.com"])
+            self.assertEqual(download.call_count, 2)
+            private["output_sha256"] = "0" * 64
+            with self.assertRaises(BuildError):
+                load_manifest_rules({"providers": {}, "rules": ["MATCH,Final"]}, manifest, "converter-commit")
 
     def test_manifest_must_cover_all_referenced_providers(self):
         model = {
