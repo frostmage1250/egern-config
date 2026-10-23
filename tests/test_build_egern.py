@@ -21,37 +21,29 @@ from build_egern import (  # noqa: E402
     referenced_providers,
     render_dns_forward,
     render_dns_upstreams,
-    render_nameserver_route_rules,
     render_policy_groups,
     render_rules,
-    validate_business_ip_pairs,
+    validate_rule_alignment,
 )
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
-    def test_privaterelay_is_immediately_before_apple_merge_and_uses_proxy(self):
+    def test_converter_only_privaterelay_is_not_injected(self):
         model = {"rules": [
-            "RULE-SET,steam,Proxy", "RULE-SET,apple_cn,Direct",
-            "RULE-SET,apple,Proxy", "RULE-SET,apple_ip,Proxy,no-resolve", "MATCH,Final",
+            "RULE-SET,apple_cn,Direct", "RULE-SET,apple,Proxy",
+            "RULE-SET,apple_ip,Proxy,no-resolve", "MATCH,Final",
         ]}
         files = {
-            "steam": ["steam.yaml"], "privaterelay": ["privaterelay.yaml"],
             "apple_cn": ["apple-cn.yaml"], "apple": ["apple-merged.yaml"],
-            "apple_ip": ["apple-ip.yaml"],
+            "apple_ip": ["apple-ip.yaml"], "privaterelay": ["privaterelay.yaml"],
         }
         rules = render_rules(model, files)
-        selected = [rule["rule_set"] for rule in rules if "rule_set" in rule
-                    and rule["rule_set"]["match"].rsplit("/", 1)[-1] in
-                    {"privaterelay.yaml", "apple-cn.yaml", "apple-merged.yaml", "apple-ip.yaml"}]
-        self.assertEqual(
-            [(rule["match"].rsplit("/", 1)[-1], rule["policy"]) for rule in selected],
-            [("apple-cn.yaml", "Direct"), ("privaterelay.yaml", "Proxy"),
-             ("apple-merged.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
-        )
-        self.assertEqual(selected[1]["name"], "privaterelay")
-        self.assertTrue(selected[-1]["no_resolve"])
-        with self.assertRaises(BuildError):
-            render_rules({"rules": ["MATCH,Final"]}, {"privaterelay": ["privaterelay.yaml"]})
+        self.assertEqual(len(rules), len(model["rules"]) + 1)
+        self.assertFalse(any(
+            rule.get("rule_set", {}).get("match", "").endswith("/privaterelay.yaml")
+            for rule in rules
+        ))
+        validate_rule_alignment(rules, model, files)
 
     def test_apple_merge_keeps_cn_priority_and_separate_ip_rule(self):
         model = {"rules": [
@@ -97,206 +89,133 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(json.dumps(source_hosts, sort_keys=True), source_snapshot)
 
     def test_rules_preserve_order_and_no_resolve(self):
-        model = {
-            "rules": [
-                "DOMAIN-SUFFIX,example.com,Direct",
-                "RULE-SET,domain,Proxy",
-                "RULE-SET,ip,Direct,no-resolve",
-                "MATCH,Final",
-            ]
-        }
-        rules = render_rules(model, {"domain": ["domain.yaml"], "ip": ["ip.yaml"]})
-        self.assertTrue(rules[0]["rule_set"]["match"].endswith("/apns.yaml"))
-        self.assertEqual(rules[0]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[0]["rule_set"]["no_resolve"])
-        self.assertEqual(
-            sum(rule.get("protocol", {}).get("match") == "stun" for rule in rules), 0
-        )
-        self.assertEqual(list(rules[2]), ["domain_suffix"])
-        self.assertTrue(rules[3]["rule_set"]["match"].endswith("/domain.yaml"))
-        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
-        self.assertTrue(rules[4]["rule_set"]["match"].endswith("/ip.yaml"))
+        model = {"rules": [
+            "DOMAIN-SUFFIX,example.com,Direct",
+            "RULE-SET,domain,Proxy", "RULE-SET,ip,Direct,no-resolve", "MATCH,Final",
+        ]}
+        files = {"domain": ["domain.yaml"], "ip": ["ip.yaml"]}
+        rules = render_rules(model, files)
+        self.assertEqual(rules, [
+            {"rule_set": {"match": f"{RAW_BASE}/dist/egern/apns.yaml",
+                          "policy": "Proxy", "update_interval": 86400, "no_resolve": True}},
+            {"domain_suffix": {"match": "example.com", "policy": "Direct"}},
+            {"rule_set": {"match": f"{RAW_BASE}/dist/egern/domain.yaml",
+                          "policy": "Proxy", "update_interval": 86400}},
+            {"rule_set": {"match": f"{RAW_BASE}/dist/egern/ip.yaml",
+                          "policy": "Direct", "update_interval": 86400, "no_resolve": True}},
+            {"default": {"policy": "Final"}},
+        ])
+        validate_rule_alignment(rules, model, files)
+
+    def test_private_and_mcdn_stay_at_the_source_position(self):
+        model = {"rules": [
+            "RULE-SET,claude,Claude", "DOMAIN,cdn.jsdmirror.com,Direct",
+            "RULE-SET,private,Direct", "RULE-SET,private_ip,Direct,no-resolve",
+            "RULE-SET,mcdn屏蔽,REJECT", "RULE-SET,cn,Direct", "MATCH,Final",
+        ]}
+        files = {name: [filename] for name, filename in (
+            ("claude", "claude.yaml"), ("private", "private.yaml"),
+            ("private_ip", "private-ip.yaml"), ("mcdn屏蔽", "mcdn-block.yaml"),
+            ("cn", "cn.yaml"),
+        )}
+        rules = render_rules(model, files)
+        self.assertTrue(rules[1]["rule_set"]["match"].endswith("/claude.yaml"))
+        self.assertEqual(rules[2], {"domain": {"match": "cdn.jsdmirror.com", "policy": "Direct"}})
+        self.assertTrue(rules[3]["rule_set"]["match"].endswith("/private.yaml"))
         self.assertTrue(rules[4]["rule_set"]["no_resolve"])
-        self.assertEqual(list(rules[-1]), ["default"])
+        self.assertEqual(rules[5]["rule_set"]["policy"], "REJECT")
+        self.assertEqual(len(rules), len(model["rules"]) + 1)
+        validate_rule_alignment(rules, model, files)
 
-    def test_private_routing_precedes_mcdn_then_mainland_direct_rules(self):
-        model = {
-            "rules": [
-                "RULE-SET,private,Direct",
-                "RULE-SET,private_ip,Direct,no-resolve",
-                "RULE-SET,mcdn屏蔽,REJECT",
-                "DOMAIN-SUFFIX,bilivideo.com,Direct",
-                "DOMAIN-SUFFIX,bilivideo.cn,Direct",
-                "RULE-SET,cn,Direct",
-                "MATCH,Final",
-            ]
-        }
-        rules = render_rules(model, {
-            "private": ["private.yaml"], "private_ip": ["private-ip.yaml"],
-            "mcdn屏蔽": ["mcdn-block.yaml"], "cn": ["cn.yaml"]
-        })
-        self.assertTrue(rules[1]["rule_set"]["match"].endswith("/private.yaml"))
-        self.assertEqual(rules[1]["rule_set"]["policy"], "Direct")
-        self.assertTrue(rules[2]["rule_set"]["match"].endswith("/private-ip.yaml"))
-        self.assertTrue(rules[2]["rule_set"]["no_resolve"])
-        self.assertEqual(rules[3], {"rule_set": {
-            "match": f"{RAW_BASE}/dist/egern/mcdn-block.yaml",
-            "policy": "REJECT", "name": "mcdn屏蔽", "update_interval": 86400,
-        }})
+    def test_service_rule_policies_are_not_overridden(self):
+        model = {"rules": [
+            "RULE-SET,youtube,媒体", "RULE-SET,appletv,Proxy",
+            "RULE-SET,bypass_japan,pron", "MATCH,Final",
+        ]}
+        files = {name: [name + ".yaml"] for name in ("youtube", "appletv", "bypass_japan")}
+        rules = render_rules(model, files)
         self.assertEqual(
-            sum(rule.get("rule_set", {}).get("name") == "mcdn屏蔽" for rule in rules), 1
+            [rule["rule_set"]["policy"] for rule in rules[1:-1]],
+            ["媒体", "Proxy", "pron"],
         )
-        self.assertEqual(rules[4], {"domain_suffix": {"match": "bilivideo.com", "policy": "Direct"}})
-        self.assertEqual(rules[5], {"domain_suffix": {"match": "bilivideo.cn", "policy": "Direct"}})
-        self.assertTrue(rules[6]["rule_set"]["match"].endswith("/cn.yaml"))
-        self.assertEqual(rules[-1], {"default": {"policy": "Final"}})
+        validate_rule_alignment(rules, model, files)
 
-    def test_youtube_rule_uses_its_own_group(self):
-        model = {
-            "rules": [
-                "RULE-SET,youtube,媒体",
-                "RULE-SET,meta,媒体",
-                "MATCH,Final",
-            ]
-        }
-        rules = render_rules(model, {"youtube": ["youtube.yaml"], "meta": ["meta.yaml"]})
-        self.assertEqual(rules[2]["rule_set"]["policy"], "YouTube")
-        self.assertEqual(rules[3]["rule_set"]["policy"], "媒体")
-
-    def test_claude_and_ai_rules_precede_github_without_dropping_rules(self):
-        model = {
-            "rules": [
-                "RULE-SET,steam_ip,Proxy,no-resolve",
-                "RULE-SET,apple_cn,Direct",
-                "RULE-SET,apple,Proxy",
-                "RULE-SET,github,GitHub",
-                "RULE-SET,claude,Claude",
-                "RULE-SET,ai,AI",
-                "MATCH,Final",
-            ]
-        }
-        provider_files = {
-            name: [name.replace("_", "-") + ".yaml"]
-            for name in ("steam_ip", "apple_cn", "apple", "github", "claude", "ai")
-        }
-        rules = render_rules(model, provider_files)
-        ordered = [
-            (rule["rule_set"]["match"].rsplit("/", 1)[-1], rule["rule_set"]["policy"])
-            for rule in rules
-            if "rule_set" in rule and rule["rule_set"].get("name") != "mcdn屏蔽"
-            and not rule["rule_set"]["match"].endswith("/apns.yaml")
+    def test_future_source_order_and_duplicates_are_preserved(self):
+        source = [
+            "RULE-SET,pikpak,PikPak", "RULE-SET,github,GitHub",
+            "RULE-SET,steam,Proxy", "RULE-SET,steam_ip,Proxy,no-resolve",
+            "RULE-SET,ai,AI", "RULE-SET,claude,Claude",
+            "RULE-SET,private,Direct", "RULE-SET,private,Direct", "MATCH,Final",
         ]
+        files = {name: [name + ".yaml"] for name in
+                 ("pikpak", "github", "steam", "steam_ip", "ai", "claude", "private")}
+        rules = render_rules({"rules": source}, files)
         self.assertEqual(
-            ordered,
-            [
-                ("steam-ip.yaml", "Proxy"),
-                ("apple-cn.yaml", "Direct"),
-                ("apple.yaml", "Proxy"),
-                ("claude.yaml", "Claude"),
-                ("ai.yaml", "AI"),
-                ("github.yaml", "GitHub"),
-            ],
+            [rule["rule_set"]["match"].rsplit("/", 1)[-1][:-5] for rule in rules[1:-1]],
+            ["pikpak", "github", "steam", "steam_ip", "ai", "claude", "private", "private"],
         )
+        self.assertEqual(len(rules), len(source) + 1)
+        validate_rule_alignment(rules, {"rules": source}, files)
 
-    def test_bypass_japan_rule_precedes_foreign_fallback(self):
-        model = {
-            "rules": [
-                "RULE-SET,bypass_japan,pron",
-                "RULE-SET,geolocation-!cn,Proxy",
-                "MATCH,Final",
-            ]
-        }
-        rules = render_rules(model, {
-            "bypass_japan": ["bypass-japan.yaml"],
-            "geolocation-!cn": ["geolocation-non-cn.yaml"],
-        })
-        self.assertEqual(rules[2]["rule_set"]["policy"], "porn")
-        self.assertEqual(rules[2]["rule_set"]["match"], f"{RAW_BASE}/dist/egern/bypass-japan.yaml")
-        self.assertEqual(rules[3]["rule_set"]["policy"], "Proxy")
+    def test_bypass_japan_preserves_the_source_policy_name(self):
+        model = {"rules": [
+            "RULE-SET,bypass_japan,pron", "RULE-SET,geolocation-!cn,Proxy", "MATCH,Final",
+        ]}
+        files = {"bypass_japan": ["bypass-japan.yaml"], "geolocation-!cn": ["geolocation-non-cn.yaml"]}
+        rules = render_rules(model, files)
+        self.assertEqual(rules[1]["rule_set"]["policy"], "pron")
+        self.assertEqual(rules[2]["rule_set"]["policy"], "Proxy")
+        validate_rule_alignment(rules, model, files)
 
-    def test_business_ip_pairs_require_adjacency_and_no_resolve(self):
-        valid = {
-            "providers": {
-                "service": {"behavior": "domain"},
-                "service_ip": {"behavior": "ipcidr"},
-                "cn_ip": {"behavior": "ipcidr"},
-            },
-            "rules": [
-                "RULE-SET,service,Proxy",
-                "RULE-SET,service_ip,Proxy,no-resolve",
-                "RULE-SET,cn_ip,Direct",
-                "MATCH,Final",
-            ],
-        }
-        validate_business_ip_pairs(valid)
-        missing_flag = {
-            **valid,
-            "rules": [
-                "RULE-SET,service,Proxy",
-                "RULE-SET,service_ip,Proxy",
-                "MATCH,Final",
-            ],
-        }
-        with self.assertRaises(BuildError):
-            validate_business_ip_pairs(missing_flag)
-        separated = {
-            **valid,
-            "rules": [
-                "RULE-SET,service,Proxy",
-                "DOMAIN-SUFFIX,example.com,Proxy",
-                "RULE-SET,service_ip,Proxy,no-resolve",
-                "MATCH,Final",
-            ],
-        }
-        with self.assertRaises(BuildError):
-            validate_business_ip_pairs(separated)
+    def test_alignment_rejects_reorder_extra_missing_policy_and_flag_changes(self):
+        model = {"rules": [
+            "RULE-SET,service,Proxy", "RULE-SET,service_ip,Proxy,no-resolve",
+            "DOMAIN,example.com,Direct", "MATCH,Final",
+        ]}
+        files = {"apns": ["apns.yaml"], "service": ["service.yaml"], "service_ip": ["service-ip.yaml"]}
+        original = render_rules(model, files)
+        for change in ("reorder", "extra", "missing", "policy", "flag", "apns"):
+            with self.subTest(change=change):
+                rules = json.loads(json.dumps(original))
+                if change == "reorder":
+                    rules[1], rules[2] = rules[2], rules[1]
+                elif change == "extra":
+                    rules.insert(2, rules[1])
+                elif change == "missing":
+                    rules.pop(1)
+                elif change == "policy":
+                    rules[1]["rule_set"]["policy"] = "Direct"
+                elif change == "flag":
+                    del rules[2]["rule_set"]["no_resolve"]
+                else:
+                    rules[0]["rule_set"]["policy"] = "Direct"
+                with self.assertRaises(BuildError):
+                    validate_rule_alignment(rules, model, files)
 
-    def test_two_doh_routes_are_omitted_but_upstreams_remain(self):
-        model = {
-            "dns": {
-                "nameserver": [
-                    "https://cloudflare-dns.com/dns-query#Proxy",
-                    "https://dns.google/dns-query#Proxy",
-                    "1.1.1.1#DIRECT",
-                ]
-            },
-            "rules": ["MATCH,Final"],
-        }
-        expected = [
-            {
-                "ip_cidr": {
-                    "match": "1.1.1.1/32",
-                    "policy": "DIRECT",
-                    "no_resolve": True,
-                }
-            },
-        ]
-        self.assertEqual(
-            nameservers(model),
-            [
-                "https://cloudflare-dns.com/dns-query",
-                "https://dns.google/dns-query",
-                "1.1.1.1",
-            ],
-        )
+    def test_dns_never_injects_additional_routing_rules(self):
+        model = {"dns": {"nameserver": [
+            "https://cloudflare-dns.com/dns-query#Proxy",
+            "https://dns.google/dns-query#Proxy",
+        ]}, "rules": ["MATCH,Final"]}
+        self.assertEqual(nameservers(model), [
+            "https://cloudflare-dns.com/dns-query", "https://dns.google/dns-query",
+        ])
         self.assertEqual(render_dns_upstreams(model)["Foreign"], nameservers(model))
-        self.assertEqual(render_nameserver_route_rules(model), expected)
-        self.assertEqual(render_rules(model, {})[2:3], expected)
+        rules = render_rules(model, {})
+        self.assertEqual(len(rules), 2)
+        validate_rule_alignment(rules, model, {})
+        for endpoint in ("1.1.1.1#DIRECT", "https://dns.example/dns-query#Proxy"):
+            with self.subTest(endpoint=endpoint), self.assertRaises(BuildError):
+                nameservers({"dns": {"nameserver": [endpoint]}})
 
     def test_nameserver_policy_suffix_cannot_be_silently_dropped(self):
-        with self.assertRaises(BuildError):
-            nameservers({"dns": {"nameserver": ["https://dns.example/dns-query#"]}})
-        with self.assertRaises(BuildError):
-            render_nameserver_route_rules(
-                {
-                    "dns": {
-                        "nameserver": [
-                            "https://dns.example/dns-query#Proxy",
-                            "https://dns.example/dns-query#DIRECT",
-                        ]
-                    }
-                }
-            )
+        for endpoint in (
+            "https://dns.example/dns-query#",
+            "https://dns.example/dns-query#DIRECT",
+            "https://dns.google/dns-query#DIRECT",
+        ):
+            with self.subTest(endpoint=endpoint), self.assertRaises(BuildError):
+                nameservers({"dns": {"nameserver": [endpoint]}})
 
     def test_groups_keep_subscription_private_and_region_filters_dynamic(self):
         model = {
@@ -324,6 +243,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "低倍率节点", "proxies": ["__低倍率节点__"]},
                 {"name": "Telegram", "proxies": ["Proxy", "低倍率节点"]},
                 {"name": "媒体", "proxies": ["Proxy", "低倍率节点"]},
+                {"name": "YouTube", "proxies": ["Proxy", "香港", "低倍率节点"]},
                 {"name": "PikPak", "proxies": ["Proxy", "Direct", "低倍率节点"]},
                 {"name": "pron", "proxies": []},
                 {"name": "Final", "proxies": ["Proxy", "Direct"]},
@@ -364,8 +284,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
-        self.assertEqual(by_name["porn"]["policies"], ["香港", "新加坡"])
-        self.assertFalse(by_name["porn"].get("flatten", False))
+        self.assertEqual(by_name["pron"]["policies"], ["香港", "新加坡"])
+        self.assertFalse(by_name["pron"].get("flatten", False))
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,
@@ -468,6 +388,29 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ],
         )
 
+    def test_dns_policy_prevents_only_redundant_synthesized_forwarding(self):
+        model = {
+            "dns": {"nameserver-policy": {
+                "rule-set:private": "system",
+                "rule-set:custom": ["system", "180.184.1.1"],
+            }},
+            "rules": [
+                "RULE-SET,private,Direct", "RULE-SET,private,Direct",
+                "RULE-SET,custom,Direct",
+                "DOMAIN-SUFFIX,internal.example,Direct",
+                "DOMAIN-SUFFIX,internal.example,Direct", "MATCH,Final",
+            ],
+        }
+        providers = {name: {"behavior": "domain"} for name in ("private", "custom")}
+        files = {name: [name + ".yaml"] for name in providers}
+        forward = render_dns_forward(model, providers, files)
+        matches = [next(iter(item.values()))["match"] for item in forward]
+        self.assertEqual(matches.count(f"{RAW_BASE}/dist/egern/private.yaml"), 1)
+        self.assertEqual(matches.count(f"{RAW_BASE}/dist/egern/custom.yaml"), 1)
+        self.assertEqual(matches.count("internal.example"), 2)
+        self.assertEqual(forward[2]["proxy_rule_set"]["value"], "Policy-custom")
+        self.assertEqual(len(render_rules(model, files)), len(model["rules"]) + 1)
+
     def test_dns_policy_preserves_system_and_explicit_servers(self):
         model = {
             "dns": {
@@ -498,8 +441,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         model = {
             "dns": {
                 "nameserver": [
-                    "https://dns.example/dns-query#Proxy",
-                    "https://dns.example/dns-query#Proxy",
+                    "https://cloudflare-dns.com/dns-query#Proxy",
+                    "https://cloudflare-dns.com/dns-query#Proxy",
                 ],
             },
             "rules": [
@@ -509,7 +452,6 @@ class EgernProfileBuilderTests(unittest.TestCase):
             ],
         }
         self.assertEqual(len(nameservers(model)), 2)
-        self.assertEqual(len(render_nameserver_route_rules(model)), 2)
         forward = render_dns_forward(model, {}, {})
         self.assertEqual(forward[1], forward[2])
         self.assertEqual(len(forward), 4)
@@ -587,43 +529,33 @@ class EgernProfileBuilderTests(unittest.TestCase):
             with self.assertRaises(BuildError):
                 load_manifest_rules(model, manifest, "converter-commit")
 
-    def test_manifest_loads_egern_only_privaterelay_and_checks_its_digest(self):
-        model = {"providers": {}, "rules": ["MATCH,Final"]}
-        texts = {
-            "apns.yaml": "domain_set:\n- push.apple.com\n",
-            "privaterelay.yaml": "domain_suffix_set:\n- mask.icloud.com\ndomain_set:\n- mask.apple-dns.net\n",
+    def test_manifest_does_not_load_converter_only_artifacts(self):
+        text = "domain_set:\n- push.apple.com\n"
+        sequence = [("domain_set", "push.apple.com")]
+        digest = hashlib.sha256(
+            json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode()
+        ).hexdigest()
+        apns = {
+            "provider": "apns", "source_entries": 1, "entries": 1,
+            "source_order_sha256": digest, "native_entries_sha256": digest,
+            "output": "dist/egern/apns.yaml",
+            "output_sha256": hashlib.sha256(text.encode()).hexdigest(),
+            "source_repository": "ttyyss2233/Tool", "source_path": "shadowrocket/rules/apns.list",
         }
-        def record(provider, filename, sequence):
-            digest = hashlib.sha256(
-                json.dumps(sequence, ensure_ascii=False, separators=(",", ":")).encode()
-            ).hexdigest()
-            return {
-                "provider": provider, "behavior": "domain", "source_entries": len(sequence),
-                "entries": len(sequence), "source_order_sha256": digest,
-                "native_entries_sha256": digest, "output": "dist/egern/" + filename,
-                "output_sha256": hashlib.sha256(texts[filename].encode()).hexdigest(),
-            }
-        apns = record("apns", "apns.yaml", [("domain_set", "push.apple.com")])
-        apns.update({"source_repository": "ttyyss2233/Tool", "source_path": "shadowrocket/rules/apns.list"})
-        private = record("privaterelay", "privaterelay.yaml", [
-            ("domain_suffix_set", "mask.icloud.com"), ("domain_set", "mask.apple-dns.net"),
-        ])
-        private["egern_only"] = True
         manifest = {
             "schema_version": 3, "mihomo_script": {"repository": "frostmage1250/mihomo-script"},
-            "native_rule_sets": [apns], "egern_only_rule_sets": [private],
+            "native_rule_sets": [apns],
+            "egern_only_rule_sets": [{"provider": "privaterelay", "output": "dist/egern/privaterelay.yaml"}],
         }
-        with patch("build_egern.download_text", side_effect=lambda url: texts[url.rsplit("/", 1)[-1]]):
-            generated, files = load_manifest_rules(model, manifest, "converter-commit")
-            self.assertEqual(files["privaterelay"], ["privaterelay.yaml"])
-            self.assertEqual(generated["privaterelay.yaml"]["domain_set"], ["mask.apple-dns.net"])
-            private["output_sha256"] = "0" * 64
-            with self.assertRaises(BuildError):
-                load_manifest_rules(model, manifest, "converter-commit")
-        with patch("build_egern.download_text", side_effect=lambda url: texts[url.rsplit("/", 1)[-1]]):
-            private["egern_only"] = False
-            with self.assertRaises(BuildError):
-                load_manifest_rules(model, manifest, "converter-commit")
+        with patch("build_egern.download_text", return_value=text) as download:
+            generated, files = load_manifest_rules(
+                {"providers": {}, "rules": ["MATCH,Final"]}, manifest, "converter-commit"
+            )
+            self.assertEqual(list(files), ["apns"])
+            self.assertEqual(list(generated), ["apns.yaml"])
+            download.assert_called_once_with(
+                "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/converter-commit/dist/egern/apns.yaml"
+            )
 
     def test_manifest_must_cover_all_referenced_providers(self):
         model = {

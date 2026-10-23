@@ -24,8 +24,6 @@ MIHOMO_REPO = "frostmage1250/mihomo-script"
 CONVERTER_REPO = "frostmage1250/proxy-rules-converter"
 CONVERTER_MANIFEST_PATH = "reports/egern-source.json"
 APNS_FILENAME = "apns.yaml"
-PRIVATERELAY_PROVIDER = "privaterelay"
-PRIVATERELAY_FILENAME = "privaterelay.yaml"
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -58,15 +56,11 @@ REAL_IP_DOMAINS = [
     "appboot.netflix.com",
     "*-appboot.netflix.com",
 ]
-MCDN_PROVIDER = "mcdn屏蔽"
-MCDN_FILENAME = "mcdn-block.yaml"
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
-NON_SERVICE_IP_PROVIDERS = {"cn_ip", "private_ip"}
-DNS_ROUTE_EXCLUDED_HOSTS = {"cloudflare-dns.com", "dns.google"}
+LEGACY_DNS_ROUTE_EXCLUDED_HOSTS = {"cloudflare-dns.com", "dns.google"}
 
 class BuildError(RuntimeError):
     pass
-
 
 
 def download_text(url: str) -> str:
@@ -75,7 +69,6 @@ def download_text(url: str) -> str:
         if getattr(response, "status", 200) != 200:
             raise BuildError(f"HTTP error while fetching {url}")
         return response.read().decode("utf-8-sig")
-
 
 
 def referenced_providers(model: dict[str, Any]) -> list[str]:
@@ -88,41 +81,6 @@ def referenced_providers(model: dict[str, Any]) -> list[str]:
         if isinstance(key, str) and key.startswith("rule-set:"):
             result.append(key.removeprefix("rule-set:"))
     return list(dict.fromkeys(result))
-
-
-def validate_business_ip_pairs(model: dict[str, Any]) -> None:
-    rules = model["rules"]
-    providers = model["providers"]
-    for index, raw in enumerate(rules):
-        parts = raw.split(",")
-        if parts[0] != "RULE-SET" or len(parts) < 3:
-            continue
-        provider = parts[1]
-        definition = providers.get(provider, {})
-        if (
-            definition.get("behavior") != "ipcidr"
-            or provider in NON_SERVICE_IP_PROVIDERS
-        ):
-            continue
-        if parts[-1] != "no-resolve":
-            raise BuildError(
-                f"Business IP provider must use no-resolve: {provider}"
-            )
-        if index == 0:
-            raise BuildError(f"Business IP provider has no domain pair: {provider}")
-        previous = rules[index - 1].split(",")
-        previous_no_resolve = previous[-1] == "no-resolve"
-        previous_policy = previous[-2] if previous_no_resolve else previous[-1]
-        policy = parts[-2]
-        if (
-            previous[0] != "RULE-SET"
-            or len(previous) < 3
-            or providers.get(previous[1], {}).get("behavior") != "domain"
-            or previous_policy != policy
-        ):
-            raise BuildError(
-                f"Business IP provider must immediately follow its domain pair: {provider}"
-            )
 
 
 def regex_text(item: dict[str, str]) -> str:
@@ -164,10 +122,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
     for source in model["groups"]:
-        name = "porn" if source["name"] in {"绕过日本", "pron"} else source["name"]
-        if name == "YouTube":
-            continue
-        if name == "porn":
+        name = source["name"]
+        if name == "pron":
             groups.append({"select": {"name": name, "policies": ["香港", "新加坡"]}})
             continue
         if name == "订阅":
@@ -215,8 +171,6 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
-        if name == "媒体":
-            groups.append({"select": {"name": "YouTube", "policies": ["Proxy", "香港", "低倍率节点"]}})
     return groups, filters
 
 
@@ -232,121 +186,10 @@ def split_nameserver_policy(value: str) -> tuple[str, str | None]:
     return server, policy
 
 
-def nameserver_host(server: str) -> str:
-    try:
-        return str(ipaddress.ip_address(server))
-    except ValueError:
-        pass
-    host = urlsplit(server).hostname if "://" in server else urlsplit(f"//{server}").hostname
-    if not host:
-        raise BuildError(f"Cannot derive a DNS server endpoint from {server!r}")
-    return host.lower()
-
-
-def render_nameserver_route_rules(model: dict[str, Any]) -> list[dict[str, Any]]:
-    rules: list[dict[str, Any]] = []
-    seen: dict[tuple[str, str], str] = {}
-    for value in model.get("dns", {}).get("nameserver", []):
-        if not isinstance(value, str):
-            continue
-        server, policy = split_nameserver_policy(value)
-        if policy is None:
-            continue
-        host = nameserver_host(server)
-        try:
-            address = ipaddress.ip_address(host)
-        except ValueError:
-            kind = "domain"
-            match = host
-            item: dict[str, Any] = {"match": match, "policy": policy}
-        else:
-            kind = "ip_cidr" if address.version == 4 else "ip_cidr6"
-            match = f"{address}/{address.max_prefixlen}"
-            item = {"match": match, "policy": policy, "no_resolve": True}
-        key = (kind, match)
-        previous = seen.get(key)
-        if previous is not None and previous != policy:
-            raise BuildError(
-                f"Conflicting Mihomo DNS policies for {host}: {previous!r} and {policy!r}"
-            )
-        seen[key] = policy
-        if host not in DNS_ROUTE_EXCLUDED_HOSTS:
-            rules.append({kind: item})
-    return rules
-
-
-def prioritize_ai_rules(rules: list[str]) -> list[str]:
-    def provider(raw: str) -> str | None:
-        parts = raw.split(",", 2)
-        return parts[1] if len(parts) >= 3 and parts[0] == "RULE-SET" else None
-
-    if not any(provider(raw) == "github" for raw in rules):
-        return rules
-    selected: list[str] = []
-    for name in ("claude", "ai"):
-        matches = [raw for raw in rules if provider(raw) == name]
-        if len(matches) != 1:
-            raise BuildError(f"Expected one {name} rule before GitHub routing")
-        selected.extend(matches)
-    remaining = [raw for raw in rules if provider(raw) not in {"claude", "ai"}]
-    anchor = next(index for index, raw in enumerate(remaining) if provider(raw) == "github")
-    return remaining[:anchor] + selected + remaining[anchor:]
-
-
-def prioritize_steam_rules(rules: list[str]) -> list[str]:
-    """Keep the Steam domain/IP pair together immediately before PikPak."""
-    def provider(raw: str) -> str | None:
-        parts = raw.split(",", 2)
-        return parts[1] if len(parts) >= 3 and parts[0] == "RULE-SET" else None
-
-    if not any(provider(raw) == "pikpak" for raw in rules):
-        return rules
-    selected = [raw for raw in rules if provider(raw) in {"steam", "steam_ip"}]
-    if not selected:
-        return rules
-    if [provider(raw) for raw in selected] != ["steam", "steam_ip"]:
-        raise BuildError("Expected one Steam domain rule followed by its IP rule")
-    remaining = [raw for raw in rules if provider(raw) not in {"steam", "steam_ip"}]
-    anchor = next(index for index, raw in enumerate(remaining) if provider(raw) == "pikpak")
-    return remaining[:anchor] + selected + remaining[anchor:]
-
-
-def render_private_route_rules(
-    model: dict[str, Any], provider_files: dict[str, list[str]]
-) -> list[dict[str, Any]]:
-    result: list[dict[str, Any]] = []
-    for provider in ("private", "private_ip"):
-        matches = [
-            raw for raw in model["rules"]
-            if raw.split(",")[:2] == ["RULE-SET", provider]
-        ]
-        if not matches:
-            continue
-        if len(matches) != 1:
-            raise BuildError(f"Expected one Private routing rule: {provider}")
-        parts = matches[0].split(",")
-        no_resolve = parts[-1] == "no-resolve"
-        policy = parts[-2] if no_resolve else parts[-1]
-        if policy != "Direct":
-            raise BuildError(f"Private routing must use Direct: {provider}")
-        filenames = provider_files.get(provider)
-        if not filenames:
-            raise BuildError(f"Missing Private native rule set: {provider}")
-        for filename in filenames:
-            item: dict[str, Any] = {
-                "match": f"{RAW_BASE}/dist/egern/{filename}",
-                "policy": policy,
-                "update_interval": 86400,
-            }
-            if no_resolve or provider == "private_ip":
-                item["no_resolve"] = True
-            result.append({"rule_set": item})
-    return result
-
-
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
+    """Prepend APNs, then translate every Mihomo rule exactly once in source order."""
     rules: list[dict[str, Any]] = []
     for filename in provider_files.get("apns", [APNS_FILENAME]):
         rules.append({
@@ -357,66 +200,87 @@ def render_rules(
                 "no_resolve": True,
             }
         })
-    rules.extend(render_private_route_rules(model, provider_files))
-    for filename in provider_files.get(MCDN_PROVIDER, [MCDN_FILENAME]):
-        rules.append({
-            "rule_set": {
-                "match": f"{RAW_BASE}/dist/egern/{filename}",
-                "policy": "REJECT",
-                "name": MCDN_PROVIDER,
-                "update_interval": 86400,
-            }
-        })
-    rules.extend(render_nameserver_route_rules(model))
-    privaterelay_files = provider_files.get(PRIVATERELAY_PROVIDER, [])
-    privaterelay_inserted = False
-    for raw in prioritize_steam_rules(prioritize_ai_rules(model["rules"])):
+    for raw in model["rules"]:
         parts = raw.split(",")
         kind = parts[0]
         if kind == "MATCH" and len(parts) == 2:
             rules.append({"default": {"policy": parts[1]}})
-        elif kind == "RULE-SET" and len(parts) >= 3:
+        elif kind == "RULE-SET" and (
+            len(parts) == 3 or (len(parts) == 4 and parts[-1] == "no-resolve")
+        ):
             provider = parts[1]
-            if provider == MCDN_PROVIDER:
-                if raw != f"RULE-SET,{MCDN_PROVIDER},REJECT":
-                    raise BuildError("MCDN blocking must use REJECT without extra flags")
-                continue
-            if provider in {"private", "private_ip"}:
-                continue
-            if provider == "apple" and privaterelay_files and not privaterelay_inserted:
-                for filename in privaterelay_files:
-                    rules.append({
-                        "rule_set": {
-                            "match": f"{RAW_BASE}/dist/egern/{filename}",
-                            "policy": "Proxy",
-                            "name": PRIVATERELAY_PROVIDER,
-                            "update_interval": 86400,
-                        }
-                    })
-                privaterelay_inserted = True
             filenames = provider_files.get(provider)
-            if not filenames:
-                raise BuildError(f"Rule references missing generated provider: {provider}")
-            no_resolve = parts[-1] == "no-resolve"
-            policy = {"youtube": "YouTube", "appletv": "媒体", "bypass_japan": "porn"}.get(provider, parts[-2] if no_resolve else parts[-1])
-            for filename in filenames:
-                item: dict[str, Any] = {
-                    "match": f"{RAW_BASE}/dist/egern/{filename}",
-                    "policy": policy,
-                    "update_interval": 86400,
-                }
-                if no_resolve:
-                    item["no_resolve"] = True
-                rules.append({"rule_set": item})
+            if not filenames or len(filenames) != 1:
+                raise BuildError(f"Expected one native file for Mihomo provider: {provider}")
+            no_resolve = len(parts) == 4
+            item: dict[str, Any] = {
+                "match": f"{RAW_BASE}/dist/egern/{filenames[0]}",
+                "policy": parts[2],
+                "update_interval": 86400,
+            }
+            if no_resolve:
+                item["no_resolve"] = True
+            rules.append({"rule_set": item})
         elif kind == "DOMAIN-SUFFIX" and len(parts) == 3:
             rules.append({"domain_suffix": {"match": parts[1], "policy": parts[2]}})
         elif kind == "DOMAIN" and len(parts) == 3:
             rules.append({"domain": {"match": parts[1], "policy": parts[2]}})
         else:
             raise BuildError(f"Unsupported Mihomo rule: {raw}")
-    if privaterelay_files and not privaterelay_inserted:
-        raise BuildError("Private Relay requires an Apple merge routing anchor")
     return rules
+
+
+def validate_rule_alignment(
+    rules: list[dict[str, Any]],
+    model: dict[str, Any],
+    provider_files: dict[str, list[str]],
+) -> None:
+    """Reverse the published rules and compare them with the untouched source list."""
+    apns_files = provider_files.get("apns", [APNS_FILENAME])
+    if apns_files != [APNS_FILENAME] or not rules or rules[0] != {
+        "rule_set": {
+            "match": f"{RAW_BASE}/dist/egern/{APNS_FILENAME}",
+            "policy": "Proxy",
+            "update_interval": 86400,
+            "no_resolve": True,
+        }
+    }:
+        raise BuildError("Exactly one APNs rule must be first")
+    provider_by_url = {
+        f"{RAW_BASE}/dist/egern/{filename}": provider
+        for provider, filenames in provider_files.items()
+        if provider != "apns"
+        for filename in filenames
+    }
+    actual: list[str] = []
+    kinds = {"domain": "DOMAIN", "domain_suffix": "DOMAIN-SUFFIX"}
+    for wrapper in rules[1:]:
+        if len(wrapper) != 1:
+            raise BuildError("Routing rule must contain exactly one matcher")
+        kind, item = next(iter(wrapper.items()))
+        if kind == "rule_set":
+            provider = provider_by_url.get(item.get("match"))
+            if provider is None or set(item) - {"match", "policy", "update_interval", "no_resolve"}:
+                raise BuildError("Unexpected rule set outside the Mihomo model")
+            if item.get("update_interval") != 86400:
+                raise BuildError("Rule-set update interval changed")
+            raw = f"RULE-SET,{provider},{item['policy']}"
+            if "no_resolve" in item:
+                if item["no_resolve"] is not True:
+                    raise BuildError("Invalid no_resolve flag")
+                raw += ",no-resolve"
+        elif kind == "default" and set(item) == {"policy"}:
+            raw = f"MATCH,{item['policy']}"
+        elif kind in kinds and set(item) == {"match", "policy"}:
+            raw = f"{kinds[kind]},{item['match']},{item['policy']}"
+        else:
+            raise BuildError(f"Unexpected routing matcher: {kind}")
+        actual.append(raw)
+    if actual != model["rules"]:
+        raise BuildError(
+            "Egern routing differs from Mihomo in order, count, policy, or no-resolve; "
+            "APNs is the only permitted extra rule"
+        )
 
 
 def nameservers(model: dict[str, Any]) -> list[str]:
@@ -424,7 +288,14 @@ def nameservers(model: dict[str, Any]) -> list[str]:
     for value in model.get("dns", {}).get("nameserver", []):
         if not isinstance(value, str):
             continue
-        server, _policy = split_nameserver_policy(value)
+        server, policy = split_nameserver_policy(value)
+        if policy is not None and (
+            urlsplit(server).hostname not in LEGACY_DNS_ROUTE_EXCLUDED_HOSTS or policy != "Proxy"
+        ):
+            raise BuildError(
+                "DNS routing suffix requires an explicit rule in the Mihomo source; "
+                f"Egern cannot inject endpoint routing rules: {value!r}"
+            )
         result.append(server)
     if not result:
         raise BuildError("Mihomo DNS model contains no nameservers")
@@ -546,6 +417,10 @@ def render_dns_forward(
     # Egern has no policy-aware direct re-resolution. Preserve every explicit
     # domain rule whose final Mihomo target is Direct by selecting system DNS
     # before the foreign catch-all.
+    policy_providers = {
+        key.removeprefix("rule-set:")
+        for key in model.get("dns", {}).get("nameserver-policy", {})
+    }
     for raw in model["rules"]:
         parts = raw.split(",")
         kind = parts[0]
@@ -555,6 +430,10 @@ def render_dns_forward(
             continue
         if kind == "RULE-SET" and len(parts) >= 3:
             provider = parts[1]
+            # Explicit DNS policy already handles this matcher, even if its target
+            # differs. Do not synthesize an unreachable second forwarding rule.
+            if provider in policy_providers:
+                continue
             definition = providers.get(provider)
             if definition is None:
                 raise BuildError(f"Direct rule references missing provider: {provider}")
@@ -616,48 +495,10 @@ def validate_profile(
     ):
         raise BuildError("Proxy must flatten all nodes from both subscription groups without a regional filter")
     known = set(names) | BUILTIN_POLICIES
-    apns_files = provider_files.get("apns")
-    if not apns_files or any(filename not in generated for filename in apns_files):
+    apns_files = provider_files.get("apns", [])
+    if any(filename not in generated for filename in apns_files):
         raise BuildError("APNs native rule set was not generated")
-    for index, filename in enumerate(apns_files):
-        apns_rule = profile["rules"][index].get("rule_set", {})
-        if (
-            apns_rule.get("match") != f"{RAW_BASE}/dist/egern/{filename}"
-            or apns_rule.get("policy") != "Proxy"
-            or apns_rule.get("no_resolve") is not True
-        ):
-            raise BuildError("APNs rule set must be first")
-    private_rules = render_private_route_rules(model, provider_files)
-    private_offset = len(apns_files)
-    if profile["rules"][private_offset:private_offset + len(private_rules)] != private_rules:
-        raise BuildError("Private routing must immediately follow APNs")
-    private_matches = {rule["rule_set"]["match"] for rule in private_rules}
-    if sum(rule.get("rule_set", {}).get("match") in private_matches for rule in profile["rules"]) != len(private_rules):
-        raise BuildError("Private routing must not be duplicated")
-    mcdn_files = provider_files.get(MCDN_PROVIDER)
-    if not mcdn_files or any(filename not in generated for filename in mcdn_files):
-        raise BuildError("MCDN native rule set was not published")
-    if model["rules"].count(f"RULE-SET,{MCDN_PROVIDER},REJECT") != 1:
-        raise BuildError("Mihomo must reference the MCDN REJECT rule exactly once")
-    mcdn_offset = private_offset + len(private_rules)
-    expected_mcdn_rules = [
-        {"rule_set": {
-            "match": f"{RAW_BASE}/dist/egern/{filename}",
-            "policy": "REJECT",
-            "name": MCDN_PROVIDER,
-            "update_interval": 86400,
-        }}
-        for filename in mcdn_files
-    ]
-    if profile["rules"][mcdn_offset:mcdn_offset + len(mcdn_files)] != expected_mcdn_rules:
-        raise BuildError("MCDN blocking must immediately follow Private routing")
-    mcdn_matches = {rule["rule_set"]["match"] for rule in expected_mcdn_rules}
-    if sum(rule.get("rule_set", {}).get("match") in mcdn_matches for rule in profile["rules"]) != len(mcdn_files):
-        raise BuildError("MCDN blocking must not be duplicated")
-    expected_nameserver_routes = render_nameserver_route_rules(model)
-    offset = mcdn_offset + len(mcdn_files)
-    if profile["rules"][offset:offset + len(expected_nameserver_routes)] != expected_nameserver_routes:
-        raise BuildError("Mihomo DNS nameserver policy suffixes were not preserved")
+    validate_rule_alignment(profile["rules"], model, provider_files)
     for index, filename in enumerate(apns_files):
         first_dns_rule = profile["dns"]["forward"][index].get("proxy_rule_set", {})
         if (
@@ -691,115 +532,21 @@ def validate_profile(
         or hong_kong_group.get("filter") != regex_text(next(entry for entry in model["regions"] if entry["name"] == "香港"))
     ):
         raise BuildError("Hong Kong group must filter both subscription groups")
-    if (
-        "YouTube" not in names
-        or groups[names.index("YouTube")].get("policies") != ["Proxy", "香港", "低倍率节点"]
-        or groups[names.index("YouTube")].get("flatten", False)
-    ):
-        raise BuildError("YouTube must offer Proxy, Hong Kong, and low-rate choices without flattening nodes")
     for target in ("YouTube", "媒体", "PikPak", "Telegram"):
         if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the Hong Kong policy group")
     if (
-        "porn" not in names
-        or groups[names.index("porn")].get("policies") != ["香港", "新加坡"]
-        or groups[names.index("porn")].get("flatten", False)
+        "pron" not in names
+        or groups[names.index("pron")].get("policies") != ["香港", "新加坡"]
+        or groups[names.index("pron")].get("flatten", False)
     ):
-        raise BuildError("porn must offer Hong Kong and Singapore groups without flattening nodes")
+        raise BuildError("pron must offer Hong Kong and Singapore groups without flattening nodes")
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
         for subscription in ("订阅", "订阅2"):
             if subscription not in groups[names.index(target)].get("policies", []):
                 raise BuildError(f"{target} must include the {subscription} policy group")
-    youtube_files = provider_files.get("youtube")
-    if not youtube_files:
-        raise BuildError("YouTube rule set is missing")
-    for filename in youtube_files:
-        match = f"{RAW_BASE}/dist/egern/{filename}"
-        if not any(
-            rule.get("rule_set", {}).get("match") == match
-            and rule["rule_set"].get("policy") == "YouTube"
-            for rule in profile["rules"]
-        ):
-            raise BuildError(f"YouTube rule set must use the YouTube group: {filename}")
-    bypass_files = provider_files.get("bypass_japan")
-    if not bypass_files or len(bypass_files) != 1:
-        raise BuildError("porn native rule set is missing")
-    bypass_match = f"{RAW_BASE}/dist/egern/{bypass_files[0]}"
-    if not any(
-        rule.get("rule_set", {}).get("match") == bypass_match
-        and rule["rule_set"].get("policy") == "porn"
-        for rule in profile["rules"]
-    ):
-        raise BuildError("porn rule set must use the porn group")
-    if provider_files.get(PRIVATERELAY_PROVIDER) != [PRIVATERELAY_FILENAME]:
-        raise BuildError("Egern-only Private Relay rule set is missing")
-    private_positions = [
-        index for index, rule in enumerate(profile["rules"])
-        if rule.get("rule_set", {}).get("match") == f"{RAW_BASE}/dist/egern/{PRIVATERELAY_FILENAME}"
-    ]
-    apple_merge_positions = [
-        index for index, rule in enumerate(profile["rules"])
-        if rule.get("rule_set", {}).get("match") == f"{RAW_BASE}/dist/egern/apple-merged.yaml"
-    ]
-    if (
-        len(private_positions) != 1 or len(apple_merge_positions) != 1
-        or private_positions[0] + 1 != apple_merge_positions[0]
-        or profile["rules"][private_positions[0]]["rule_set"].get("policy") != "Proxy"
-    ):
-        raise BuildError("Private Relay must use Proxy immediately before Apple merge")
-    appletv_files = provider_files.get("appletv")
-    if not appletv_files:
-        raise BuildError("AppleTV native rule set is missing")
-    for filename in appletv_files:
-        match = f"{RAW_BASE}/dist/egern/{filename}"
-        if not any(
-            rule.get("rule_set", {}).get("match") == match
-            and rule["rule_set"].get("policy") == "媒体"
-            for rule in profile["rules"]
-        ):
-            raise BuildError("AppleTV must target the media policy group")
-    steam_positions: list[int] = []
-    for provider in ("steam", "steam_ip", "pikpak"):
-        filenames = provider_files.get(provider)
-        if not filenames or len(filenames) != 1:
-            raise BuildError(f"Expected one native rule set for {provider}")
-        match = f"{RAW_BASE}/dist/egern/{filenames[0]}"
-        positions = [
-            index for index, rule in enumerate(profile["rules"])
-            if rule.get("rule_set", {}).get("match") == match
-        ]
-        if len(positions) != 1:
-            raise BuildError(f"Expected one Egern routing rule for {provider}")
-        steam_positions.append(positions[0])
-    if steam_positions != list(range(steam_positions[0], steam_positions[0] + 3)):
-        raise BuildError("Steam domain/IP routing must immediately precede PikPak")
-    priority_positions: list[int] = []
-    for provider in ("claude", "ai", "github"):
-        filenames = provider_files.get(provider)
-        if not filenames or len(filenames) != 1:
-            raise BuildError(f"Expected one native rule set for {provider}")
-        match = f"{RAW_BASE}/dist/egern/{filenames[0]}"
-        positions = [
-            index for index, rule in enumerate(profile["rules"])
-            if rule.get("rule_set", {}).get("match") == match
-        ]
-        if len(positions) != 1:
-            raise BuildError(f"Expected one Egern routing rule for {provider}")
-        priority_positions.append(positions[0])
-    if priority_positions != sorted(priority_positions):
-        raise BuildError("Claude and AI must precede GitHub routing")
-    for provider, filenames in provider_files.items():
-        for filename in filenames:
-            native_rule = generated[filename]
-            if any(
-                field in native_rule
-                for field in ("ip_cidr_set", "ip_cidr6_set", "asn_set", "geoip_set")
-            ) and native_rule.get("no_resolve") is not True:
-                raise BuildError(
-                    f"IP-capable native rule set must use no_resolve: {provider}"
-                )
     for index, wrapper in enumerate(profile["rules"]):
         kind, value = next(iter(wrapper.items()))
         policy = value["policy"]
@@ -842,7 +589,6 @@ def validate_profile(
             raise BuildError(f"Flower host mapping missing: {hostname}")
 
 
-
 def load_manifest_rules(
     model: dict[str, Any], manifest: dict[str, Any], converter_commit: str
 ) -> tuple[dict[str, dict[str, Any]], dict[str, list[str]]]:
@@ -857,17 +603,10 @@ def load_manifest_rules(
     ] != ["apns", *wanted] or len(records) != len(wanted) + 1:
         raise BuildError("Rule manifest does not match the Mihomo provider model")
 
-    egern_only_records = manifest.get("egern_only_rule_sets", [])
-    if (
-        not isinstance(egern_only_records, list)
-        or any(not isinstance(record, dict) for record in egern_only_records)
-        or [record.get("provider") for record in egern_only_records] not in ([], [PRIVATERELAY_PROVIDER])
-    ):
-        raise BuildError("Unsupported Egern-only rule manifest")
-
     generated: dict[str, dict[str, Any]] = {}
     provider_files: dict[str, list[str]] = {}
-    for record in [*records, *egern_only_records]:
+    # Optional converter-only artifacts are not Egern routing exceptions.
+    for record in records:
         name = record["provider"]
         if name == "apns":
             if (
@@ -875,13 +614,6 @@ def load_manifest_rules(
                 or record.get("source_path") != "shadowrocket/rules/apns.list"
             ):
                 raise BuildError("APNs rule manifest source changed")
-        elif name == PRIVATERELAY_PROVIDER:
-            if (
-                record.get("egern_only") is not True
-                or record.get("behavior") != "domain"
-                or record.get("output") != f"dist/egern/{PRIVATERELAY_FILENAME}"
-            ):
-                raise BuildError("Invalid Egern-only Private Relay source")
         else:
             provider = model["providers"].get(name)
             if (
@@ -918,8 +650,6 @@ def load_manifest_rules(
         rule = yaml.safe_load(rule_text)
         if not isinstance(rule, dict):
             raise BuildError(f"Published Egern rule is not YAML mapping: {name}")
-        if name == PRIVATERELAY_PROVIDER and not set(rule) <= {"domain_set", "domain_suffix_set"}:
-            raise BuildError("Private Relay must contain domain rules only")
         sequence: list[tuple[str, str]] = []
         for field, values in rule.items():
             if isinstance(values, list):
@@ -935,7 +665,7 @@ def load_manifest_rules(
         ).hexdigest()
         if computed_native_sha != native_sha:
             raise BuildError(f"Published Egern native rule order differs from manifest: {name}")
-        if any(field in rule for field in ("ip_cidr_set", "ip_cidr6_set", "asn_set")):
+        if any(field in rule for field in ("ip_cidr_set", "ip_cidr6_set", "asn_set", "geoip_set")):
             if rule.get("no_resolve") is not True:
                 raise BuildError(f"Published Egern IP rules must disable resolution: {name}")
         generated[filename] = rule
@@ -967,7 +697,6 @@ def main() -> int:
         manifest = json.loads(manifest_text)
         if manifest.get("mihomo_script", {}).get("commit") != args.mihomo_commit:
             raise BuildError("Mihomo script commit differs from converter rule manifest")
-        validate_business_ip_pairs(model)
         generated, provider_files = load_manifest_rules(model, manifest, args.converter_commit)
         groups, filters = render_policy_groups(model)
         rules = render_rules(model, provider_files)
@@ -1008,13 +737,22 @@ def main() -> int:
             "policy_groups": len(groups),
             "routing_rules": len(rules),
             "native_rule_sets": manifest["native_rule_sets"],
-            "egern_only_rule_sets": manifest.get("egern_only_rule_sets", []),
+            "ignored_egern_only_providers": [
+                record.get("provider")
+                for record in manifest.get("egern_only_rule_sets", [])
+                if isinstance(record, dict)
+            ],
+            "routing_alignment": {
+                "only_apns_exception": True,
+                "apns_rules": 1,
+                "mihomo_rules": model["rules"],
+                "shared_rule_count": len(model["rules"]),
+            },
             "group_filters": filters,
             "dns": {
                 "bootstrap": profile["dns"]["bootstrap"],
                 "forward_rules": len(profile["dns"]["forward"]),
                 "upstreams": profile["dns"]["upstreams"],
-                "nameserver_route_rules": len(render_nameserver_route_rules(model)),
                 "proxy_nameservers": profile["dns"]["proxy_nameservers"],
             },
             "subscription": {
@@ -1025,21 +763,19 @@ def main() -> int:
                 "reason": "Default group names are public; subscription credentials remain local.",
             },
             "migration_boundaries": [
+                "APNs is the only routing exception: one Proxy rule is prepended and its DNS Forward uses Foreign.",
+                "All remaining routing rules preserve the Mihomo source order, duplicates, policies, and no-resolve flags exactly.",
+                "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering or target overrides.",
+                "Optional converter-only rule sets are not loaded or inserted into the profile.",
+                "The pron policy group keeps the source name; local subscription and service-group choices remain Egern settings.",
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
-                "Mihomo default-nameserver additions, removals, and order are preserved as plain-UDP bootstrap IPs because Egern bootstrap only supports plain UDP.",
-                "The two user-excluded DoH endpoint routes are omitted while their DNS upstreams remain configured; other Mihomo nameserver policy suffixes map to explicit Egern routing rules.",
-                "Mihomo nameserver-policy server lists map to Egern upstream groups; explicit Direct domain rules map to Egern Forward system rules. Egern cannot re-resolve from a runtime policy-group selection.",
-                "The explicit Egern real_ip_domains list mirrors Repcz/Tool X/Egern/Egern.yaml; other Fake-IP behavior follows Egern defaults.",
-                "The user-requested mcdn屏蔽 native rule set uses REJECT immediately after Private routing; no supplemental MCDN DNS Hosts mappings are emitted.",
-
-                "The user-requested Claude and AI rules precede GitHub routing while retaining Claude before AI.",
-                "The Steam domain/IP pair immediately precedes PikPak and the remaining cloud-storage/site rule block.",
-                "AppleTV uses the converter's full Bett native rule set and the media policy; media business groups follow AppleTV, Twitch, Twitter, TikTok, YouTube, Meta with adjacent IP fallbacks.",
-                "The user-requested porn group offers Hong Kong and Singapore policy groups without flattening nodes and routes the converter's selected category-porn sites/CDNs from config/pron-sites.json; regex rules and E-Hentai/ExHentai are excluded.",
-                "The Egern-only Private Relay rule set uses Proxy immediately before the Apple merged domain rule set; Apple CN remains in the direct-exception block.",
-                "The converter's APNs rule set is first in Egern routing with Proxy/Foreign DNS handling.",
-                "Egern-native rule conversion and source provenance are published by proxy-rules-converter.",
-                "Every paired business IP rule must immediately follow its domain rule and use Egern no_resolve; standalone mainland/private IP fallbacks preserve Mihomo routing semantics.",
+                "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
+                "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
+                "Mihomo nameserver-policy becomes ordered DNS Forward rules; additional static Direct matchers use system without duplicating a provider already covered by explicit DNS policy.",
+                "Source duplicates remain intact; only redundant synthesized DNS Forward entries are omitted.",
+                "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
+                "Real-IP exclusions, MESL proxy DNS, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
+                "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests.",
             ],
         }
         report_text = json.dumps(report_data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"

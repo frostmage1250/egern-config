@@ -33,6 +33,11 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Set up Node for Mihomo model extraction
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
       - name: Install builder dependency
         run: python -m pip install --requirement requirements.txt
 
@@ -57,22 +62,6 @@ jobs:
         run: |
           node src/extract_mihomo_model.js \
             "${RUNNER_TEMP}/mihomoScript.js" > "${RUNNER_TEMP}/mihomo-model.json"
-          python - "${RUNNER_TEMP}/mihomo-model.json" "${RUNNER_TEMP}/egern-source.json" <<'PY'
-          import json, sys
-          from pathlib import Path
-          model, manifest = [json.loads(Path(path).read_text(encoding="utf-8")) for path in sys.argv[1:]]
-          provider = model["providers"]["apple"]
-          assert provider["url"] == "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/apple-merged.mrs"
-          record = next(item for item in manifest["native_rule_sets"] if item["provider"] == "apple")
-          assert record["output"] == "dist/egern/apple-merged.yaml"
-          assert record["provider_url"] == provider["url"]
-          private_records = manifest["egern_only_rule_sets"]
-          assert len(private_records) == 1 and private_records[0]["provider"] == "privaterelay"
-          assert private_records[0]["egern_only"] is True
-          assert private_records[0]["output"] == "dist/egern/privaterelay.yaml"
-          assert "privaterelay" not in model["providers"]
-          print("Verified shared Apple merge and Egern-only Private Relay publication.")
-          PY
 
       - name: Generate Egern profile from published rules
         run: |

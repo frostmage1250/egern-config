@@ -1,97 +1,92 @@
 # Egern configuration
 
-This repository migrates the current behavior of
+This repository translates the published configuration model from
 [`frostmage1250/mihomo-script`](https://github.com/frostmage1250/mihomo-script)
-to an Egern profile.
+into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-config/main/Profile.yaml).
 
-- [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-config/main/Profile.yaml)
-  is the Egern profile.
-- Egern-native rule sets, including APNs, are generated in
-  [`frostmage1250/proxy-rules-converter`](https://github.com/frostmage1250/proxy-rules-converter/tree/main/dist/egern).
-  This profile references their stable `main/dist/egern/*.yaml` URLs.
-- `reports/source.json` records the pinned converter manifest and commit, the
-  verified rule sources, policy counts, and the generated profile hash.
-- GitHub Actions refreshes the generated repository files every six hours and can also
-  be run manually. The Egern profile itself deliberately has no root
-  `auto_update`; re-import it manually when you want to replace the active profile.
-  The rule URL layout changed, so profiles imported before this change need a
-  manual re-import.
+## Routing contract
 
-## Subscription setup
+**APNs is the only exception.** One APNs rule using `Proxy` is first. Every
+remaining rule is a one-to-one syntax translation of the pinned Mihomo
+`finalRules` list, preserving order, duplicate occurrences, target policy names,
+and `no-resolve` flags. The generator never independently moves Private, MCDN,
+Claude/AI, Steam, or any other business rule. It never rewrites YouTube,
+AppleTV, or bypass-japan target policies.
 
-Subscription credentials are deliberately not committed to this public repository.
-After importing `Profile.yaml` into Egern, add the private subscription URL
-to the **订阅** policy group. The adjacent **订阅2** group starts with empty
-`policies` and `urls`; you can add another subscription URL to that group
-locally without publishing it in this repository. The profile sets `default_subscription_group` to **订阅** and
-`default_proxy_group` to **代理**. The private URL remains in Egern instead of this public
-repository. Region groups flatten and filter **订阅**,
-so future node changes continue to flow into 台湾、新加坡、日本、美国、其他节点
-and 低倍率节点 automatically. Telegram and 媒体 also expose both 订阅 and
-订阅2 as selectable policies. The 订阅2 group uses the same exclusion filter as
-订阅 while keeping its policy options and URLs empty. Because a full profile replacement overwrites
-locally added subscription URLs, profile updates are manual; remote rule sets and
-the locally configured node subscription can still update independently.
+The `pron` policy name follows Mihomo literally. The former Egern-only `porn`
+rename is removed. There is no extra Private Relay routing reference; optional
+converter-only artifacts remain available in the converter repository but are
+not downloaded, loaded, or inserted here. Private Relay coverage supplied by
+Mihomo's shared Apple rule set continues to follow that source.
 
-## Migration behavior
+Validation reverses the generated rules into Mihomo rule strings and compares
+the entire list with the unmodified source. Reordering, extra or missing
+rules, changed policies, and changed `no-resolve` flags fail the build.
+`reports/source.json` records this source rule list and the sole APNs exception.
 
-The generator reads the Mihomo script commit recorded in the published rule
-manifest on every run and preserves its rule
-order, policies, region filters, service groups, DNS choices, and Hosts mappings.
-This includes the dedicated GitHub and Claude groups, Claude-before-AI routing,
-and the consolidated Meta domain/IP pair without redundant Facebook or Threads
-providers. Every paired business IP rule must immediately follow its domain rule
-and is emitted with Egern's native `no_resolve: true`; the build fails if a future
-Mihomo update breaks that invariant.
-User-requested Egern overrides precede the Mihomo routing rules: the APNs
-override is first, followed by Private domain/IP routing.
-STUN connections follow the ordinary routing rules.
-The converter's **mcdn屏蔽** native rule set immediately follows Private routing and uses
-`REJECT` before explicit DNS endpoint routes, general service rules, and mainland
-routing. The shared `dist/egern/mcdn-block.yaml` contains the four reviewed
-suffixes: `mcdn.bilivideo.com`, `mcdn.bilivideo.cn`,
-`edge.mountaintoys.cn`, and `h2.smtcdns.net`, including their apex and
-subdomains. The two former inline MCDN rules are replaced by this one reference.
-The APNs classical domain/IPv4/IPv6 entries are converted in the rule converter
-into one Egern-native YAML file. Egern routes that rule set through `Proxy`
-and puts the same file first in DNS Forward with `Foreign`.
-Mihomo `default-nameserver` endpoints are converted to the same IP addresses in
-Egern `bootstrap` (plain UDP is required by Egern). The Bootstrap list follows
-additions, removals, and ordering in that source on every regeneration.
-Mihomo `nameserver-policy` becomes ordered Egern DNS Forward rules; a policy
-with explicit servers uses a matching Egern upstream group preserving its server
-list, including `system`. Explicit Direct domain rules use `system`, and the
-foreign DNS group remains the final catch-all. Mihomo
-`nameserver` policy suffixes are preserved semantically: Egern receives clean
-DNS server URLs plus explicit, high-priority routing rules that bind each DNS
-server endpoint to the same policy (for example, `#Proxy` becomes
-`policy: Proxy`). Missing, conflicting, or unsupported policy mappings fail the
-build instead of being silently discarded. The generated `real_ip_domains`
-list mirrors [Repcz's Egern profile](https://github.com/Repcz/Tool/blob/X/Egern/Egern.yaml);
-other Fake-IP behavior follows Egern defaults. DNS hijacking targets port 53.
-The existing DNS Hosts mappings are preserved, with AliDNS IPv4 addresses
-added. The eight supplemental MCDN/PCDN `0.0.0.0` Hosts mappings are removed;
-blocking is handled by the shared connection-routing rule set.
-MESL private DNS is used only as Egern `proxy_nameservers`, while
-normal DNS forwarding stays separate. Egern cannot reproduce Mihomo's runtime
-`direct-nameserver` re-resolution when a selectable policy group is switched to
-Direct, so the generator preserves every statically identifiable Direct domain
-rule and records that platform boundary in `reports/source.json`.
+## Subscriptions and Egern settings
 
-The only deliberate platform mapping is that Mihomo's IPv4/IPv6-preferred DIRECT
-pseudo-proxies become Egern's built-in `DIRECT`; Egern has no equivalent
-per-DIRECT-policy IP-version selector.
+Subscription credentials stay local. After importing the profile, add your URL
+to **订阅**. **订阅2** starts with empty `policies` and `urls` and uses the same
+node exclusion filter. The profile keeps `default_subscription_group: 订阅`
+and `default_proxy_group: 代理`.
 
-## Generation boundary
+Proxy flattens both subscription groups. Hong Kong filters both; the other
+regional and low-rate groups filter 订阅. Telegram and 媒体 expose both
+subscriptions. Region/exclusion patterns come from the pinned Mihomo model.
+The pron group retains Hong Kong and Singapore as choices. YouTube is rendered
+at its source group position with its source policy choices, rather than being
+discarded and reconstructed after 媒体.
 
-`proxy-rules-converter` publishes and verifies all Egern-native rules and the
-`reports/egern-source.json` manifest first. This repository pins that published
-converter commit, uses the manifest's Mihomo commit to render `Profile.yaml`,
-and verifies every referenced YAML against its manifest hash, entry count, and
-native-field-order digest. Each provider has one Egern-native YAML file. The
-converter retains source count, duplicates, and order within each Egern rule
-type. Native YAML groups different types into separate fields, so their original
-interleaving cannot be expressed in one file. The workflow
-commits only `Profile.yaml` and `reports/source.json`; it no longer generates
-`rules/*.yaml`. Existing rule files remain as read-only compatibility paths
-for profiles imported before the migration.
+Profile replacement remains manual to preserve locally entered subscription
+URLs; no root `auto_update` is emitted. Remote rule sets and subscriptions can
+update independently. DNS hijacking, all-network/APNs inclusion, closing old
+connections on policy changes, the real-IP exclusion list, MESL proxy DNS,
+AliDNS host additions, and the Flower host aliases remain existing Egern
+settings. These do not insert or reorder routing rules.
+
+## DNS mapping
+
+APNs is also first in DNS Forward, using `Foreign`. Mihomo
+`nameserver-policy` becomes ordered Egern DNS Forward rules with the same server
+lists, including `system`. Statically Direct domain matchers add `system`
+forwarding before the foreign catch-all, except when an explicit DNS policy
+already handles that provider. This avoids a second unreachable generated
+entry while retaining source duplicates and explicit DNS policy precedence.
+
+Mihomo `default-nameserver` IPs retain source order in Egern's plain-UDP
+bootstrap. Foreign resolver URLs retain their server order. The two existing
+excluded DoH endpoints, cloudflare-dns.com and dns.google, keep their clean
+URLs without injected routing rules. Any new DNS routing suffix fails with an
+explicit error requiring a corresponding rule in Mihomo; it cannot create a
+second Egern routing exception.
+
+Egern cannot reproduce Mihomo's runtime `direct-nameserver` re-resolution
+after a selectable policy switches to Direct. IPv4/IPv6-preferred DIRECT
+pseudo-proxies map to Egern's built-in DIRECT. Other Fake-IP behavior follows
+Egern defaults and the existing explicit real-IP exclusions.
+
+## Generation and environment
+
+A single GitHub Actions workflow runs every six hours or manually. Python 3.13
+with the sole Python dependency `PyYAML==6.0.3` renders YAML and verifies rule
+artifacts. Node 24 executes the pinned Mihomo model extractor in a VM; it needs
+no npm dependencies. The workflow uses one setup step for each runtime.
+
+[`proxy-rules-converter`](https://github.com/frostmage1250/proxy-rules-converter/tree/main/dist/egern)
+publishes native rule sets and `reports/egern-source.json` first. This repository
+pins that converter commit and the manifest's Mihomo commit. It downloads only
+APNs and providers referenced by Mihomo routing/DNS, checking each file's hash,
+entry count, and native-field-order digest. There is no separate inline
+Apple/Private Relay assertion block in the workflow duplicating the generator's
+manifest validation.
+
+The profile references stable converter `main/dist/egern/*.yaml` URLs with
+86400-second updates. Each provider has one YAML file. The converter preserves
+counts, duplicates, and within-type order; native YAML cannot express original
+interleaving between different rule types.
+
+After generation and the consolidated test suite, Actions commits only
+`Profile.yaml` and `reports/source.json` and verifies their remote publication.
+Historical `rules/*.yaml` files remain read-only compatibility paths for
+previously imported profiles; they are not inputs or outputs of this generator.
