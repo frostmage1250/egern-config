@@ -90,7 +90,7 @@
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
   ],
   "mihomo_script": {
-    "commit": "6c7b8602a94e13dc4d491d442b3789496fbcbaf4",
+    "commit": "3c508f2ed4810a826bdbc6668f1b7872c54307f3",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -706,21 +706,21 @@
     },
     {
       "behavior": "domain",
-      "entries": 7834,
-      "expected_entries": 7834,
-      "native_entries_sha256": "63f0d50c6eedf21b66c086f994dd232233e271327e7ee89abba3a3f7fad9b2ea",
+      "entries": 7836,
+      "expected_entries": 7836,
+      "native_entries_sha256": "70bfd3cd4b18308f2e1977d432a8971758ed502ba5715103616f812ec32150dc",
       "output": "dist/egern/geolocation-cn.yaml",
-      "output_sha256": "103534ebe01c262adb40a502716d01d000b84c83fe1ee9d8ee2d3c9a8b773310",
+      "output_sha256": "7f475ab1ba8907ff99d355d346d0e1a731547c333dcdcb1013fb405438252333",
       "provider": "geolocation-cn",
       "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/geolocation-cn.mrs",
       "source_commit": null,
-      "source_entries": 7834,
+      "source_entries": 7836,
       "source_generated_in_same_run": true,
-      "source_order_sha256": "63f0d50c6eedf21b66c086f994dd232233e271327e7ee89abba3a3f7fad9b2ea",
+      "source_order_sha256": "70bfd3cd4b18308f2e1977d432a8971758ed502ba5715103616f812ec32150dc",
       "source_path": "dist/mihomo/geolocation-cn.list",
       "source_ref": "main",
       "source_repository": "frostmage1250/proxy-rules-converter",
-      "source_sha256": "53153b9177b8a6d3e4854d4d51eb9173cdc7b231c87e0644b13559079b1c62cd",
+      "source_sha256": "3e5fc8e65e1598655033d7d347637a57c48fbde97f456b2c688f59b99609b09f",
       "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/geolocation-cn.list"
     },
     {
@@ -782,9 +782,9 @@
   "profile_sha256": "278b3b96fb1ff283e6bec1285c0a6d3354d6bed5083cc559da551b301a975087",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "a5e7952eb226ee98f456ca20430cdfb4b1c83ec0",
+    "commit": "8fc8b19ab1cf35f814a553938aa7be0f3f750a98",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "6103bbb7cd9572f0f6c50322825e11730e9fa52312be19504e09d5246076230f",
+    "manifest_sha256": "91bd7e32ae6ae4db1fd6b0ed070877e9211c7eb34771eb0127485999d5367ea3",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_alignment": {
