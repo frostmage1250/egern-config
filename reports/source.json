@@ -5,7 +5,7 @@
       "223.5.5.5",
       "1.12.12.12"
     ],
-    "forward_rules": 13,
+    "forward_rules": 14,
     "proxy_nameservers": [
       "https://zone.rlose.com:39933/api-query",
       "https://radar.rlose.com/api-query"
@@ -90,7 +90,7 @@
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
   ],
   "mihomo_script": {
-    "commit": "3c508f2ed4810a826bdbc6668f1b7872c54307f3",
+    "commit": "2b1b03a4c87fc6ec76da8b81c2601e4620c3879d",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -217,6 +217,24 @@
       "source_repository": "appshubcc/bett-rules",
       "source_sha256": "c249b5785d86791c7dee979e357b570f0c57d8d5905a64f71cb4b103ad460a6c",
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/1f5661f8c7884de6d58bede0e4961c4aa5e83243/geo/geosite/apple-tvplus.list"
+    },
+    {
+      "behavior": "domain",
+      "entries": 4,
+      "native_entries_sha256": "3e71f40ac2dcbf22176246ebb3cf14c56ac5d3d28518bab80bc5a706ec9eff51",
+      "output": "dist/egern/apple-podcasts.yaml",
+      "output_sha256": "7cf1f9a6053a85ad51c624e88aa9d496ebfb38f67abcdcd3d6a3778c237d1bc0",
+      "provider": "apple_podcasts",
+      "provider_url": "https://cdn.jsdmirror.com/gh/appshubcc/bett-rules@meta/geo/geosite/apple-podcasts.mrs",
+      "source_commit": "1f5661f8c7884de6d58bede0e4961c4aa5e83243",
+      "source_entries": 4,
+      "source_generated_in_same_run": false,
+      "source_order_sha256": "3e71f40ac2dcbf22176246ebb3cf14c56ac5d3d28518bab80bc5a706ec9eff51",
+      "source_path": "geo/geosite/apple-podcasts.list",
+      "source_ref": "meta",
+      "source_repository": "appshubcc/bett-rules",
+      "source_sha256": "a146e566cc403ef7b3d5b92137963267708a01353febd58305d4e7af0c170ae4",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/1f5661f8c7884de6d58bede0e4961c4aa5e83243/geo/geosite/apple-podcasts.list"
     },
     {
       "behavior": "domain",
@@ -616,21 +634,21 @@
     },
     {
       "behavior": "domain",
-      "entries": 1793,
-      "native_entries_sha256": "e9cd26029a916d378e43f978000961da36f2afd9c0c19bbbfad4b47965730edf",
-      "output": "dist/egern/apple-merged.yaml",
-      "output_sha256": "cf40a70b02263bdbbd81c3cf55c5b493317ee38da4ed5872373ce2ff412aabe8",
+      "entries": 1791,
+      "native_entries_sha256": "7ce12631edbc58930a40b39ac2d41af5de6402c452d54a49436230cadf591dc0",
+      "output": "dist/egern/apple.yaml",
+      "output_sha256": "2f5727e3148773eb326d32a0fb83fb269c0df2967d8dd71ee9b60d028af0f9a3",
       "provider": "apple",
-      "provider_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/apple-merged.mrs",
-      "source_commit": null,
-      "source_entries": 1793,
-      "source_generated_in_same_run": true,
-      "source_order_sha256": "29cd284bdc5f633d3c5f59a5c20ab577b4b9e5e1275c4a0de58ae16d0d484c01",
-      "source_path": "dist/mihomo/apple-merged.list",
-      "source_ref": "main",
-      "source_repository": "frostmage1250/proxy-rules-converter",
-      "source_sha256": "f160b92e3eeb74a311244c13cd8bb8af8d7f899929bdab5cc5feb19ffc46e3da",
-      "source_url": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/mihomo/apple-merged.list"
+      "provider_url": "https://cdn.jsdmirror.com/gh/appshubcc/bett-rules@meta/geo/geosite/apple.mrs",
+      "source_commit": "1f5661f8c7884de6d58bede0e4961c4aa5e83243",
+      "source_entries": 1791,
+      "source_generated_in_same_run": false,
+      "source_order_sha256": "bba2a6295f62e70194d2e1408b93b6abd7d787f1e97f33bf54213d80b0fb5dbb",
+      "source_path": "geo/geosite/apple.list",
+      "source_ref": "meta",
+      "source_repository": "appshubcc/bett-rules",
+      "source_sha256": "e4899636cf39a8d6f20b9615faaa94f4e8728f1c41438006f1e64f412fd19248",
+      "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/1f5661f8c7884de6d58bede0e4961c4aa5e83243/geo/geosite/apple.list"
     },
     {
       "behavior": "ipcidr",
@@ -778,13 +796,13 @@
       "source_url": "https://raw.githubusercontent.com/appshubcc/bett-rules/1f5661f8c7884de6d58bede0e4961c4aa5e83243/geo/geosite/cn.list"
     }
   ],
-  "policy_groups": 22,
-  "profile_sha256": "278b3b96fb1ff283e6bec1285c0a6d3354d6bed5083cc559da551b301a975087",
+  "policy_groups": 23,
+  "profile_sha256": "4985d44973a542318b5f4506a6c90831e1d676a105c858e539d8899ec9d377f5",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "39c25feae55d33690e1419037f04e4f472c77d33",
+    "commit": "0d43de38b18957d3bd17b8f033f7adeff4ef88b9",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "88445785a88c6634ee4ecca7ad458221065dfe4f48b323507819fbe4f1c2e4a8",
+    "manifest_sha256": "0877a545d0fb1b3b1548cdc311c1543ca45a8c69c7a9b0fac36f1470c5026425",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_alignment": {
@@ -800,6 +818,7 @@
       "RULE-SET,telegram,Telegram",
       "RULE-SET,telegram_ip,Telegram,no-resolve",
       "RULE-SET,appletv,媒体",
+      "RULE-SET,apple_podcasts,Apple Podcasts",
       "RULE-SET,twitch,媒体",
       "RULE-SET,twitter,媒体",
       "RULE-SET,twitter_ip,媒体,no-resolve",
@@ -838,9 +857,9 @@
       "pron": "porn"
     },
     "privaterelay_rules": 1,
-    "shared_rule_count": 39
+    "shared_rule_count": 40
   },
-  "routing_rules": 41,
+  "routing_rules": 42,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",

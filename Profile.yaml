@@ -42,6 +42,10 @@ dns:
       value: Foreign
       update_interval: 86400
   - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-podcasts.yaml
+      value: Foreign
+      update_interval: 86400
+  - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
       value: system
       update_interval: 86400
@@ -175,6 +179,16 @@ policy_groups:
     - 订阅
     - 订阅2
 - select:
+    name: Apple Podcasts
+    policies:
+    - Proxy
+    - 订阅
+    - 美国
+    - 香港
+    - 日本
+    - 新加坡
+    - Direct
+- select:
     name: YouTube
     policies:
     - Proxy
@@ -277,6 +291,10 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/appletv.yaml
     policy: 媒体
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-podcasts.yaml
+    policy: Apple Podcasts
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/twitch.yaml
@@ -387,7 +405,7 @@ rules:
     name: privaterelay
     update_interval: 86400
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-merged.yaml
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple.yaml
     policy: Proxy
     update_interval: 86400
 - rule_set:
