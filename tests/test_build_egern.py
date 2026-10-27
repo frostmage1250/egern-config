@@ -34,7 +34,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "RULE-SET,apple_ip,Proxy,no-resolve", "MATCH,Final",
         ]}
         files = {
-            "apple_cn": ["apple-cn.yaml"], "apple": ["apple-merged.yaml"],
+            "apple_cn": ["apple-cn.yaml"], "apple": ["apple.yaml"],
             "apple_ip": ["apple-ip.yaml"], "privaterelay": ["privaterelay.yaml"],
         }
         rules = render_rules(model, files)
@@ -43,7 +43,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
             "match": f"{RAW_BASE}/dist/egern/privaterelay.yaml",
             "policy": "Proxy", "name": "privaterelay", "update_interval": 86400,
         }})
-        self.assertTrue(rules[3]["rule_set"]["match"].endswith("/apple-merged.yaml"))
+        self.assertTrue(rules[3]["rule_set"]["match"].endswith("/apple.yaml"))
         validate_rule_alignment(rules, model, files)
         for mutation in ("missing", "duplicate", "position", "policy"):
             with self.subTest(mutation=mutation):
@@ -59,7 +59,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 with self.assertRaises(BuildError):
                     validate_rule_alignment(changed, model, files)
 
-    def test_apple_merge_keeps_cn_priority_and_separate_ip_rule(self):
+    def test_bett_apple_keeps_cn_priority_and_separate_ip_rule(self):
         model = {"rules": [
             "RULE-SET,apple_cn,Direct",
             "RULE-SET,apple,Proxy",
@@ -68,16 +68,16 @@ class EgernProfileBuilderTests(unittest.TestCase):
         ]}
         rules = render_rules(model, {
             "apple_cn": ["apple-cn.yaml"],
-            "apple": ["apple-merged.yaml"],
+            "apple": ["apple.yaml"],
             "apple_ip": ["apple-ip.yaml"],
         })
         selected = [rule["rule_set"] for rule in rules if (
             "rule_set" in rule and rule["rule_set"]["match"].rsplit("/", 1)[-1]
-            in {"apple-cn.yaml", "apple-merged.yaml", "apple-ip.yaml"}
+            in {"apple-cn.yaml", "apple.yaml", "apple-ip.yaml"}
         )]
         self.assertEqual(
             [(rule["match"].rsplit("/", 1)[-1], rule["policy"]) for rule in selected],
-            [("apple-cn.yaml", "Direct"), ("apple-merged.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
+            [("apple-cn.yaml", "Direct"), ("apple.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
         )
         self.assertTrue(selected[2]["no_resolve"])
 
@@ -429,6 +429,36 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(matches.count("internal.example"), 2)
         self.assertEqual(forward[2]["proxy_rule_set"]["value"], "Policy-custom")
         self.assertEqual(len(render_rules(model, files)), len(model["rules"]) + 1)
+
+    def test_podcasts_foreign_dns_precedes_cn_system_dns(self):
+        resolvers = ["https://cloudflare-dns.com/dns-query#Proxy", "https://dns.google/dns-query#Proxy"]
+        model = {
+            "dns": {"nameserver": resolvers, "nameserver-policy": {
+                "rule-set:apple_podcasts": resolvers,
+                "rule-set:cn": ["system"],
+            }},
+            "rules": ["RULE-SET,apple_podcasts,Apple Podcasts", "RULE-SET,apple_cn,Direct"],
+        }
+        providers = {name: {"behavior": "domain"} for name in ("apple_podcasts", "cn", "apple_cn")}
+        files = {"apple_podcasts": ["apple-podcasts.yaml"], "cn": ["cn.yaml"], "apple_cn": ["apple-cn.yaml"]}
+        upstreams = render_dns_upstreams(model)
+        self.assertEqual(upstreams, {"Foreign": [value.split("#")[0] for value in resolvers]})
+        forward = render_dns_forward(model, providers, files)
+        self.assertTrue(forward[1]["proxy_rule_set"]["match"].endswith("/apple-podcasts.yaml"))
+        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Foreign")
+        self.assertEqual(forward[2]["proxy_rule_set"]["value"], "system")
+        rules = render_rules(model, files)
+        self.assertEqual(rules[1]["rule_set"]["policy"], "Apple Podcasts")
+        self.assertTrue(rules[2]["rule_set"]["match"].endswith("/apple-cn.yaml"))
+        validate_rule_alignment(rules, model, files)
+
+    def test_podcasts_policy_group_preserves_proxy_default(self):
+        model = {
+            "regions": [], "rateRegions": [], "options": {},
+            "groups": [{"name": "Apple Podcasts", "proxies": ["Proxy", "订阅", "Direct"]}],
+        }
+        groups, _ = render_policy_groups(model)
+        self.assertEqual(groups[0]["select"]["policies"], ["Proxy", "订阅", "Direct"])
 
     def test_dns_policy_preserves_system_and_explicit_servers(self):
         model = {

@@ -7,7 +7,7 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 ## Routing contract
 
 **APNs is first.** Its rule uses `Proxy`. The independent `privaterelay.yaml`
-rule is retained immediately before Apple merge and also uses `Proxy`.
+rule is retained immediately before Bett Apple and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
 `finalRules` list, preserving order, duplicate occurrences, and `no-resolve`
 flags. The sole policy-name alias is Mihomo `pron` to Egern `porn`; rule targets
@@ -17,7 +17,7 @@ with the declared policy-name alias applied.
 
 The Egern policy group is named `porn`. The independent Private Relay
 rule is fetched, hash/count verified, and
-referenced explicitly; it is retained separately from the shared Apple merge.
+referenced explicitly; it is retained separately from the shared Bett Apple.
 The renamed rule-set is `porn.yaml` with provider key `porn`; its existing
 policy group is also named `porn`.
 
@@ -93,3 +93,11 @@ After generation and the consolidated test suite, Actions commits only
 `Profile.yaml` and `reports/source.json` and verifies their remote publication.
 Historical `rules/*.yaml` files remain read-only compatibility paths for
 previously imported profiles; they are not inputs or outputs of this generator.
+
+## Apple Podcasts
+
+The independent `Apple Podcasts` select group inherits its choices from Mihomo
+and defaults to `Proxy`. Bett's `apple-podcasts` native rule set is placed before
+Apple CN. Its DNS forwarding inherits the foreign upstreams before CN/system
+matching. General Apple uses Bett's `apple` source through the current upstream
+mirror; the former `apple-merged` provider is retired.

@@ -396,7 +396,12 @@ def dns_policy_servers(value: Any) -> list[str]:
     return servers
 
 
-def dns_policy_target(value: Any, provider: str) -> str:
+def dns_policy_target(
+    value: Any, provider: str, *, foreign_servers: list[str] | None = None
+) -> str:
+    values = value if isinstance(value, list) else [value]
+    if foreign_servers and values == foreign_servers:
+        return "Foreign"
     servers = dns_policy_servers(value)
     if all(server == "system" for server in servers):
         return "system"
@@ -411,8 +416,10 @@ def render_dns_upstreams(model: dict[str, Any]) -> dict[str, list[str]]:
         if not isinstance(key, str) or not key.startswith("rule-set:"):
             raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
         provider = key.removeprefix("rule-set:")
-        group = dns_policy_target(target, provider)
-        if group != "system":
+        group = dns_policy_target(
+            target, provider, foreign_servers=model.get("dns", {}).get("nameserver")
+        )
+        if group not in {"system", "Foreign"}:
             servers = dns_policy_servers(target)
             if group in upstreams and upstreams[group] != servers:
                 raise BuildError(f"Conflicting DNS policy upstream group: {group}")
@@ -454,7 +461,9 @@ def render_dns_forward(
             add(
                 "proxy_rule_set",
                 f"{RAW_BASE}/dist/egern/{filename}",
-                dns_policy_target(target, provider),
+                dns_policy_target(
+                    target, provider, foreign_servers=model.get("dns", {}).get("nameserver")
+                ),
             )
 
     # Egern has no policy-aware direct re-resolution. Preserve every explicit
@@ -617,6 +626,26 @@ def validate_profile(
     expected_forward = render_dns_forward(model, model["providers"], provider_files)
     if dns.get("forward") != expected_forward:
         raise BuildError("Mihomo DNS policy and Direct-domain DNS were not preserved")
+    if "apple_podcasts" in model["providers"]:
+        podcast_group = groups[names.index("Apple Podcasts")]
+        if podcast_group.get("policies", [None])[0] != "Proxy":
+            raise BuildError("Apple Podcasts must default to Proxy")
+        podcast_rule = next(
+            index for index, wrapper in enumerate(profile["rules"])
+            if wrapper.get("rule_set", {}).get("match", "").endswith("/apple-podcasts.yaml")
+        )
+        cn_rule = next(
+            index for index, wrapper in enumerate(profile["rules"])
+            if wrapper.get("rule_set", {}).get("match", "").endswith("/apple-cn.yaml")
+        )
+        if podcast_rule >= cn_rule:
+            raise BuildError("Apple Podcasts must precede Apple CN")
+        podcast_dns = next(
+            item["proxy_rule_set"] for item in dns["forward"]
+            if item.get("proxy_rule_set", {}).get("match", "").endswith("/apple-podcasts.yaml")
+        )
+        if podcast_dns["value"] != "Foreign":
+            raise BuildError("Apple Podcasts DNS must use Foreign")
     if dns.get("proxy_nameservers") != MESL_PROXY_DNS:
         raise BuildError("MESL proxy nameservers were not preserved")
     if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
