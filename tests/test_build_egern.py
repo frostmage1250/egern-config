@@ -240,6 +240,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "香港", "source": "HK|香港", "flags": "i"},
                 {"name": "新加坡", "source": "SG|新加坡", "flags": "i"},
                 {"name": "日本", "source": "JP|日本", "flags": "i"},
+                {"name": "美国", "source": "US|美国", "flags": "i"},
+                {"name": "台湾省", "source": "TW|台湾", "flags": "i"},
+                {"name": "德国", "source": "DE|德国", "flags": "i"},
             ],
             "rateRegions": [
                 {"name": "低倍率节点", "source": "0\\.5x", "flags": "i"}
@@ -254,6 +257,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 {"name": "Claude", "proxies": ["Proxy", "日本", "其他节点"]},
                 {"name": "AI", "proxies": ["Proxy", "日本", "其他节点"]},
                 {"name": "日本", "proxies": ["__日本__"]},
+                {"name": "美国", "proxies": ["__美国__"]},
+                {"name": "台湾", "proxies": ["__台湾__"]},
+                {"name": "德国", "proxies": ["__德国__"]},
                 {"name": "香港", "proxies": ["__香港__"]},
                 {"name": "新加坡", "proxies": ["__新加坡__"]},
                 {"name": "其他节点", "proxies": ["__其他节点__"]},
@@ -287,17 +293,19 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["Direct"]["policies"], ["DIRECT"])
         self.assertEqual(by_name["GitHub"]["policies"], ["Proxy", "订阅", "AI"])
         self.assertEqual(by_name["Claude"]["policies"], ["Proxy", "日本", "其他节点"])
-        self.assertEqual(by_name["日本"]["policies"], ["订阅"])
-        self.assertTrue(by_name["日本"]["flatten"])
-        self.assertEqual(by_name["香港"]["policies"], ["订阅", "订阅2"])
-        self.assertTrue(by_name["香港"]["flatten"])
+        for name in ("香港", "日本", "美国", "新加坡", "台湾", "德国", "其他节点", "低倍率节点"):
+            with self.subTest(group=name):
+                self.assertEqual(by_name[name]["policies"], ["订阅", "订阅2"])
+                self.assertTrue(by_name[name]["flatten"])
+                self.assertEqual(by_name[name]["filter"], filters[name])
         self.assertIsNotNone(re.search(by_name["香港"]["filter"], "HK Node"))
         self.assertEqual(
             by_name["Telegram"]["policies"], ["Proxy", "低倍率节点", "香港", "订阅", "订阅2"]
         )
         self.assertEqual(
-            by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "香港", "订阅", "订阅2"]
+            by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "香港", "订阅", "订阅2", "美国", "日本"]
         )
+        self.assertFalse(by_name["媒体"].get("flatten", False))
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
@@ -451,6 +459,21 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(rules[1]["rule_set"]["policy"], "Apple Podcasts")
         self.assertTrue(rules[2]["rule_set"]["match"].endswith("/apple-cn.yaml"))
         validate_rule_alignment(rules, model, files)
+
+    def test_media_retains_existing_region_choices_once(self):
+        model = {
+            "regions": [], "rateRegions": [], "options": {},
+            "groups": [{
+                "name": "媒体",
+                "proxies": ["Proxy", "日本", "美国", "低倍率节点"],
+            }],
+        }
+        groups, _ = render_policy_groups(model)
+        media = groups[0]["select"]
+        self.assertEqual(media["policies"], [
+            "Proxy", "日本", "美国", "低倍率节点", "香港", "订阅", "订阅2",
+        ])
+        self.assertFalse(media.get("flatten", False))
 
     def test_podcasts_policy_group_preserves_proxy_default(self):
         model = {

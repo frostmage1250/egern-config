@@ -34,9 +34,10 @@ to **订阅**. **订阅2** starts with empty `policies` and `urls` and uses the 
 node exclusion filter. The profile keeps `default_subscription_group: 订阅`
 and `default_proxy_group: 代理`.
 
-Proxy flattens both subscription groups. Hong Kong filters both; the other
-regional and low-rate groups filter 订阅. Telegram and 媒体 expose both
-subscriptions. Region/exclusion patterns come from the pinned Mihomo model.
+Proxy flattens both subscription groups. Every regional group, 其他节点, and
+低倍率节点 filters nodes from both 订阅 and 订阅2. Telegram and 媒体 expose both
+subscriptions. 媒体 also offers 美国 and 日本 as selectable policy groups.
+Region/exclusion patterns come from the pinned Mihomo model.
 The porn group retains Hong Kong and Singapore as choices. YouTube is rendered
 at its source group position with its source policy choices, rather than being
 discarded and reconstructed after 媒体.

@@ -145,7 +145,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             groups.append({
                 "select": {
                     "name": name,
-                    "policies": ["订阅", "订阅2"] if name == "香港" else ["订阅"],
+                    "policies": ["订阅", "订阅2"],
                     "flatten": True,
                     "filter": filters[name],
                 }
@@ -171,6 +171,10 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             for subscription in ("订阅", "订阅2"):
                 if subscription not in policies:
                     policies.append(subscription)
+        if name == "媒体":
+            for region in ("美国", "日本"):
+                if region not in policies:
+                    policies.append(region)
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
@@ -577,13 +581,32 @@ def validate_profile(
         raise BuildError("Egern profile updates must remain manual to preserve local subscriptions")
     if "香港" not in names:
         raise BuildError("Hong Kong group is missing")
-    hong_kong_group = groups[names.index("香港")]
-    if (
-        hong_kong_group.get("policies") != ["订阅", "订阅2"]
-        or hong_kong_group.get("flatten") is not True
-        or hong_kong_group.get("filter") != regex_text(next(entry for entry in model["regions"] if entry["name"] == "香港"))
-    ):
-        raise BuildError("Hong Kong group must filter both subscription groups")
+    filtered_groups = {
+        ("台湾" if entry["name"] == "台湾省" else entry["name"]): regex_text(entry)
+        for entry in model["regions"]
+    }
+    filtered_groups.update({
+        entry["name"]: regex_text(entry) for entry in model["rateRegions"]
+    })
+    filtered_groups["其他节点"] = negative_filter([
+        regex_text(entry) for entry in model["regions"]
+    ])
+    for name, pattern in filtered_groups.items():
+        if name not in names:
+            raise BuildError(f"Required filtered policy group is missing: {name}")
+        group = groups[names.index(name)]
+        if (
+            group.get("policies") != ["订阅", "订阅2"]
+            or group.get("flatten") is not True
+            or group.get("filter") != pattern
+        ):
+            raise BuildError(f"{name} must filter both subscription groups")
+    media_group = groups[names.index("媒体")] if "媒体" in names else {}
+    for region in ("美国", "日本"):
+        if media_group.get("policies", []).count(region) != 1:
+            raise BuildError(f"媒体 must include the {region} policy group once")
+    if media_group.get("flatten", False):
+        raise BuildError("媒体 must retain selectable policy group references")
     for target in ("YouTube", "媒体", "PikPak", "Telegram"):
         if target not in names or "香港" not in groups[names.index(target)].get("policies", []):
             raise BuildError(f"{target} must include the Hong Kong policy group")
