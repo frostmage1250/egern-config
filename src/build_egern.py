@@ -450,11 +450,22 @@ def render_dns_forward(
     for filename in provider_files.get("apns", [APNS_FILENAME]):
         add("proxy_rule_set", f"{RAW_BASE}/dist/egern/{filename}", "Foreign")
 
-    # Preserve Mihomo nameserver-policy before its general nameserver.
+    # Podcasts shares domains with Apple CN. Keep this Egern DNS exception
+    # ahead of system forwarding even when Mihomo uses its default nameserver.
+    if "apple_podcasts" in providers:
+        filenames = provider_files.get("apple_podcasts")
+        if not filenames:
+            raise BuildError("Apple Podcasts DNS provider was not generated")
+        for filename in filenames:
+            add("proxy_rule_set", f"{RAW_BASE}/dist/egern/{filename}", "Foreign")
+
+    # Preserve the remaining Mihomo nameserver-policy entries.
     for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
         if not isinstance(key, str) or not key.startswith("rule-set:"):
             raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
         provider = key.removeprefix("rule-set:")
+        if provider == "apple_podcasts":
+            continue
         definition = providers.get(provider)
         if definition is None or definition.get("behavior") != "domain":
             raise BuildError(
@@ -885,7 +896,7 @@ def main() -> int:
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
-                "Mihomo nameserver-policy becomes ordered DNS Forward rules; additional static Direct matchers use system without duplicating a provider already covered by explicit DNS policy.",
+                "APNs and Apple Podcasts retain explicit Foreign DNS precedence in Egern. Remaining Mihomo nameserver-policy entries become ordered DNS Forward rules; additional static Direct matchers use system without duplicating an explicitly covered provider.",
                 "Source duplicates remain intact; only redundant synthesized DNS Forward entries are omitted.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
                 "Real-IP exclusions, MESL proxy DNS, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",

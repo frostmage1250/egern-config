@@ -442,7 +442,6 @@ class EgernProfileBuilderTests(unittest.TestCase):
         resolvers = ["https://cloudflare-dns.com/dns-query#Proxy", "https://dns.google/dns-query#Proxy"]
         model = {
             "dns": {"nameserver": resolvers, "nameserver-policy": {
-                "rule-set:apple_podcasts": resolvers,
                 "rule-set:cn": ["system"],
             }},
             "rules": ["RULE-SET,apple_podcasts,Apple Podcasts", "RULE-SET,apple_cn,Direct"],
@@ -455,6 +454,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertTrue(forward[1]["proxy_rule_set"]["match"].endswith("/apple-podcasts.yaml"))
         self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Foreign")
         self.assertEqual(forward[2]["proxy_rule_set"]["value"], "system")
+        model["dns"]["nameserver-policy"]["rule-set:apple_podcasts"] = resolvers
+        self.assertEqual(render_dns_forward(model, providers, files), forward)
         rules = render_rules(model, files)
         self.assertEqual(rules[1]["rule_set"]["policy"], "Apple Podcasts")
         self.assertTrue(rules[2]["rule_set"]["match"].endswith("/apple-cn.yaml"))
