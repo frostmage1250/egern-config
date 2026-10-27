@@ -97,8 +97,9 @@ previously imported profiles; they are not inputs or outputs of this generator.
 
 ## Apple Podcasts
 
-The independent `Apple Podcasts` select group inherits its choices from Mihomo
-and defaults to `Proxy`. Bett's `apple-podcasts` native rule set is placed before
+The independent `Apple Podcasts` select group inherits its choices from Mihomo,
+adds `媒体` as a selectable policy group, and defaults to `Proxy`.
+Bett's `apple-podcasts` native rule set is placed before
 Apple CN. Its DNS forwarding inherits the foreign upstreams before CN/system
 matching. General Apple uses Bett's `apple` source through the current upstream
 mirror; the former `apple-merged` provider is retired.

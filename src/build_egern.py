@@ -171,6 +171,8 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             for subscription in ("订阅", "订阅2"):
                 if subscription not in policies:
                     policies.append(subscription)
+        if name == "Apple Podcasts" and "媒体" not in policies:
+            policies.append("媒体")
         if name == "媒体":
             for region in ("美国", "日本"):
                 if region not in policies:
@@ -653,6 +655,10 @@ def validate_profile(
         podcast_group = groups[names.index("Apple Podcasts")]
         if podcast_group.get("policies", [None])[0] != "Proxy":
             raise BuildError("Apple Podcasts must default to Proxy")
+        if podcast_group.get("policies", []).count("媒体") != 1:
+            raise BuildError("Apple Podcasts must offer the 媒体 policy group once")
+        if podcast_group.get("flatten", False):
+            raise BuildError("Apple Podcasts must retain selectable policy group references")
         podcast_rule = next(
             index for index, wrapper in enumerate(profile["rules"])
             if wrapper.get("rule_set", {}).get("match", "").endswith("/apple-podcasts.yaml")

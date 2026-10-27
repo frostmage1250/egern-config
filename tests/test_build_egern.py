@@ -476,12 +476,25 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertFalse(media.get("flatten", False))
 
     def test_podcasts_policy_group_preserves_proxy_default(self):
-        model = {
-            "regions": [], "rateRegions": [], "options": {},
-            "groups": [{"name": "Apple Podcasts", "proxies": ["Proxy", "订阅", "Direct"]}],
-        }
-        groups, _ = render_policy_groups(model)
-        self.assertEqual(groups[0]["select"]["policies"], ["Proxy", "订阅", "Direct"])
+        for source_policies in (
+            ["Proxy", "订阅", "美国", "Direct"],
+            ["Proxy", "媒体", "订阅", "美国", "Direct"],
+        ):
+            with self.subTest(source_policies=source_policies):
+                model = {
+                    "regions": [], "rateRegions": [], "options": {},
+                    "groups": [{"name": "Apple Podcasts", "proxies": source_policies}],
+                }
+                groups, _ = render_policy_groups(model)
+                podcast = groups[0]["select"]
+                expected = list(source_policies)
+                if "媒体" not in expected:
+                    expected.append("媒体")
+                self.assertEqual(podcast["policies"], expected)
+                self.assertEqual(podcast["policies"][0], "Proxy")
+                self.assertEqual(podcast["policies"].count("媒体"), 1)
+                self.assertIn("美国", podcast["policies"])
+                self.assertFalse(podcast.get("flatten", False))
 
     def test_dns_policy_preserves_system_and_explicit_servers(self):
         model = {
