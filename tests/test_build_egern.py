@@ -386,13 +386,6 @@ class EgernProfileBuilderTests(unittest.TestCase):
             [
                 {
                     "proxy_rule_set": {
-                        "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apns.yaml",
-                        "value": "Foreign",
-                        "update_interval": 86400,
-                    }
-                },
-                {
-                    "proxy_rule_set": {
                         "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn.yaml",
                         "value": "system",
                         "update_interval": 86400,
@@ -435,10 +428,10 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(matches.count(f"{RAW_BASE}/dist/egern/private.yaml"), 1)
         self.assertEqual(matches.count(f"{RAW_BASE}/dist/egern/custom.yaml"), 1)
         self.assertEqual(matches.count("internal.example"), 2)
-        self.assertEqual(forward[2]["proxy_rule_set"]["value"], "Policy-custom")
+        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Policy-custom")
         self.assertEqual(len(render_rules(model, files)), len(model["rules"]) + 1)
 
-    def test_podcasts_foreign_dns_precedes_cn_system_dns(self):
+    def test_apns_and_podcasts_follow_shared_dns_forwarding(self):
         resolvers = ["https://cloudflare-dns.com/dns-query#Proxy", "https://dns.google/dns-query#Proxy"]
         model = {
             "dns": {"nameserver": resolvers, "nameserver-policy": {
@@ -452,9 +445,12 @@ class EgernProfileBuilderTests(unittest.TestCase):
         upstreams = render_dns_upstreams(model)
         self.assertEqual(upstreams, {"Foreign": [value.split("#")[0] for value in resolvers]})
         forward = render_dns_forward(model, providers, files)
-        self.assertTrue(forward[1]["proxy_rule_set"]["match"].endswith("/apple-podcasts.yaml"))
-        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Foreign")
-        self.assertEqual(forward[2]["proxy_rule_set"]["value"], "system")
+        self.assertEqual(
+            [item["proxy_rule_set"]["match"].rsplit("/", 1)[-1] for item in forward[:-1]],
+            ["cn.yaml", "apple-cn.yaml"],
+        )
+        self.assertTrue(all(item["proxy_rule_set"]["value"] == "system" for item in forward[:-1]))
+        self.assertEqual(forward[-1], {"domain_wildcard": {"match": "*", "value": "Foreign"}})
         rules = render_rules(model, files)
         self.assertEqual(rules[1]["rule_set"]["policy"], "Apple Podcasts")
         self.assertTrue(rules[2]["rule_set"]["match"].endswith("/apple-cn.yaml"))
@@ -513,7 +509,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         forward = render_dns_forward(
             model, {"douyin": {"behavior": "domain"}}, {"douyin": ["douyin.yaml"]}
         )
-        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Policy-douyin")
+        self.assertEqual(forward[0]["proxy_rule_set"]["value"], "Policy-douyin")
 
     def test_dns_policy_provider_is_generated_even_when_not_in_routing_rules(self):
         model = {
@@ -538,8 +534,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
         }
         self.assertEqual(len(nameservers(model)), 2)
         forward = render_dns_forward(model, {}, {})
-        self.assertEqual(forward[1], forward[2])
-        self.assertEqual(len(forward), 4)
+        self.assertEqual(forward[0], forward[1])
+        self.assertEqual(len(forward), 3)
 
     def test_dns_forward_references_one_native_file_per_provider(self):
         model = {
@@ -551,8 +547,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
             {"apns": ["apns.yaml"], "cn": ["cn.yaml"]},
         )
         self.assertEqual(
-            [item["proxy_rule_set"]["match"].rsplit("/", 1)[-1] for item in forward[:2]],
-            ["apns.yaml", "cn.yaml"],
+            [item["proxy_rule_set"]["match"].rsplit("/", 1)[-1] for item in forward[:-1]],
+            ["cn.yaml"],
         )
 
     def test_manifest_verifies_single_native_yaml_count_and_duplicates(self):

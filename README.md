@@ -51,9 +51,11 @@ settings. These do not insert or reorder routing rules.
 
 ## DNS mapping
 
-APNs is also first in DNS Forward, using `Foreign`. Mihomo
-`nameserver-policy` becomes ordered Egern DNS Forward rules with the same server
-lists, including `system`. Statically Direct domain matchers add `system`
+APNs and Apple Podcasts follow the shared DNS Forward rules and the final
+`Foreign` catch-all. Matching CN/system rules therefore take precedence for
+overlapping domains. The remaining Mihomo `nameserver-policy` entries become
+ordered Egern DNS Forward rules with the same server lists, including `system`
+and the Douyin-specific resolver list. Statically Direct domain matchers add `system`
 forwarding before the foreign catch-all, except when an explicit DNS policy
 already handles that provider. This avoids a second unreachable generated
 entry while retaining source duplicates and explicit DNS policy precedence.
@@ -100,6 +102,6 @@ previously imported profiles; they are not inputs or outputs of this generator.
 The independent `Apple Podcasts` select group inherits its choices from Mihomo,
 adds `媒体` as a selectable policy group, and defaults to `Proxy`.
 Bett's `apple-podcasts` native rule set is placed before
-Apple CN. Its DNS forwarding inherits the foreign upstreams before CN/system
-matching. General Apple uses Bett's `apple` source through the current upstream
+Apple CN. DNS follows the shared CN/system rules and the final `Foreign`
+catch-all. General Apple uses Bett's `apple` source through the current upstream
 mirror; the former `apple-merged` provider is retired.
