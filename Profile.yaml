@@ -178,6 +178,8 @@ policy_groups:
     - 香港
     - 订阅
     - 订阅2
+    - 美国
+    - 日本
 - select:
     name: Apple Podcasts
     policies:
@@ -224,36 +226,42 @@ policy_groups:
     name: 日本
     policies:
     - 订阅
+    - 订阅2
     flatten: true
     filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
 - select:
     name: 美国
     policies:
     - 订阅
+    - 订阅2
     flatten: true
     filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
 - select:
     name: 新加坡
     policies:
     - 订阅
+    - 订阅2
     flatten: true
     filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
 - select:
     name: 台湾
     policies:
     - 订阅
+    - 订阅2
     flatten: true
     filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
 - select:
     name: 其他节点
     policies:
     - 订阅
+    - 订阅2
     flatten: true
     filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
 - select:
     name: 低倍率节点
     policies:
     - 订阅
+    - 订阅2
     flatten: true
     filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])
 - select:
