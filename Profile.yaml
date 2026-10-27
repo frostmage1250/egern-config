@@ -38,6 +38,14 @@ dns:
     - 180.184.2.2
   forward:
   - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apns.yaml
+      value: Foreign
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-podcasts.yaml
+      value: Foreign
+      update_interval: 86400
+  - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
       value: system
       update_interval: 86400

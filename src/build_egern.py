@@ -446,14 +446,15 @@ def render_dns_forward(
             item["update_interval"] = 86400
         forward.append({kind: item})
 
-    # APNs and Apple Podcasts follow shared system/special DNS rules and
-    # the Foreign catch-all. Preserve the remaining Mihomo DNS policies.
+    # User-requested APNs override is the highest-priority proxied DNS rule.
+    for filename in provider_files.get("apns", [APNS_FILENAME]):
+        add("proxy_rule_set", f"{RAW_BASE}/dist/egern/{filename}", "Foreign")
+
+    # Preserve Mihomo nameserver-policy before its general nameserver.
     for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
         if not isinstance(key, str) or not key.startswith("rule-set:"):
             raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
         provider = key.removeprefix("rule-set:")
-        if provider in {"apns", "apple_podcasts"}:
-            continue
         definition = providers.get(provider)
         if definition is None or definition.get("behavior") != "domain":
             raise BuildError(
@@ -477,7 +478,6 @@ def render_dns_forward(
     policy_providers = {
         key.removeprefix("rule-set:")
         for key in model.get("dns", {}).get("nameserver-policy", {})
-        if key.removeprefix("rule-set:") not in {"apns", "apple_podcasts"}
     }
     for raw in model["rules"]:
         parts = raw.split(",")
@@ -557,6 +557,13 @@ def validate_profile(
     if any(filename not in generated for filename in apns_files):
         raise BuildError("APNs native rule set was not generated")
     validate_rule_alignment(profile["rules"], model, provider_files)
+    for index, filename in enumerate(apns_files):
+        first_dns_rule = profile["dns"]["forward"][index].get("proxy_rule_set", {})
+        if (
+            first_dns_rule.get("match") != f"{RAW_BASE}/dist/egern/{filename}"
+            or first_dns_rule.get("value") != "Foreign"
+        ):
+            raise BuildError("APNs DNS Forward rule set must be first")
     for group in groups:
         for policy in group.get("policies", []):
             if policy not in known:
@@ -662,6 +669,12 @@ def validate_profile(
         )
         if podcast_rule >= cn_rule:
             raise BuildError("Apple Podcasts must precede Apple CN")
+        podcast_dns = next(
+            item["proxy_rule_set"] for item in dns["forward"]
+            if item.get("proxy_rule_set", {}).get("match", "").endswith("/apple-podcasts.yaml")
+        )
+        if podcast_dns["value"] != "Foreign":
+            raise BuildError("Apple Podcasts DNS must use Foreign")
     if dns.get("proxy_nameservers") != MESL_PROXY_DNS:
         raise BuildError("MESL proxy nameservers were not preserved")
     if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
@@ -864,7 +877,7 @@ def main() -> int:
                 "reason": "Default group names are public; subscription credentials remain local.",
             },
             "migration_boundaries": [
-                "APNs is first with Proxy routing; APNs and Apple Podcasts follow shared DNS forwarding and the Foreign catch-all. Standalone Private Relay uses Proxy immediately before the shared Apple rule.",
+                "APNs is first with Proxy/Foreign DNS; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
                 "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use only the declared Egern name aliases.",
                 "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; the only policy-name mapping is pron to porn.",
                 "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
@@ -872,7 +885,7 @@ def main() -> int:
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
-                "Mihomo nameserver-policy becomes ordered DNS Forward rules, with APNs and Apple Podcasts using shared forwarding; additional static Direct matchers use system without duplicating a provider already covered by explicit DNS policy.",
+                "Mihomo nameserver-policy becomes ordered DNS Forward rules; additional static Direct matchers use system without duplicating a provider already covered by explicit DNS policy.",
                 "Source duplicates remain intact; only redundant synthesized DNS Forward entries are omitted.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
                 "Real-IP exclusions, MESL proxy DNS, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
