@@ -190,6 +190,7 @@ policy_groups:
     - 日本
     - 新加坡
     - Direct
+    - 媒体
 - select:
     name: YouTube
     policies:
