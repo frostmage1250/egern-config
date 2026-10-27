@@ -311,7 +311,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
-        self.assertEqual(by_name["porn"]["policies"], ["香港", "新加坡"])
+        self.assertEqual(by_name["porn"]["policies"], ["香港", "新加坡", "美国", "低倍率节点"])
         self.assertFalse(by_name["porn"].get("flatten", False))
         self.assertNotIn("pron", by_name)
         self.assertEqual(by_name["Final"]["policies"], ["Proxy", "Direct", "porn"])
@@ -447,26 +447,40 @@ class EgernProfileBuilderTests(unittest.TestCase):
         ])
         self.assertFalse(media.get("flatten", False))
 
-    def test_podcasts_policy_group_preserves_proxy_default(self):
-        for source_policies in (
-            ["Proxy", "订阅", "美国", "Direct"],
-            ["Proxy", "媒体", "订阅", "美国", "Direct"],
-        ):
-            with self.subTest(source_policies=source_policies):
-                model = {
-                    "regions": [], "rateRegions": [], "options": {},
-                    "groups": [{"name": "Apple Podcasts", "proxies": source_policies}],
-                }
-                groups, _ = render_policy_groups(model)
-                podcast = groups[0]["select"]
-                expected = list(source_policies)
-                if "媒体" not in expected:
-                    expected.append("媒体")
-                self.assertEqual(podcast["policies"], expected)
-                self.assertEqual(podcast["policies"][0], "Proxy")
-                self.assertEqual(podcast["policies"].count("媒体"), 1)
-                self.assertIn("美国", podcast["policies"])
-                self.assertFalse(podcast.get("flatten", False))
+    def test_podcasts_group_removed_and_references_route_to_media(self):
+        model = {
+            "regions": [], "rateRegions": [], "options": {},
+            "groups": [
+                {"name": "Apple Podcasts", "proxies": ["Proxy", "美国"]},
+                {"name": "Other", "proxies": ["Apple Podcasts", "媒体"]},
+                {"name": "EHentai", "proxies": ["Proxy", "美国"]},
+            ],
+            "rules": ["RULE-SET,apple_podcasts,Apple Podcasts", "MATCH,Final"],
+        }
+        groups, _ = render_policy_groups(model)
+        by_name = {g["select"]["name"]: g["select"] for g in groups}
+        self.assertNotIn("Apple Podcasts", by_name)
+        self.assertEqual(by_name["Other"]["policies"], ["媒体"])
+        self.assertEqual(by_name["EHentai"]["policies"], ["Proxy", "美国", "新加坡", "低倍率节点"])
+        rules = render_rules(model, {"apple_podcasts": ["apple-podcasts.yaml"]})
+        self.assertEqual(rules[1]["rule_set"]["policy"], "媒体")
+        validate_rule_alignment(rules, model, {"apple_podcasts": ["apple-podcasts.yaml"]})
+        rules[1]["rule_set"]["policy"] = "Proxy"
+        with self.assertRaises(BuildError):
+            validate_rule_alignment(rules, model, {"apple_podcasts": ["apple-podcasts.yaml"]})
+
+    def test_low_rate_filter_adds_experimental_nodes_from_both_subscriptions(self):
+        model = {
+            "regions": [], "rateRegions": [{"name": "低倍率节点", "source": "0\\.5x", "flags": "i"}],
+            "options": {}, "groups": [{"name": "低倍率节点", "proxies": []}],
+        }
+        groups, _ = render_policy_groups(model)
+        group = groups[0]["select"]
+        self.assertEqual(group["policies"], ["订阅", "订阅2"])
+        self.assertTrue(group["flatten"])
+        for name in ("香港 实验节点", "日本 0.5x", "实验"):
+            self.assertIsNotNone(re.search(group["filter"], name))
+        self.assertIsNone(re.search(group["filter"], "普通节点"))
 
     def test_dns_policy_preserves_system_and_explicit_servers(self):
         model = {

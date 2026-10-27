@@ -10,10 +10,10 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 rule is retained immediately before Bett Apple and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
 `finalRules` list, preserving order, duplicate occurrences, and `no-resolve`
-flags. The sole policy-name alias is Mihomo `pron` to Egern `porn`; rule targets
-and references from other policy groups use the same alias. The generator never independently moves Private, MCDN,
+flags. Policy mappings are Mihomo `pron` to Egern `porn`, and the former
+`Apple Podcasts` target to `媒体`; group references use the same mappings. The generator never independently moves Private, MCDN,
 Claude/AI, Steam, or any other business rule. Service targets follow the source
-with the declared policy-name alias applied.
+with the declared policy mappings applied.
 
 The Egern policy group is named `porn`. The independent Private Relay
 rule is fetched, hash/count verified, and
@@ -22,9 +22,9 @@ The renamed rule-set is `porn.yaml` with provider key `porn`; its existing
 policy group is also named `porn`.
 
 Validation reverses the generated rules into Mihomo rule strings and compares
-the shared list with the source after applying the declared name alias and
+the shared list with the source after applying the declared policy mappings and
 checking both Egern additions.
-Reordering, extra or missing rules, policy changes outside the declared alias, and changed `no-resolve` flags fail the build.
+Reordering, extra or missing rules, policy changes outside the declared mappings, and changed `no-resolve` flags fail the build.
 `reports/source.json` records this source rule list and both approved Egern additions.
 
 ## Subscriptions and Egern settings
@@ -37,8 +37,10 @@ and `default_proxy_group: 代理`.
 Proxy flattens both subscription groups. Every regional group, 其他节点, and
 低倍率节点 filters nodes from both 订阅 and 订阅2. Telegram and 媒体 expose both
 subscriptions. 媒体 also offers 美国 and 日本 as selectable policy groups.
-Region/exclusion patterns come from the pinned Mihomo model.
-The porn group retains Hong Kong and Singapore as choices. YouTube is rendered
+Region/exclusion patterns come from the pinned Mihomo model; the low-rate
+filter additionally matches `实验`. EHentai adds `美国`, `新加坡`, and
+`低倍率节点` to its existing choices. The porn group offers `香港`, `新加坡`,
+`美国`, and `低倍率节点`. YouTube is rendered
 at its source group position with its source policy choices, rather than being
 discarded and reconstructed after 媒体.
 
@@ -103,8 +105,8 @@ previously imported profiles; they are not inputs or outputs of this generator.
 
 ## Apple Podcasts
 
-The independent `Apple Podcasts` select group inherits its choices from Mihomo,
-adds `媒体` as a selectable policy group, and defaults to `Proxy`.
+Apple Podcasts uses the `媒体` policy group, with no independent select group.
+The former source target maps to `媒体` until the converter snapshot catches up.
 Bett's `apple-podcasts` native rule set is placed before
 Apple CN. Its DNS follows the shared nameserver policy, including CN/system when a domain
 matches CN, then the default foreign nameservers. Mihomo additionally uses

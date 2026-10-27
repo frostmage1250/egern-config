@@ -129,6 +129,8 @@ policy_groups:
     policies:
     - 香港
     - 新加坡
+    - 美国
+    - 低倍率节点
 - select:
     name: Google
     policies:
@@ -144,17 +146,6 @@ policy_groups:
     - 订阅2
     - 美国
     - 日本
-- select:
-    name: Apple Podcasts
-    policies:
-    - Proxy
-    - 订阅
-    - 美国
-    - 香港
-    - 日本
-    - 新加坡
-    - Direct
-    - 媒体
 - select:
     name: YouTube
     policies:
@@ -180,6 +171,9 @@ policy_groups:
     name: EHentai
     policies:
     - Proxy
+    - 美国
+    - 新加坡
+    - 低倍率节点
 - select:
     name: 香港
     policies:
@@ -228,7 +222,7 @@ policy_groups:
     - 订阅
     - 订阅2
     flatten: true
-    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])
+    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])|实验
 - select:
     name: Final
     policies:
@@ -267,7 +261,7 @@ rules:
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-podcasts.yaml
-    policy: Apple Podcasts
+    policy: 媒体
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/twitch.yaml

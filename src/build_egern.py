@@ -26,7 +26,7 @@ CONVERTER_MANIFEST_PATH = "reports/egern-source.json"
 APNS_FILENAME = "apns.yaml"
 PRIVATERELAY_PROVIDER = "privaterelay"
 PRIVATERELAY_FILENAME = "privaterelay.yaml"
-POLICY_ALIASES = {"pron": "porn"}
+POLICY_ALIASES = {"pron": "porn", "Apple Podcasts": "媒体"}
 FLOWER_HOSTS = {
     "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -114,9 +114,14 @@ def negative_filter(patterns: list[str]) -> str:
     return prefix + "^(?!.*(?:" + "|".join(bodies) + ")).*$"
 
 
+def rate_filter(entry: dict[str, str]) -> str:
+    pattern = regex_text(entry)
+    return pattern + "|实验" if entry["name"] == "低倍率节点" else pattern
+
+
 def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, str]]:
     regions = {entry["name"]: regex_text(entry) for entry in model["regions"]}
-    rates = {entry["name"]: regex_text(entry) for entry in model["rateRegions"]}
+    rates = {entry["name"]: rate_filter(entry) for entry in model["rateRegions"]}
     excluded: list[str] = []
     if model["options"].get("过滤非地区节点"):
         excluded.append(regex_text(model["excludeFilter"]))
@@ -134,9 +139,11 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
     for source in model["groups"]:
+        if source["name"] == "Apple Podcasts":
+            continue
         name = POLICY_ALIASES.get(source["name"], source["name"])
         if name == "porn":
-            groups.append({"select": {"name": name, "policies": ["香港", "新加坡"]}})
+            groups.append({"select": {"name": name, "policies": ["香港", "新加坡", "美国", "低倍率节点"]}})
             continue
         if name == "订阅":
             groups.append({
@@ -180,12 +187,15 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             for subscription in ("订阅", "订阅2"):
                 if subscription not in policies:
                     policies.append(subscription)
-        if name == "Apple Podcasts" and "媒体" not in policies:
-            policies.append("媒体")
+        if name == "EHentai":
+            for choice in ("美国", "新加坡", "低倍率节点"):
+                if choice not in policies:
+                    policies.append(choice)
         if name == "媒体":
             for region in ("美国", "日本"):
                 if region not in policies:
                     policies.append(region)
+        policies = list(dict.fromkeys(policies))
         if not policies:
             policies = ["DIRECT"]
         groups.append({"select": {"name": name, "policies": policies}})
@@ -563,7 +573,7 @@ def validate_profile(
         for entry in model["regions"]
     }
     filtered_groups.update({
-        entry["name"]: regex_text(entry) for entry in model["rateRegions"]
+        entry["name"]: rate_filter(entry) for entry in model["rateRegions"]
     })
     filtered_groups["其他节点"] = negative_filter([
         regex_text(entry) for entry in model["regions"]
@@ -589,10 +599,17 @@ def validate_profile(
             raise BuildError(f"{target} must include the Hong Kong policy group")
     if (
         "porn" not in names
-        or groups[names.index("porn")].get("policies") != ["香港", "新加坡"]
+        or groups[names.index("porn")].get("policies") != ["香港", "新加坡", "美国", "低倍率节点"]
         or groups[names.index("porn")].get("flatten", False)
     ):
-        raise BuildError("porn must offer Hong Kong and Singapore groups without flattening nodes")
+        raise BuildError("porn must offer Hong Kong, Singapore, US, and low-rate groups without flattening nodes")
+    if "EHentai" in names:
+        group = groups[names.index("EHentai")]
+        if group.get("flatten", False) or any(
+            group.get("policies", []).count(choice) != 1
+            for choice in ("美国", "新加坡", "低倍率节点")
+        ):
+            raise BuildError("EHentai must offer US, Singapore, and low-rate groups once")
     for target in ("Telegram", "媒体"):
         if target not in names:
             raise BuildError(f"Required policy group is missing: {target}")
@@ -627,13 +644,8 @@ def validate_profile(
     if dns.get("forward") != expected_forward:
         raise BuildError("Mihomo nameserver-policy and default DNS were not preserved")
     if "apple_podcasts" in model["providers"]:
-        podcast_group = groups[names.index("Apple Podcasts")]
-        if podcast_group.get("policies", [None])[0] != "Proxy":
-            raise BuildError("Apple Podcasts must default to Proxy")
-        if podcast_group.get("policies", []).count("媒体") != 1:
-            raise BuildError("Apple Podcasts must offer the 媒体 policy group once")
-        if podcast_group.get("flatten", False):
-            raise BuildError("Apple Podcasts must retain selectable policy group references")
+        if "Apple Podcasts" in names:
+            raise BuildError("Apple Podcasts must route to 媒体 without a standalone group")
         podcast_rule = next(
             index for index, wrapper in enumerate(profile["rules"])
             if wrapper.get("rule_set", {}).get("match", "").endswith("/apple-podcasts.yaml")
@@ -854,10 +866,10 @@ def main() -> int:
             },
             "migration_boundaries": [
                 "APNs traffic is first with Proxy; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
-                "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use only the declared Egern name aliases.",
-                "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; the only policy-name mapping is pron to porn.",
+                "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use the declared Egern mappings, including Apple Podcasts to 媒体.",
+                "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; policy mappings are pron to porn and Apple Podcasts to 媒体.",
                 "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
-                "The Egern policy group is named porn; source pron targets and group references map to porn, preserving Hong Kong and Singapore choices.",
+                "The Egern policy group is named porn; source pron targets and group references map to porn, offering Hong Kong, Singapore, US, and low-rate choices. EHentai adds US, Singapore, and low-rate choices; the low-rate filter also matches 实验.",
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
