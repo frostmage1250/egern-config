@@ -54,6 +54,11 @@ jobs:
           mihomo_commit="$(jq --exit-status --raw-output '.mihomo_script.commit' "${RUNNER_TEMP}/egern-source.json")"
           echo "CONVERTER_COMMIT=${converter_commit}" >> "${GITHUB_ENV}"
           echo "MIHOMO_COMMIT=${mihomo_commit}" >> "${GITHUB_ENV}"
+          dns_mihomo_commit="$(gh api repos/frostmage1250/mihomo-script/commits/main --jq .sha)"
+          echo "DNS_MIHOMO_COMMIT=${dns_mihomo_commit}" >> "${GITHUB_ENV}"
+          curl --fail --location --silent --show-error \
+            "https://raw.githubusercontent.com/frostmage1250/mihomo-script/${dns_mihomo_commit}/mihomoScript.js" \
+            --output "${RUNNER_TEMP}/dns-mihomoScript.js"
           curl --fail --location --silent --show-error \
             "https://raw.githubusercontent.com/frostmage1250/mihomo-script/${mihomo_commit}/mihomoScript.js" \
             --output "${RUNNER_TEMP}/mihomoScript.js"
@@ -62,12 +67,16 @@ jobs:
         run: |
           node src/extract_mihomo_model.js \
             "${RUNNER_TEMP}/mihomoScript.js" > "${RUNNER_TEMP}/mihomo-model.json"
+          node src/extract_mihomo_model.js \
+            "${RUNNER_TEMP}/dns-mihomoScript.js" > "${RUNNER_TEMP}/dns-mihomo-model.json"
 
       - name: Generate Egern profile from published rules
         run: |
           python src/build_egern.py \
             --model "${RUNNER_TEMP}/mihomo-model.json" \
             --manifest "${RUNNER_TEMP}/egern-source.json" \
+            --dns-model "${RUNNER_TEMP}/dns-mihomo-model.json" \
+            --dns-mihomo-commit "${DNS_MIHOMO_COMMIT}" \
             --mihomo-commit "${MIHOMO_COMMIT}" \
             --converter-commit "${CONVERTER_COMMIT}"
 

@@ -5,10 +5,15 @@
       "223.5.5.5",
       "1.12.12.12"
     ],
-    "forward_rules": 14,
+    "forward_rules": 4,
+    "mihomo_script": {
+      "commit": "21c52a92b2f4d851340a12facb3671d2bcfebe57",
+      "repository": "frostmage1250/mihomo-script"
+    },
     "proxy_nameservers": [
-      "https://zone.rlose.com:39933/api-query",
-      "https://radar.rlose.com/api-query"
+      "114.114.114.114",
+      "tls://223.5.5.5",
+      "https://doh.pub/dns-query"
     ],
     "upstreams": {
       "Foreign": [
@@ -75,7 +80,7 @@
     "香港": "(?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\\s*kong"
   },
   "migration_boundaries": [
-    "APNs is first with Proxy/Foreign DNS; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
+    "APNs traffic is first with Proxy; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
     "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use only the declared Egern name aliases.",
     "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; the only policy-name mapping is pron to porn.",
     "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
@@ -83,10 +88,10 @@
     "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
     "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
     "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
-    "APNs and Apple Podcasts retain explicit Foreign DNS precedence in Egern. Remaining Mihomo nameserver-policy entries become ordered DNS Forward rules; additional static Direct matchers use system without duplicating an explicitly covered provider.",
-    "Source duplicates remain intact; only redundant synthesized DNS Forward entries are omitted.",
+    "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
+    "Source DNS server order and duplicates remain intact; proxy_nameservers follows Mihomo proxy-server-nameserver with DIRECT suffixes removed.",
     "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
-    "Real-IP exclusions, MESL proxy DNS, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
+    "Real-IP exclusions, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
   ],
   "mihomo_script": {
@@ -797,7 +802,7 @@
     }
   ],
   "policy_groups": 23,
-  "profile_sha256": "5dd49558e07f15b0ded822f8c57184edd9390b07f8a42f8024a6a05406249247",
+  "profile_sha256": "4a7a85cfc4a7ea66ce542b4fb608a1bde5b4c02da3e10f3964ffa2b7d4e19ea5",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "e00d1ceed8b1a99096c15bb7aaa9e73caa6f26c5",

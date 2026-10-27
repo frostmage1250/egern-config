@@ -15,9 +15,11 @@ from build_egern import (  # noqa: E402
     BuildError,
     RAW_BASE,
     bootstrap_nameservers,
+    apply_dns_model,
     hosts,
     load_manifest_rules,
     nameservers,
+    proxy_nameservers,
     referenced_providers,
     render_dns_forward,
     render_dns_upstreams,
@@ -357,109 +359,78 @@ class EgernProfileBuilderTests(unittest.TestCase):
         model["dns"]["default-nameserver"].pop(0)
         self.assertEqual(bootstrap_nameservers(model), ["223.5.5.5", "9.9.9.9"])
 
-    def test_dns_forward_preserves_cn_policy_and_direct_domain_rules(self):
-        model = {
-            "dns": {"nameserver-policy": {"rule-set:cn": ["system"]}},
-            "rules": [
-                "RULE-SET,private,Direct",
-                "RULE-SET,cn_ip,Direct",
-                "RULE-SET,google,Proxy",
-                "DOMAIN-SUFFIX,internal.example,Direct",
-                "MATCH,Final",
-            ],
-        }
-        providers = {
-            "cn": {"behavior": "domain"},
-            "private": {"behavior": "domain"},
-            "cn_ip": {"behavior": "ipcidr"},
-            "google": {"behavior": "domain"},
-        }
-        files = {
-            "cn": ["cn.yaml"],
-            "private": ["private.yaml"],
-            "cn_ip": ["cn-ip.yaml"],
-            "google": ["google.yaml"],
-        }
-        forward = render_dns_forward(model, providers, files)
-        self.assertEqual(
-            forward,
-            [
-                {
-                    "proxy_rule_set": {
-                        "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apns.yaml",
-                        "value": "Foreign",
-                        "update_interval": 86400,
-                    }
-                },
-                {
-                    "proxy_rule_set": {
-                        "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn.yaml",
-                        "value": "system",
-                        "update_interval": 86400,
-                    }
-                },
-                {
-                    "proxy_rule_set": {
-                        "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml",
-                        "value": "system",
-                        "update_interval": 86400,
-                    }
-                },
-                {
-                    "domain_suffix": {
-                        "match": "internal.example",
-                        "value": "system",
-                    }
-                },
-                {"domain_wildcard": {"match": "*", "value": "Foreign"}},
-            ],
-        )
-
-    def test_dns_policy_prevents_only_redundant_synthesized_forwarding(self):
+    def test_dns_does_not_infer_policy_from_traffic_routing(self):
         model = {
             "dns": {"nameserver-policy": {
                 "rule-set:private": "system",
-                "rule-set:custom": ["system", "180.184.1.1"],
-            }},
-            "rules": [
-                "RULE-SET,private,Direct", "RULE-SET,private,Direct",
-                "RULE-SET,custom,Direct",
-                "DOMAIN-SUFFIX,internal.example,Direct",
-                "DOMAIN-SUFFIX,internal.example,Direct", "MATCH,Final",
-            ],
-        }
-        providers = {name: {"behavior": "domain"} for name in ("private", "custom")}
-        files = {name: [name + ".yaml"] for name in providers}
-        forward = render_dns_forward(model, providers, files)
-        matches = [next(iter(item.values()))["match"] for item in forward]
-        self.assertEqual(matches.count(f"{RAW_BASE}/dist/egern/private.yaml"), 1)
-        self.assertEqual(matches.count(f"{RAW_BASE}/dist/egern/custom.yaml"), 1)
-        self.assertEqual(matches.count("internal.example"), 2)
-        self.assertEqual(forward[2]["proxy_rule_set"]["value"], "Policy-custom")
-        self.assertEqual(len(render_rules(model, files)), len(model["rules"]) + 1)
-
-    def test_podcasts_foreign_dns_precedes_cn_system_dns(self):
-        resolvers = ["https://cloudflare-dns.com/dns-query#Proxy", "https://dns.google/dns-query#Proxy"]
-        model = {
-            "dns": {"nameserver": resolvers, "nameserver-policy": {
+                "rule-set:douyin": ["system", "180.184.1.1", "180.184.2.2"],
                 "rule-set:cn": ["system"],
             }},
-            "rules": ["RULE-SET,apple_podcasts,Apple Podcasts", "RULE-SET,apple_cn,Direct"],
+            "rules": [
+                "RULE-SET,apple_podcasts,Apple Podcasts", "RULE-SET,apple_cn,Direct",
+                "RULE-SET,private,Direct", "DOMAIN-SUFFIX,internal.example,Direct",
+                "DOMAIN,cdn.example,Direct", "MATCH,Final",
+            ],
         }
-        providers = {name: {"behavior": "domain"} for name in ("apple_podcasts", "cn", "apple_cn")}
-        files = {"apple_podcasts": ["apple-podcasts.yaml"], "cn": ["cn.yaml"], "apple_cn": ["apple-cn.yaml"]}
-        upstreams = render_dns_upstreams(model)
-        self.assertEqual(upstreams, {"Foreign": [value.split("#")[0] for value in resolvers]})
+        providers = {name: {"behavior": "domain"} for name in
+                     ("apns", "apple_podcasts", "apple_cn", "private", "douyin", "cn")}
+        files = {name: [name + ".yaml"] for name in providers}
         forward = render_dns_forward(model, providers, files)
-        self.assertTrue(forward[1]["proxy_rule_set"]["match"].endswith("/apple-podcasts.yaml"))
-        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Foreign")
-        self.assertEqual(forward[2]["proxy_rule_set"]["value"], "system")
-        model["dns"]["nameserver-policy"]["rule-set:apple_podcasts"] = resolvers
+        self.assertEqual(forward, [
+            {"proxy_rule_set": {"match": f"{RAW_BASE}/dist/egern/{provider}.yaml",
+                                "value": target, "update_interval": 86400}}
+            for provider, target in (("private", "system"), ("douyin", "Policy-douyin"), ("cn", "system"))
+        ] + [{"domain_wildcard": {"match": "*", "value": "Foreign"}}])
+        # Changing a selectable traffic policy must not add a DNS override.
+        model["rules"][0] = "RULE-SET,apple_podcasts,Direct"
         self.assertEqual(render_dns_forward(model, providers, files), forward)
-        rules = render_rules(model, files)
-        self.assertEqual(rules[1]["rule_set"]["policy"], "Apple Podcasts")
-        self.assertTrue(rules[2]["rule_set"]["match"].endswith("/apple-cn.yaml"))
-        validate_rule_alignment(rules, model, files)
+
+    def test_podcasts_dns_override_requires_explicit_source_policy(self):
+        resolvers = ["https://cloudflare-dns.com/dns-query#Proxy", "https://dns.google/dns-query#Proxy"]
+        model = {"dns": {"nameserver": resolvers, "nameserver-policy": {
+            "rule-set:cn": ["system"], "rule-set:apple_podcasts": resolvers,
+        }}, "rules": []}
+        providers = {name: {"behavior": "domain"} for name in ("apple_podcasts", "cn")}
+        files = {"apple_podcasts": ["apple-podcasts.yaml"], "cn": ["cn.yaml"]}
+        forward = render_dns_forward(model, providers, files)
+        self.assertEqual(forward[0]["proxy_rule_set"]["value"], "system")
+        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Foreign")
+        self.assertTrue(forward[1]["proxy_rule_set"]["match"].endswith("/apple-podcasts.yaml"))
+        del model["dns"]["nameserver-policy"]["rule-set:apple_podcasts"]
+        self.assertEqual(render_dns_forward(model, providers, files), [forward[0], forward[-1]])
+
+    def test_dns_snapshot_removes_retired_policy_without_changing_routing(self):
+        provider = {"behavior": "domain", "url": "https://example.test/cn.mrs", "format": "mrs"}
+        pinned = {"dns": {"nameserver-policy": {"rule-set:apple_podcasts": ["system"]}},
+                  "rules": ["RULE-SET,cn,Direct"], "providers": {"cn": provider}}
+        current = {"dns": {"nameserver-policy": {"rule-set:cn": ["system"]}},
+                   "rules": ["MATCH,Proxy"], "providers": {"cn": dict(provider)}}
+        combined = apply_dns_model(pinned, current)
+        self.assertEqual(combined["dns"], current["dns"])
+        self.assertEqual(combined["rules"], pinned["rules"])
+        self.assertIn("rule-set:apple_podcasts", pinned["dns"]["nameserver-policy"])
+        current["providers"]["cn"]["url"] = "https://example.test/new-cn.mrs"
+        with self.assertRaises(BuildError):
+            apply_dns_model(pinned, current)
+
+    def test_node_dns_tracks_source_protocols_order_and_duplicates(self):
+        model = {"dns": {"proxy-server-nameserver": [
+            "114.114.114.114#DIRECT", "tls://223.5.5.5#DIRECT",
+            "https://doh.pub/dns-query#DIRECT", "114.114.114.114#DIRECT",
+        ]}}
+        self.assertEqual(proxy_nameservers(model), [
+            "114.114.114.114", "tls://223.5.5.5", "https://doh.pub/dns-query", "114.114.114.114",
+        ])
+        model["dns"]["proxy-server-nameserver"] = ["system"]
+        self.assertEqual(proxy_nameservers(model), ["system"])
+        model["dns"]["proxy-server-nameserver-policy"] = {"node.example": "system"}
+        with self.assertRaises(BuildError):
+            proxy_nameservers(model)
+        del model["dns"]["proxy-server-nameserver-policy"]
+        for value in ([], [""], [None], ["1.1.1.1#Proxy"]):
+            model["dns"]["proxy-server-nameserver"] = value
+            with self.subTest(value=value), self.assertRaises(BuildError):
+                proxy_nameservers(model)
 
     def test_media_retains_existing_region_choices_once(self):
         model = {
@@ -514,7 +485,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         forward = render_dns_forward(
             model, {"douyin": {"behavior": "domain"}}, {"douyin": ["douyin.yaml"]}
         )
-        self.assertEqual(forward[1]["proxy_rule_set"]["value"], "Policy-douyin")
+        self.assertEqual(forward[0]["proxy_rule_set"]["value"], "Policy-douyin")
 
     def test_dns_policy_provider_is_generated_even_when_not_in_routing_rules(self):
         model = {
@@ -539,8 +510,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         }
         self.assertEqual(len(nameservers(model)), 2)
         forward = render_dns_forward(model, {}, {})
-        self.assertEqual(forward[1], forward[2])
-        self.assertEqual(len(forward), 4)
+        self.assertEqual(forward, [{"domain_wildcard": {"match": "*", "value": "Foreign"}}])
 
     def test_dns_forward_references_one_native_file_per_provider(self):
         model = {
@@ -552,8 +522,8 @@ class EgernProfileBuilderTests(unittest.TestCase):
             {"apns": ["apns.yaml"], "cn": ["cn.yaml"]},
         )
         self.assertEqual(
-            [item["proxy_rule_set"]["match"].rsplit("/", 1)[-1] for item in forward[:2]],
-            ["apns.yaml", "cn.yaml"],
+            [item["proxy_rule_set"]["match"].rsplit("/", 1)[-1] for item in forward[:-1]],
+            ["cn.yaml"],
         )
 
     def test_manifest_verifies_single_native_yaml_count_and_duplicates(self):

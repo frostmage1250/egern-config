@@ -32,10 +32,6 @@ FLOWER_HOSTS = {
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
     "fde63gz6-1y61.aws-agent.biz": "09571gz6-86k1.apt-agent.com",
 }
-MESL_PROXY_DNS = [
-    "https://zone.rlose.com:39933/api-query",
-    "https://radar.rlose.com/api-query",
-]
 DNS_HOST_IP_ADDITIONS = {
     "dns.alidns.com": [
         "223.5.5.5",
@@ -84,6 +80,19 @@ def referenced_providers(model: dict[str, Any]) -> list[str]:
         if isinstance(key, str) and key.startswith("rule-set:"):
             result.append(key.removeprefix("rule-set:"))
     return list(dict.fromkeys(result))
+
+
+def apply_dns_model(model: dict[str, Any], dns_model: dict[str, Any]) -> dict[str, Any]:
+    for key in dns_model["dns"].get("nameserver-policy", {}):
+        if not isinstance(key, str) or not key.startswith("rule-set:"):
+            raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
+        provider = key.removeprefix("rule-set:")
+        pinned = model["providers"].get(provider)
+        current = dns_model["providers"].get(provider)
+        if (not pinned or not current or current.get("behavior") != "domain"
+                or any(pinned.get(field) != current.get(field) for field in ("url", "behavior", "format"))):
+            raise BuildError(f"DNS provider differs from converter snapshot: {provider}")
+    return {**model, "dns": dns_model["dns"]}
 
 
 def regex_text(item: dict[str, str]) -> str:
@@ -351,6 +360,22 @@ def nameservers(model: dict[str, Any]) -> list[str]:
     return result
 
 
+def proxy_nameservers(model: dict[str, Any]) -> list[str]:
+    result: list[str] = []
+    for value in model.get("dns", {}).get("proxy-server-nameserver", []):
+        if not isinstance(value, str) or not value.strip():
+            raise BuildError(f"Invalid proxy-server-nameserver: {value!r}")
+        server, policy = split_nameserver_policy(value)
+        if policy not in {None, "DIRECT"}:
+            raise BuildError(f"Unsupported proxy-server-nameserver route: {value!r}")
+        result.append(server)
+    if not result:
+        raise BuildError("Mihomo DNS model contains no proxy-server-nameserver")
+    if model.get("dns", {}).get("proxy-server-nameserver-policy"):
+        raise BuildError("Egern cannot preserve per-node proxy-server-nameserver-policy")
+    return result
+
+
 def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
     result: list[str] = []
     for value in model.get("dns", {}).get("default-nameserver", []):
@@ -446,26 +471,11 @@ def render_dns_forward(
             item["update_interval"] = 86400
         forward.append({kind: item})
 
-    # User-requested APNs override is the highest-priority proxied DNS rule.
-    for filename in provider_files.get("apns", [APNS_FILENAME]):
-        add("proxy_rule_set", f"{RAW_BASE}/dist/egern/{filename}", "Foreign")
-
-    # Podcasts shares domains with Apple CN. Keep this Egern DNS exception
-    # ahead of system forwarding even when Mihomo uses its default nameserver.
-    if "apple_podcasts" in providers:
-        filenames = provider_files.get("apple_podcasts")
-        if not filenames:
-            raise BuildError("Apple Podcasts DNS provider was not generated")
-        for filename in filenames:
-            add("proxy_rule_set", f"{RAW_BASE}/dist/egern/{filename}", "Foreign")
-
-    # Preserve the remaining Mihomo nameserver-policy entries.
+    # DNS selection follows the source policy, independently of traffic routing.
     for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
         if not isinstance(key, str) or not key.startswith("rule-set:"):
             raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
         provider = key.removeprefix("rule-set:")
-        if provider == "apple_podcasts":
-            continue
         definition = providers.get(provider)
         if definition is None or definition.get("behavior") != "domain":
             raise BuildError(
@@ -482,45 +492,6 @@ def render_dns_forward(
                     target, provider, foreign_servers=model.get("dns", {}).get("nameserver")
                 ),
             )
-
-    # Egern has no policy-aware direct re-resolution. Preserve every explicit
-    # domain rule whose final Mihomo target is Direct by selecting system DNS
-    # before the foreign catch-all.
-    policy_providers = {
-        key.removeprefix("rule-set:")
-        for key in model.get("dns", {}).get("nameserver-policy", {})
-    }
-    for raw in model["rules"]:
-        parts = raw.split(",")
-        kind = parts[0]
-        no_resolve = parts[-1] == "no-resolve"
-        policy = parts[-2] if no_resolve else parts[-1]
-        if policy not in {"DIRECT", "Direct"}:
-            continue
-        if kind == "RULE-SET" and len(parts) >= 3:
-            provider = parts[1]
-            # Explicit DNS policy already handles this matcher, even if its target
-            # differs. Do not synthesize an unreachable second forwarding rule.
-            if provider in policy_providers:
-                continue
-            definition = providers.get(provider)
-            if definition is None:
-                raise BuildError(f"Direct rule references missing provider: {provider}")
-            if definition.get("behavior") != "domain":
-                continue
-            filenames = provider_files.get(provider)
-            if not filenames:
-                raise BuildError(f"Direct DNS provider was not generated: {provider}")
-            for filename in filenames:
-                add(
-                    "proxy_rule_set",
-                    f"{RAW_BASE}/dist/egern/{filename}",
-                    "system",
-                )
-        elif kind == "DOMAIN-SUFFIX" and len(parts) == 3:
-            add("domain_suffix", parts[1], "system")
-        elif kind == "DOMAIN" and len(parts) == 3:
-            add("domain", parts[1], "system")
 
     add("domain_wildcard", "*", "Foreign")
     return forward
@@ -568,13 +539,6 @@ def validate_profile(
     if any(filename not in generated for filename in apns_files):
         raise BuildError("APNs native rule set was not generated")
     validate_rule_alignment(profile["rules"], model, provider_files)
-    for index, filename in enumerate(apns_files):
-        first_dns_rule = profile["dns"]["forward"][index].get("proxy_rule_set", {})
-        if (
-            first_dns_rule.get("match") != f"{RAW_BASE}/dist/egern/{filename}"
-            or first_dns_rule.get("value") != "Foreign"
-        ):
-            raise BuildError("APNs DNS Forward rule set must be first")
     for group in groups:
         for policy in group.get("policies", []):
             if policy not in known:
@@ -661,7 +625,7 @@ def validate_profile(
         raise BuildError("Mihomo nameserver-policy upstreams were not preserved")
     expected_forward = render_dns_forward(model, model["providers"], provider_files)
     if dns.get("forward") != expected_forward:
-        raise BuildError("Mihomo DNS policy and Direct-domain DNS were not preserved")
+        raise BuildError("Mihomo nameserver-policy and default DNS were not preserved")
     if "apple_podcasts" in model["providers"]:
         podcast_group = groups[names.index("Apple Podcasts")]
         if podcast_group.get("policies", [None])[0] != "Proxy":
@@ -680,14 +644,8 @@ def validate_profile(
         )
         if podcast_rule >= cn_rule:
             raise BuildError("Apple Podcasts must precede Apple CN")
-        podcast_dns = next(
-            item["proxy_rule_set"] for item in dns["forward"]
-            if item.get("proxy_rule_set", {}).get("match", "").endswith("/apple-podcasts.yaml")
-        )
-        if podcast_dns["value"] != "Foreign":
-            raise BuildError("Apple Podcasts DNS must use Foreign")
-    if dns.get("proxy_nameservers") != MESL_PROXY_DNS:
-        raise BuildError("MESL proxy nameservers were not preserved")
+    if dns.get("proxy_nameservers") != proxy_nameservers(model):
+        raise BuildError("Mihomo proxy-server-nameserver was not preserved")
     if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
         raise BuildError("Repcz real-IP domain exclusions were not preserved")
     for hostname, additions in DNS_HOST_IP_ADDITIONS.items():
@@ -813,6 +771,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--dns-model", type=Path, required=True)
+    parser.add_argument("--dns-mihomo-commit", required=True)
     parser.add_argument("--mihomo-commit", required=True)
     parser.add_argument("--converter-commit", required=True)
     parser.add_argument("--check", action="store_true")
@@ -824,6 +784,10 @@ def main() -> int:
         manifest = json.loads(manifest_text)
         if manifest.get("mihomo_script", {}).get("commit") != args.mihomo_commit:
             raise BuildError("Mihomo script commit differs from converter rule manifest")
+        # Rule artifacts remain pinned to their manifest; DNS follows its own
+        # immutable Mihomo snapshot so converter publication cannot retain old DNS.
+        dns_model = json.loads(args.dns_model.read_text(encoding="utf-8"))
+        model = apply_dns_model(model, dns_model)
         generated, provider_files = load_manifest_rules(model, manifest, args.converter_commit)
         groups, filters = render_policy_groups(model)
         rules = render_rules(model, provider_files)
@@ -842,7 +806,7 @@ def main() -> int:
                 "upstreams": render_dns_upstreams(model),
                 "forward": render_dns_forward(model, model["providers"], provider_files),
                 "hosts": hosts(model),
-                "proxy_nameservers": MESL_PROXY_DNS,
+                "proxy_nameservers": proxy_nameservers(model),
             },
             "policy_groups": groups,
             "rules": rules,
@@ -875,6 +839,7 @@ def main() -> int:
             },
             "group_filters": filters,
             "dns": {
+                "mihomo_script": {"repository": MIHOMO_REPO, "commit": args.dns_mihomo_commit},
                 "bootstrap": profile["dns"]["bootstrap"],
                 "forward_rules": len(profile["dns"]["forward"]),
                 "upstreams": profile["dns"]["upstreams"],
@@ -888,7 +853,7 @@ def main() -> int:
                 "reason": "Default group names are public; subscription credentials remain local.",
             },
             "migration_boundaries": [
-                "APNs is first with Proxy/Foreign DNS; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
+                "APNs traffic is first with Proxy; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
                 "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use only the declared Egern name aliases.",
                 "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; the only policy-name mapping is pron to porn.",
                 "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
@@ -896,10 +861,10 @@ def main() -> int:
                 "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
-                "APNs and Apple Podcasts retain explicit Foreign DNS precedence in Egern. Remaining Mihomo nameserver-policy entries become ordered DNS Forward rules; additional static Direct matchers use system without duplicating an explicitly covered provider.",
-                "Source duplicates remain intact; only redundant synthesized DNS Forward entries are omitted.",
+                "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
+                "Source DNS server order and duplicates remain intact; proxy_nameservers follows Mihomo proxy-server-nameserver with DIRECT suffixes removed.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
-                "Real-IP exclusions, MESL proxy DNS, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
+                "Real-IP exclusions, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
                 "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests.",
             ],
         }
