@@ -85,7 +85,7 @@ policy_groups:
     - 台湾
     - 其他节点
     - 低倍率节点
-    flatten: true
+    flatten: false
 - select:
     name: 订阅
     policies:
@@ -141,9 +141,9 @@ policy_groups:
     - Proxy
     - 低倍率节点
     - 香港
+    - 美国
     - 订阅
     - 订阅2
-    - 美国
     - 日本
 - select:
     name: YouTube
@@ -172,6 +172,7 @@ policy_groups:
     - Proxy
     - 美国
     - 新加坡
+    - 香港
     - 低倍率节点
 - select:
     name: 香港
