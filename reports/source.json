@@ -11,10 +11,14 @@
       "repository": "frostmage1250/mihomo-script"
     },
     "proxy_nameservers": [
-      "114.114.114.114",
-      "tls://223.5.5.5",
-      "https://doh.pub/dns-query"
+      "https://zone.rlose.com:39933/api-query",
+      "https://radar.rlose.com/api-query"
     ],
+    "proxy_nameservers_source": {
+      "overrides": "Mihomo proxy-server-nameserver",
+      "reference_field": "dns.nameserver",
+      "reference_file": "MESL.yaml"
+    },
     "upstreams": {
       "Foreign": [
         "https://cloudflare-dns.com/dns-query",
@@ -89,7 +93,7 @@
     "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
     "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
     "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
-    "Source DNS server order and duplicates remain intact; proxy_nameservers follows Mihomo proxy-server-nameserver with DIRECT suffixes removed.",
+    "Source DNS server order and duplicates remain intact for shared DNS; proxy_nameservers explicitly uses the two private DoH endpoints from MESL.yaml dns.nameserver in reference order.",
     "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
     "Real-IP exclusions, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
@@ -802,7 +806,7 @@
     }
   ],
   "policy_groups": 22,
-  "profile_sha256": "281e73f6d0cc5d0beddc4451657223b38b93cafaf4414bd1407e7e3dc5172ec5",
+  "profile_sha256": "b3ba694e8fef5ee54020bb97cc98458a5074a15df7cc430712fb1615b19ee17c",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "e00d1ceed8b1a99096c15bb7aaa9e73caa6f26c5",
