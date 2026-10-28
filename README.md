@@ -34,7 +34,8 @@ to **订阅**. **订阅2** starts with empty `policies` and `urls` and uses the 
 node exclusion filter. The profile keeps `default_subscription_group: 订阅`
 and `default_proxy_group: 代理`.
 
-Proxy flattens both subscription groups. Every regional group, 其他节点, and
+Proxy retains subscription and regional groups as selectable entries with
+`flatten: false`. Every regional group, 其他节点, and
 低倍率节点 filters nodes from both 订阅 and 订阅2. Telegram and 媒体 expose both
 subscriptions. 媒体 also offers 美国 and 日本 as selectable policy groups.
 Region/exclusion patterns come from the pinned Mihomo model; the low-rate

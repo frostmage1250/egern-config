@@ -179,7 +179,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             policies = ["订阅", "订阅2"] + [
                 policy for policy in policies if policy not in {"订阅", "订阅2"}
             ]
-            groups.append({"select": {"name": name, "policies": policies, "flatten": True}})
+            groups.append({"select": {"name": name, "policies": policies, "flatten": False}})
             continue
         if name == "Direct":
             policies = ["DIRECT"]
@@ -536,11 +536,11 @@ def validate_profile(
         raise BuildError("Proxy policy group is missing")
     proxy_group = groups[names.index("Proxy")]
     if (
-        proxy_group.get("flatten") is not True
+        proxy_group.get("flatten", False) is not False
         or proxy_group.get("policies", [])[:2] != ["订阅", "订阅2"]
         or "filter" in proxy_group
     ):
-        raise BuildError("Proxy must flatten all nodes from both subscription groups without a regional filter")
+        raise BuildError("Proxy must retain selectable groups without flattening or a regional filter")
     known = set(names) | BUILTIN_POLICIES
     apns_files = provider_files.get("apns", [])
     if any(filename not in generated for filename in apns_files):

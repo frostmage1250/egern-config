@@ -281,7 +281,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         }
         self.assertEqual(
             by_name["Proxy"],
-            {"name": "Proxy", "policies": ["订阅", "订阅2", "日本"], "flatten": True},
+            {"name": "Proxy", "policies": ["订阅", "订阅2", "日本"], "flatten": False},
         )
         self.assertFalse(by_name["AI"].get("flatten", False))
         self.assertFalse(by_name["Claude"].get("flatten", False))
