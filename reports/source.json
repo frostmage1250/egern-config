@@ -7,7 +7,7 @@
     ],
     "forward_rules": 4,
     "mihomo_script": {
-      "commit": "ed36af7ad14f834521981f0fe43dd4d5403e7b22",
+      "commit": "ce22bcd87a57cf5167a706d322f463d8ec40a7e1",
       "repository": "frostmage1250/mihomo-script"
     },
     "proxy_nameservers": [
@@ -99,7 +99,7 @@
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
   ],
   "mihomo_script": {
-    "commit": "ed36af7ad14f834521981f0fe43dd4d5403e7b22",
+    "commit": "ce22bcd87a57cf5167a706d322f463d8ec40a7e1",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -809,9 +809,9 @@
   "profile_sha256": "ef63a3b46402336bfa8d28542375a6df11f0bd0774b6899340d05046722cb31d",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "51a4935d6e3187b16be501fab1ae61e8e30ab358",
+    "commit": "c1861978131133dfeba70e8f4e7d86c6a7b5337c",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "b6d91301159132fe1be874537de8163fc486ca2a7bb354d1d62b2b65c81a23b9",
+    "manifest_sha256": "34915e484d22774883d82b8ad751c1d977f43b1d0e5d06f2487f8ca98eeb6fb0",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_alignment": {
