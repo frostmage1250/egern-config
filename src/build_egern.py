@@ -32,6 +32,10 @@ FLOWER_HOSTS = {
     "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
     "fde63gz6-1y61.aws-agent.biz": "09571gz6-86k1.apt-agent.com",
 }
+MESL_PROXY_NAMESERVERS = (
+    "https://zone.rlose.com:39933/api-query",
+    "https://radar.rlose.com/api-query",
+)
 DNS_HOST_IP_ADDITIONS = {
     "dns.alidns.com": [
         "223.5.5.5",
@@ -370,20 +374,13 @@ def nameservers(model: dict[str, Any]) -> list[str]:
     return result
 
 
-def proxy_nameservers(model: dict[str, Any]) -> list[str]:
-    result: list[str] = []
-    for value in model.get("dns", {}).get("proxy-server-nameserver", []):
-        if not isinstance(value, str) or not value.strip():
-            raise BuildError(f"Invalid proxy-server-nameserver: {value!r}")
-        server, policy = split_nameserver_policy(value)
-        if policy not in {None, "DIRECT"}:
-            raise BuildError(f"Unsupported proxy-server-nameserver route: {value!r}")
-        result.append(server)
-    if not result:
-        raise BuildError("Mihomo DNS model contains no proxy-server-nameserver")
-    if model.get("dns", {}).get("proxy-server-nameserver-policy"):
-        raise BuildError("Egern cannot preserve per-node proxy-server-nameserver-policy")
-    return result
+def proxy_nameservers() -> list[str]:
+    """Use the provider's private DNS from MESL.yaml (dns.nameserver).
+
+    Public resolvers cannot replace the provider's node-domain resolution.
+    This explicit Egern override must survive Mihomo DNS model updates.
+    """
+    return list(MESL_PROXY_NAMESERVERS)
 
 
 def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
@@ -656,8 +653,8 @@ def validate_profile(
         )
         if podcast_rule >= cn_rule:
             raise BuildError("Apple Podcasts must precede Apple CN")
-    if dns.get("proxy_nameservers") != proxy_nameservers(model):
-        raise BuildError("Mihomo proxy-server-nameserver was not preserved")
+    if dns.get("proxy_nameservers") != proxy_nameservers():
+        raise BuildError("MESL private proxy nameservers were not preserved")
     if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
         raise BuildError("Repcz real-IP domain exclusions were not preserved")
     for hostname, additions in DNS_HOST_IP_ADDITIONS.items():
@@ -818,7 +815,7 @@ def main() -> int:
                 "upstreams": render_dns_upstreams(model),
                 "forward": render_dns_forward(model, model["providers"], provider_files),
                 "hosts": hosts(model),
-                "proxy_nameservers": proxy_nameservers(model),
+                "proxy_nameservers": proxy_nameservers(),
             },
             "policy_groups": groups,
             "rules": rules,
@@ -856,6 +853,11 @@ def main() -> int:
                 "forward_rules": len(profile["dns"]["forward"]),
                 "upstreams": profile["dns"]["upstreams"],
                 "proxy_nameservers": profile["dns"]["proxy_nameservers"],
+                "proxy_nameservers_source": {
+                    "reference_file": "MESL.yaml",
+                    "reference_field": "dns.nameserver",
+                    "overrides": "Mihomo proxy-server-nameserver",
+                },
             },
             "subscription": {
                 "group": "订阅",
@@ -874,7 +876,7 @@ def main() -> int:
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
                 "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
-                "Source DNS server order and duplicates remain intact; proxy_nameservers follows Mihomo proxy-server-nameserver with DIRECT suffixes removed.",
+                "Source DNS server order and duplicates remain intact for shared DNS; proxy_nameservers explicitly uses the two private DoH endpoints from MESL.yaml dns.nameserver in reference order.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
                 "Real-IP exclusions, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
                 "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests.",

@@ -60,11 +60,18 @@ Podcasts have no independent DNS override. Traffic rules targeting Direct do
 not synthesize DNS Forward entries; traffic policy selection and DNS matching
 remain separate, as in Mihomo.
 
-Node resolution uses Mihomo's `proxy-server-nameserver`, preserving protocol,
-server order, and duplicates while removing the `#DIRECT` routing suffix.
-The previous fixed MESL resolver list is removed. Per-node DNS policies fail
-explicitly because this static profile cannot represent subscription-dependent
-Mihomo `proxy-server-nameserver-policy`.
+Proxy-server resolution explicitly uses the provider's private DoH endpoints
+from the user-supplied official `MESL.yaml` (`dns.nameserver`), in reference order:
+
+- `https://zone.rlose.com:39933/api-query`
+- `https://radar.rlose.com/api-query`
+
+These are emitted as Egern `dns.proxy_nameservers`, overriding Mihomo's
+generic `proxy-server-nameserver`. Their scheme, hostname, custom port and path
+are preserved. Egern connects to proxy DNS directly.
+This exception is recorded separately in `reports/source.json` under
+`dns.proxy_nameservers_source`; other DNS mapping continues to follow Mihomo.
+The reference subscription's node credentials are not copied or published.
 
 Mihomo `default-nameserver` IPs retain source order in Egern's plain-UDP
 bootstrap. Foreign resolver URLs retain their server order. The two existing

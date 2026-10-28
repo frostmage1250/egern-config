@@ -413,24 +413,16 @@ class EgernProfileBuilderTests(unittest.TestCase):
         with self.assertRaises(BuildError):
             apply_dns_model(pinned, current)
 
-    def test_node_dns_tracks_source_protocols_order_and_duplicates(self):
-        model = {"dns": {"proxy-server-nameserver": [
-            "114.114.114.114#DIRECT", "tls://223.5.5.5#DIRECT",
-            "https://doh.pub/dns-query#DIRECT", "114.114.114.114#DIRECT",
-        ]}}
-        self.assertEqual(proxy_nameservers(model), [
-            "114.114.114.114", "tls://223.5.5.5", "https://doh.pub/dns-query", "114.114.114.114",
-        ])
-        model["dns"]["proxy-server-nameserver"] = ["system"]
-        self.assertEqual(proxy_nameservers(model), ["system"])
-        model["dns"]["proxy-server-nameserver-policy"] = {"node.example": "system"}
-        with self.assertRaises(BuildError):
-            proxy_nameservers(model)
-        del model["dns"]["proxy-server-nameserver-policy"]
-        for value in ([], [""], [None], ["1.1.1.1#Proxy"]):
-            model["dns"]["proxy-server-nameserver"] = value
-            with self.subTest(value=value), self.assertRaises(BuildError):
-                proxy_nameservers(model)
+    def test_node_dns_uses_mesl_private_resolvers(self):
+        expected = [
+            "https://zone.rlose.com:39933/api-query",
+            "https://radar.rlose.com/api-query",
+        ]
+        self.assertEqual(proxy_nameservers(), expected)
+        # Callers must not mutate the configured resolver list.
+        rendered = proxy_nameservers()
+        rendered.append("1.1.1.1")
+        self.assertEqual(proxy_nameservers(), expected)
 
     def test_media_retains_existing_region_choices_once(self):
         model = {
