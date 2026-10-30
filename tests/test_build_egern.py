@@ -30,6 +30,63 @@ from build_egern import (  # noqa: E402
 
 
 class EgernProfileBuilderTests(unittest.TestCase):
+
+    def test_foreign_quic_logical_translation_and_exception_truth_table(self):
+        raw = "AND,((NETWORK,UDP),(DST-PORT,443),(NOT,((OR,((RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)))))),REJECT"
+        model = {"rules": ["DOMAIN,cdn.example,Direct", raw, "RULE-SET,service,Proxy", "MATCH,Final"],
+                 "quic_rules": [raw]}
+        files = {"cn_additional": ["cn-additional.yaml"], "cn_ip": ["cn-ip.yaml"], "service": ["service.yaml"]}
+        self.assertEqual(referenced_providers(model), ["cn_additional", "cn_ip", "service"])
+        rules = render_rules(model, files)
+        rule = rules[2]["and"]
+        self.assertEqual(rule["policy"], "REJECT")
+        self.assertEqual(rule["name"], "屏蔽国外 QUIC")
+        self.assertIs(rule["disabled"], False)
+        exceptions = rule["match"][2]["not"]["match"]["or"]["match"]
+        self.assertEqual(exceptions[0], {"rule_set": {
+            "match": f"{RAW_BASE}/dist/egern/cn-additional.yaml", "update_interval": 86400}})
+        self.assertEqual(exceptions[1], {"rule_set": {
+            "match": f"{RAW_BASE}/dist/egern/cn-ip.yaml", "update_interval": 86400, "no_resolve": True}})
+        validate_rule_alignment(rules, model, files)
+
+        def matches(wrapper, protocol, port, additional, cn_ip):
+            kind, item = next(iter(wrapper.items()))
+            if item.get("disabled"):
+                return False
+            if kind == "and":
+                return all(matches(child, protocol, port, additional, cn_ip) for child in item["match"])
+            if kind == "or":
+                return any(matches(child, protocol, port, additional, cn_ip) for child in item["match"])
+            if kind == "not":
+                return not matches(item["match"], protocol, port, additional, cn_ip)
+            if kind == "protocol":
+                return item["match"] == protocol
+            if kind == "dest_port":
+                return item["match"] == str(port)
+            return additional if item["match"].endswith("/cn-additional.yaml") else cn_ip
+
+        for protocol in ("udp", "tcp"):
+            for port in (443, 8443):
+                for additional in (False, True):
+                    for cn_ip in (False, True):
+                        expected = protocol == "udp" and port == 443 and not (additional or cn_ip)
+                        self.assertEqual(matches(rules[2], protocol, port, additional, cn_ip), expected)
+        rule["disabled"] = True
+        self.assertFalse(matches(rules[2], "udp", 443, False, False))
+        rule["disabled"] = False
+        for mutation in ("port", "no_resolve", "exception", "order"):
+            changed = json.loads(json.dumps(rules))
+            if mutation == "port":
+                changed[2]["and"]["match"][1]["dest_port"]["match"] = "8443"
+            elif mutation == "no_resolve":
+                del changed[2]["and"]["match"][2]["not"]["match"]["or"]["match"][1]["rule_set"]["no_resolve"]
+            elif mutation == "exception":
+                changed[2]["and"]["match"][2]["not"]["match"]["or"]["match"].pop()
+            else:
+                changed[1], changed[2] = changed[2], changed[1]
+            with self.subTest(mutation=mutation), self.assertRaises(BuildError):
+                validate_rule_alignment(changed, model, files)
+
     def test_standalone_privaterelay_is_retained_before_apple(self):
         model = {"rules": [
             "RULE-SET,apple_cn,Direct", "RULE-SET,apple,Proxy",

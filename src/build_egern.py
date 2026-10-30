@@ -77,9 +77,8 @@ def download_text(url: str) -> str:
 def referenced_providers(model: dict[str, Any]) -> list[str]:
     result: list[str] = []
     for rule in model["rules"]:
-        parts = rule.split(",")
-        if parts[0] == "RULE-SET" and len(parts) >= 3:
-            result.append(parts[1])
+        # Logical rules can reference providers at any nesting depth.
+        result.extend(re.findall(r"\bRULE-SET,([^,()]+)", rule))
     for key in model.get("dns", {}).get("nameserver-policy", {}):
         if isinstance(key, str) and key.startswith("rule-set:"):
             result.append(key.removeprefix("rule-set:"))
@@ -218,6 +217,101 @@ def split_nameserver_policy(value: str) -> tuple[str, str | None]:
     return server, policy
 
 
+def split_rule(text: str) -> list[str]:
+    parts: list[str] = []
+    start = depth = 0
+    for index, character in enumerate(text):
+        if character == "(":
+            depth += 1
+        elif character == ")":
+            depth -= 1
+            if depth < 0:
+                raise BuildError(f"Unbalanced logical rule: {text}")
+        elif character == "," and depth == 0:
+            parts.append(text[start:index])
+            start = index + 1
+    if depth:
+        raise BuildError(f"Unbalanced logical rule: {text}")
+    parts.append(text[start:])
+    return parts
+
+
+def unwrap_rule(text: str) -> str:
+    if not text.startswith("(") or not text.endswith(")"):
+        raise BuildError(f"Expected parenthesized condition: {text}")
+    value = text[1:-1]
+    split_rule(value)
+    return value
+
+
+def render_condition(text: str, provider_files: dict[str, list[str]]) -> dict[str, Any]:
+    parts = split_rule(text)
+    kind = parts[0]
+    if kind in {"AND", "OR", "NOT"} and len(parts) == 2:
+        children = [
+            render_condition(unwrap_rule(child), provider_files)
+            for child in split_rule(unwrap_rule(parts[1]))
+        ]
+        if not children or (kind == "NOT" and len(children) != 1):
+            raise BuildError(f"Invalid logical operands: {text}")
+        return {kind.lower(): {"match": children[0] if kind == "NOT" else children}}
+    if kind == "RULE-SET" and (len(parts) == 2 or len(parts) == 3 and parts[2] == "no-resolve"):
+        files = provider_files.get(parts[1], [])
+        if len(files) != 1:
+            raise BuildError(f"Expected one native condition file: {parts[1]}")
+        value: dict[str, Any] = {
+            "match": f"{RAW_BASE}/dist/egern/{files[0]}", "update_interval": 86400,
+        }
+        if len(parts) == 3:
+            value["no_resolve"] = True
+        return {"rule_set": value}
+    kinds = {"NETWORK": "protocol", "DST-PORT": "dest_port", "DOMAIN": "domain", "DOMAIN-SUFFIX": "domain_suffix"}
+    if kind in kinds and len(parts) == 2:
+        value = parts[1].lower() if kind == "NETWORK" else parts[1]
+        return {kinds[kind]: {"match": value}}
+    raise BuildError(f"Unsupported logical condition: {text}")
+
+
+def restore_condition(wrapper: dict[str, Any], provider_by_url: dict[str, str]) -> str:
+    if len(wrapper) != 1:
+        raise BuildError("Logical condition requires one matcher")
+    kind, value = next(iter(wrapper.items()))
+    if kind in {"and", "or", "not"} and set(value) == {"match"}:
+        children = [value["match"]] if kind == "not" else value["match"]
+        if not isinstance(children, list) or not children:
+            raise BuildError("Logical condition requires operands")
+        encoded = ",".join("(" + restore_condition(child, provider_by_url) + ")" for child in children)
+        return f"{kind.upper()},({encoded})"
+    if kind == "rule_set":
+        provider = provider_by_url.get(value.get("match"))
+        if provider is None or set(value) - {"match", "update_interval", "no_resolve"}:
+            raise BuildError("Unexpected nested provider")
+        if value.get("update_interval") != 86400:
+            raise BuildError("Nested provider update interval changed")
+        text = f"RULE-SET,{provider}"
+        if "no_resolve" in value:
+            if value["no_resolve"] is not True:
+                raise BuildError("Invalid nested no_resolve")
+            text += ",no-resolve"
+        return text
+    kinds = {"protocol": "NETWORK", "dest_port": "DST-PORT", "domain": "DOMAIN", "domain_suffix": "DOMAIN-SUFFIX"}
+    if kind in kinds and set(value) == {"match"}:
+        match = value["match"].upper() if kind == "protocol" else value["match"]
+        return f"{kinds[kind]},{match}"
+    raise BuildError(f"Unexpected logical matcher: {kind}")
+
+
+def nested_rule_sets(wrapper: dict[str, Any]):
+    kind, value = next(iter(wrapper.items()))
+    if kind == "rule_set":
+        yield value
+    elif kind in {"and", "or"}:
+        for child in value["match"]:
+            yield from nested_rule_sets(child)
+    elif kind == "not":
+        yield from nested_rule_sets(value["match"])
+
+
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
@@ -237,9 +331,17 @@ def render_rules(
         raise BuildError("Expected one standalone Private Relay rule set")
     private_inserted = False
     for raw in model["rules"]:
-        parts = raw.split(",")
+        parts = split_rule(raw)
         kind = parts[0]
-        if kind == "MATCH" and len(parts) == 2:
+        if kind in {"AND", "OR", "NOT"} and len(parts) == 3:
+            wrapper = render_condition(",".join(parts[:-1]), provider_files)
+            item = wrapper[kind.lower()]
+            item["policy"] = POLICY_ALIASES.get(parts[-1], parts[-1])
+            if raw in model.get("quic_rules", []):
+                item["name"] = "屏蔽国外 QUIC"
+                item["disabled"] = False
+            rules.append(wrapper)
+        elif kind == "MATCH" and len(parts) == 2:
             rules.append({"default": {"policy": POLICY_ALIASES.get(parts[1], parts[1])}})
         elif kind == "RULE-SET" and (
             len(parts) == 3 or (len(parts) == 4 and parts[-1] == "no-resolve")
@@ -324,7 +426,15 @@ def validate_rule_alignment(
         if len(wrapper) != 1:
             raise BuildError("Routing rule must contain exactly one matcher")
         kind, item = next(iter(wrapper.items()))
-        if kind == "rule_set":
+        if kind in {"and", "or", "not"}:
+            value = {key: value for key, value in item.items() if key not in {"policy", "name", "disabled"}}
+            raw = restore_condition({kind: value}, provider_by_url) + "," + item["policy"]
+            if raw in model.get("quic_rules", []):
+                if set(item) != {"match", "policy", "name", "disabled"} or item.get("name") != "屏蔽国外 QUIC" or item.get("disabled") is not False:
+                    raise BuildError("Generated foreign QUIC rule must start enabled")
+            elif set(item) != {"match", "policy"}:
+                raise BuildError("Unexpected logical rule attributes")
+        elif kind == "rule_set":
             provider = provider_by_url.get(item.get("match"))
             if provider is None or set(item) - {"match", "policy", "update_interval", "no_resolve"}:
                 raise BuildError("Unexpected rule set outside the Mihomo model")
@@ -344,8 +454,8 @@ def validate_rule_alignment(
         actual.append(raw)
     expected: list[str] = []
     for raw in model["rules"]:
-        parts = raw.split(",")
-        policy_index = 1 if parts[0] == "MATCH" else 2
+        parts = split_rule(raw)
+        policy_index = 1 if parts[0] == "MATCH" else len(parts) - 1 if parts[0] in {"AND", "OR", "NOT"} else 2
         parts[policy_index] = POLICY_ALIASES.get(parts[policy_index], parts[policy_index])
         expected.append(",".join(parts))
     if actual != expected:
@@ -618,13 +728,15 @@ def validate_profile(
         policy = value["policy"]
         if policy not in known:
             raise BuildError(f"Rule {index} references undefined policy {policy}")
-        if kind == "rule_set":
-            filename = value["match"].rsplit("/", 1)[-1]
+        for reference in nested_rule_sets(wrapper):
+            filename = reference["match"].rsplit("/", 1)[-1]
             if filename not in generated:
                 raise BuildError(f"Rule references missing YAML file {filename}")
     if list(profile["rules"][-1]) != ["default"]:
         raise BuildError("Default rule must be last")
     dns = profile["dns"]
+    if profile.get("block_quic") is not False:
+        raise BuildError("Foreign QUIC logic requires global block_quic=false")
     if profile.get("hijack_dns") != ["*:53"]:
         raise BuildError("Egern DNS hijacking must target port 53")
     if profile.get("include_all_networks") is not True:
@@ -651,8 +763,10 @@ def validate_profile(
             index for index, wrapper in enumerate(profile["rules"])
             if wrapper.get("rule_set", {}).get("match", "").endswith("/apple-cn.yaml")
         )
-        if podcast_rule >= cn_rule:
-            raise BuildError("Apple Podcasts must precede Apple CN")
+        source_podcasts = next(i for i, raw in enumerate(model["rules"]) if raw.startswith("RULE-SET,apple_podcasts,"))
+        source_cn = next(i for i, raw in enumerate(model["rules"]) if raw.startswith("RULE-SET,apple_cn,"))
+        if (podcast_rule < cn_rule) != (source_podcasts < source_cn):
+            raise BuildError("Apple Podcasts and Apple CN must retain source order")
     if dns.get("proxy_nameservers") != proxy_nameservers():
         raise BuildError("MESL private proxy nameservers were not preserved")
     if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
@@ -838,6 +952,13 @@ def main() -> int:
             "routing_rules": len(rules),
             "native_rule_sets": manifest["native_rule_sets"],
             "egern_only_rule_sets": manifest.get("egern_only_rule_sets", []),
+            "foreign_quic": {
+                "source_rules": model.get("quic_rules", []),
+                "source_default": model.get("options", {}).get("屏蔽国外QUIC"),
+                "global_block_quic": False,
+                "toggle": "rules[].and.disabled",
+                "enabled_by_default": any(raw in model["rules"] for raw in model.get("quic_rules", [])),
+            },
             "routing_alignment": {
                 "exceptions": ["apns-first", "privaterelay-before-apple"],
                 "policy_aliases": POLICY_ALIASES,

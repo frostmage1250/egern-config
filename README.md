@@ -9,7 +9,7 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 **APNs is first.** Its rule uses `Proxy`. The independent `privaterelay.yaml`
 rule is retained immediately before Bett Apple and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
-`finalRules` list, preserving order, duplicate occurrences, and `no-resolve`
+effective `buildRules()` list (with legacy `finalRules` support), preserving order, duplicate occurrences, and `no-resolve`
 flags. Policy mappings are Mihomo `pron` to Egern `porn`, and the former
 `Apple Podcasts` target to `媒体`; group references use the same mappings. The generator never independently moves Private, MCDN,
 Claude/AI, Steam, or any other business rule. Service targets follow the source
@@ -115,8 +115,8 @@ previously imported profiles; they are not inputs or outputs of this generator.
 
 Apple Podcasts uses the `媒体` policy group, with no independent select group.
 The former source target maps to `媒体` until the converter snapshot catches up.
-Bett's `apple-podcasts` native rule set is placed before
-Apple CN. Its DNS follows the shared nameserver policy, including CN/system when a domain
+Bett's `apple-podcasts` native rule set follows the pinned Mihomo order,
+after the upstream prefix and foreign QUIC stage. Its DNS follows the shared nameserver policy, including CN/system when a domain
 matches CN, then the default foreign nameservers. Mihomo additionally uses
 system DNS at the direct exit when selected; Egern cannot reproduce that
 runtime re-resolution. General Apple uses Bett's `apple` source through the current upstream
@@ -143,3 +143,23 @@ from a separately pinned current Mihomo commit, recorded at
 `reports/source.json` → `dns.mihomo_script`; this prevents an older converter
 snapshot from retaining retired DNS policies. The workflow captures both commits
 once and downloads each script by its immutable SHA.
+
+## Foreign QUIC control
+
+The profile keeps global `block_quic: false` and translates the Mihomo
+`UDP AND destination port 443 AND NOT (cn_additional OR cn_ip)` rule at
+its original source position: upstream prefix exceptions, then foreign QUIC,
+then service routing. The nested CN IP condition retains `no_resolve: true`.
+
+The logical rule is named **屏蔽国外 QUIC** and starts with `disabled: false`.
+Set that rule's `disabled` to `true` to allow this traffic to follow ordinary
+routing, or to `false` to enable blocking again. Keep the App's global QUIC
+block switch off for this selective mode. Explicit QUIC blocking on imported
+nodes or policy groups takes precedence over the global setting; use
+`block_quic: false` there when those connections should allow QUIC.
+
+Both CN exception rule sets use the converter's Egern YAML. The additional
+CN set is decoded from the final upstream MRS URL with official Mihomo,
+with the captured MRS digest recorded in the converter manifest.
+Generation recursively validates nested provider references and reverses
+the logical expression to verify source condition, flags, action, and order.
