@@ -234,6 +234,59 @@ rules:
     policy: Proxy
     update_interval: 86400
     no_resolve: true
+- domain:
+    match: cdn.jsdmirror.com
+    policy: Direct
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/nvidia-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml
+    policy: Direct
+    update_interval: 86400
+- domain:
+    match: international-gfe.download.nvidia.com
+    policy: Direct
+- domain_suffix:
+    match: ctaiot.com
+    policy: Direct
+- and:
+    match:
+    - protocol:
+        match: udp
+    - dest_port:
+        match: '443'
+    - not:
+        match:
+          or:
+            match:
+            - rule_set:
+                match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn-additional.yaml
+                update_interval: 86400
+            - rule_set:
+                match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn-ip.yaml
+                update_interval: 86400
+                no_resolve: true
+    policy: REJECT
+    name: 屏蔽国外 QUIC
+    disabled: false
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/claude.yaml
     policy: Claude
@@ -298,13 +351,6 @@ rules:
     policy: 媒体
     update_interval: 86400
     no_resolve: true
-- domain:
-    match: cdn.jsdmirror.com
-    policy: Direct
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
-    policy: Direct
-    update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private-ip.yaml
     policy: Direct
@@ -314,28 +360,6 @@ rules:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/mcdn-block.yaml
     policy: REJECT
     update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
-    policy: Direct
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/nvidia-cn.yaml
-    policy: Direct
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-cn.yaml
-    policy: Direct
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml
-    policy: Direct
-    update_interval: 86400
-- domain:
-    match: international-gfe.download.nvidia.com
-    policy: Direct
-- domain_suffix:
-    match: ctaiot.com
-    policy: Direct
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam.yaml
     policy: Proxy
@@ -392,10 +416,6 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-non-cn.yaml
     policy: Proxy
-    update_interval: 86400
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-cn.yaml
-    policy: Direct
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/cn-ip.yaml
