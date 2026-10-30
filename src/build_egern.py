@@ -312,13 +312,23 @@ def nested_rule_sets(wrapper: dict[str, Any]):
         yield from nested_rule_sets(value["match"])
 
 
+def apns_source_index(model: dict[str, Any]) -> int:
+    """Place the Egern-specific proxy rule after the shared blocking stage."""
+    if "quic_rules" not in model:
+        return 0
+    anchors = set(model["quic_rules"]) | {"RULE-SET,mcdn屏蔽,REJECT"}
+    positions = [index for index, raw in enumerate(model["rules"]) if raw in anchors]
+    return max(positions) + 1 if positions else 0
+
+
 def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
-    """Keep shared source order, with APNs first and Private Relay before Apple."""
+    """Keep YAML-derived source order, with APNs after blocking and Private Relay before Apple."""
     rules: list[dict[str, Any]] = []
+    apns_rules: list[dict[str, Any]] = []
     for filename in provider_files.get("apns", [APNS_FILENAME]):
-        rules.append({
+        apns_rules.append({
             "rule_set": {
                 "match": f"{RAW_BASE}/dist/egern/{filename}",
                 "policy": "Proxy",
@@ -330,7 +340,10 @@ def render_rules(
     if private_files and private_files != [PRIVATERELAY_FILENAME]:
         raise BuildError("Expected one standalone Private Relay rule set")
     private_inserted = False
-    for raw in model["rules"]:
+    apns_index = apns_source_index(model)
+    for source_index, raw in enumerate(model["rules"]):
+        if source_index == apns_index:
+            rules.extend(apns_rules)
         parts = split_rule(raw)
         kind = parts[0]
         if kind in {"AND", "OR", "NOT"} and len(parts) == 3:
@@ -372,6 +385,8 @@ def render_rules(
             rules.append({"domain": {"match": parts[1], "policy": POLICY_ALIASES.get(parts[2], parts[2])}})
         else:
             raise BuildError(f"Unsupported Mihomo rule: {raw}")
+    if apns_index == len(model["rules"]):
+        rules.extend(apns_rules)
     if private_files and not private_inserted:
         raise BuildError("Standalone Private Relay requires the shared Apple anchor")
     return rules
@@ -384,7 +399,12 @@ def validate_rule_alignment(
 ) -> None:
     """Reverse the published rules and compare them with the untouched source list."""
     apns_files = provider_files.get("apns", [APNS_FILENAME])
-    if apns_files != [APNS_FILENAME] or not rules or rules[0] != {
+    apns_index = apns_source_index(model)
+    if provider_files.get(PRIVATERELAY_PROVIDER):
+        apple_index = next((i for i, raw in enumerate(model["rules"]) if raw.startswith("RULE-SET,apple,")), len(model["rules"]))
+        if apple_index < apns_index:
+            apns_index += 1
+    if apns_files != [APNS_FILENAME] or len(rules) <= apns_index or rules[apns_index] != {
         "rule_set": {
             "match": f"{RAW_BASE}/dist/egern/{APNS_FILENAME}",
             "policy": "Proxy",
@@ -392,8 +412,8 @@ def validate_rule_alignment(
             "no_resolve": True,
         }
     }:
-        raise BuildError("Exactly one APNs rule must be first")
-    shared_rules = rules[1:]
+        raise BuildError("APNs must follow the shared blocking stage")
+    shared_rules = rules[:apns_index] + rules[apns_index + 1:]
     private_files = provider_files.get(PRIVATERELAY_PROVIDER, [])
     if private_files:
         private_url = f"{RAW_BASE}/dist/egern/{PRIVATERELAY_FILENAME}"
@@ -960,7 +980,7 @@ def main() -> int:
                 "enabled_by_default": any(raw in model["rules"] for raw in model.get("quic_rules", [])),
             },
             "routing_alignment": {
-                "exceptions": ["apns-first", "privaterelay-before-apple"],
+                "exceptions": ["apns-after-blocking", "privaterelay-before-apple"],
                 "policy_aliases": POLICY_ALIASES,
                 "privaterelay_rules": 1,
                 "apns_rules": 1,

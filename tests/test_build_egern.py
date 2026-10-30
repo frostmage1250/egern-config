@@ -31,6 +31,35 @@ from build_egern import (  # noqa: E402
 
 class EgernProfileBuilderTests(unittest.TestCase):
 
+    def test_apns_follows_quic_and_mcdn_with_the_yaml_business_order(self):
+        raw = "AND,((NETWORK,UDP),(DST-PORT,443),(NOT,((OR,((RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)))))),REJECT"
+        model = {"rules": [
+            "DOMAIN,cdn.jsdmirror.com,Direct", "RULE-SET,private,Direct",
+            "RULE-SET,cn,Direct", raw, "RULE-SET,mcdn屏蔽,REJECT",
+            "RULE-SET,youtube,YouTube", "RULE-SET,google,Google",
+            "RULE-SET,google_ip,Google,no-resolve", "RULE-SET,apple,Proxy",
+            "RULE-SET,cn_ip,Direct", "RULE-SET,private_ip,Direct,no-resolve", "MATCH,Final",
+        ], "quic_rules": [raw]}
+        files = {name: [filename] for name, filename in [
+            ("private","private.yaml"),("cn","cn.yaml"),("cn_additional","cn-additional.yaml"),
+            ("cn_ip","cn-ip.yaml"),("mcdn屏蔽","mcdn-block.yaml"),("youtube","youtube.yaml"),
+            ("google","google.yaml"),("google_ip","google-ip.yaml"),("apple","apple.yaml"),
+            ("private_ip","private-ip.yaml"),("privaterelay","privaterelay.yaml"),
+        ]}
+        rules = render_rules(model, files)
+        self.assertEqual(rules[3]["and"]["name"], "屏蔽国外 QUIC")
+        self.assertTrue(rules[4]["rule_set"]["match"].endswith("/mcdn-block.yaml"))
+        self.assertTrue(rules[5]["rule_set"]["match"].endswith("/apns.yaml"))
+        self.assertTrue(rules[6]["rule_set"]["match"].endswith("/youtube.yaml"))
+        validate_rule_alignment(rules, model, files)
+        for position in (0, 4, 7):
+            changed = json.loads(json.dumps(rules))
+            apns = changed.pop(5)
+            changed.insert(position, apns)
+            with self.subTest(position=position), self.assertRaises(BuildError):
+                validate_rule_alignment(changed, model, files)
+
+
     def test_foreign_quic_logical_translation_and_exception_truth_table(self):
         raw = "AND,((NETWORK,UDP),(DST-PORT,443),(NOT,((OR,((RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)))))),REJECT"
         model = {"rules": ["DOMAIN,cdn.example,Direct", raw, "RULE-SET,service,Proxy", "MATCH,Final"],
@@ -38,7 +67,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         files = {"cn_additional": ["cn-additional.yaml"], "cn_ip": ["cn-ip.yaml"], "service": ["service.yaml"]}
         self.assertEqual(referenced_providers(model), ["cn_additional", "cn_ip", "service"])
         rules = render_rules(model, files)
-        rule = rules[2]["and"]
+        rule = rules[1]["and"]
         self.assertEqual(rule["policy"], "REJECT")
         self.assertEqual(rule["name"], "屏蔽国外 QUIC")
         self.assertIs(rule["disabled"], False)
@@ -70,18 +99,18 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 for additional in (False, True):
                     for cn_ip in (False, True):
                         expected = protocol == "udp" and port == 443 and not (additional or cn_ip)
-                        self.assertEqual(matches(rules[2], protocol, port, additional, cn_ip), expected)
+                        self.assertEqual(matches(rules[1], protocol, port, additional, cn_ip), expected)
         rule["disabled"] = True
-        self.assertFalse(matches(rules[2], "udp", 443, False, False))
+        self.assertFalse(matches(rules[1], "udp", 443, False, False))
         rule["disabled"] = False
         for mutation in ("port", "no_resolve", "exception", "order"):
             changed = json.loads(json.dumps(rules))
             if mutation == "port":
-                changed[2]["and"]["match"][1]["dest_port"]["match"] = "8443"
+                changed[1]["and"]["match"][1]["dest_port"]["match"] = "8443"
             elif mutation == "no_resolve":
-                del changed[2]["and"]["match"][2]["not"]["match"]["or"]["match"][1]["rule_set"]["no_resolve"]
+                del changed[1]["and"]["match"][2]["not"]["match"]["or"]["match"][1]["rule_set"]["no_resolve"]
             elif mutation == "exception":
-                changed[2]["and"]["match"][2]["not"]["match"]["or"]["match"].pop()
+                changed[1]["and"]["match"][2]["not"]["match"]["or"]["match"].pop()
             else:
                 changed[1], changed[2] = changed[2], changed[1]
             with self.subTest(mutation=mutation), self.assertRaises(BuildError):

@@ -6,7 +6,8 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 
 ## Routing contract
 
-**APNs is first.** Its rule uses `Proxy`. The independent `privaterelay.yaml`
+**APNs follows the shared blocking stage.** Its rule uses `Proxy`.
+The independent `privaterelay.yaml`
 rule is retained immediately before Bett Apple and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
 effective `buildRules()` list (with legacy `finalRules` support), preserving order, duplicate occurrences, and `no-resolve`
@@ -116,7 +117,7 @@ previously imported profiles; they are not inputs or outputs of this generator.
 Apple Podcasts uses the `媒体` policy group, with no independent select group.
 The former source target maps to `媒体` until the converter snapshot catches up.
 Bett's `apple-podcasts` native rule set follows the pinned Mihomo order,
-after the upstream prefix and foreign QUIC stage. Its DNS follows the shared nameserver policy, including CN/system when a domain
+in the business stage before Apple, following Microsoft and AppleTV. Its DNS follows the shared nameserver policy, including CN/system when a domain
 matches CN, then the default foreign nameservers. Mihomo additionally uses
 system DNS at the direct exit when selected; Egern cannot reproduce that
 runtime re-resolution. General Apple uses Bett's `apple` source through the current upstream
@@ -148,8 +149,8 @@ once and downloads each script by its immutable SHA.
 
 The profile keeps global `block_quic: false` and translates the Mihomo
 `UDP AND destination port 443 AND NOT (cn_additional OR cn_ip)` rule at
-its original source position: upstream prefix exceptions, then foreign QUIC,
-then service routing. The nested CN IP condition retains `no_resolve: true`.
+the YAML-derived source position: upstream direct prefix, then foreign QUIC,
+MCDN rejection, APNs, and business routing. The nested CN IP condition retains `no_resolve: true`.
 
 The logical rule is named **屏蔽国外 QUIC** and starts with `disabled: false`.
 Set that rule's `disabled` to `true` to allow this traffic to follow ordinary
@@ -163,3 +164,13 @@ CN set is decoded from the final upstream MRS URL with official Mihomo,
 with the captured MRS digest recorded in the converter manifest.
 Generation recursively validates nested provider references and reverses
 the logical expression to verify source condition, flags, action, and order.
+
+## YAML routing-order reference
+
+Mihomo generation pins the upstream `Config/mihomoConfig.yaml` alongside
+`Script/mihomoScript.js`. The shared prefix, QUIC placement, business order and
+fallback order follow that YAML. The retained service additions are anchored:
+Claude before AI; AppleTV and Podcasts before Apple; Twitch after YouTube.
+The upstream domestic direct prefix precedes the service stage. MCDN occupies
+the blocking stage immediately after QUIC. APNs uses Proxy just after that
+blocking stage; Private Relay uses Proxy immediately before Apple.
