@@ -26,22 +26,7 @@ CONVERTER_MANIFEST_PATH = "reports/egern-source.json"
 APNS_FILENAME = "apns.yaml"
 PRIVATERELAY_PROVIDER = "privaterelay"
 PRIVATERELAY_FILENAME = "privaterelay.yaml"
-POLICY_ALIASES = {"pron": "porn", "Apple Podcasts": "媒体"}
-FLOWER_HOSTS = {
-    "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
-    "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
-    "fde63gz6-1y61.aws-agent.biz": "09571gz6-86k1.apt-agent.com",
-}
-MESL_PROXY_NAMESERVERS = (
-    "https://zone.rlose.com:39933/api-query",
-    "https://radar.rlose.com/api-query",
-)
-DNS_HOST_IP_ADDITIONS = {
-    "dns.alidns.com": [
-        "223.5.5.5",
-        "223.6.6.6",
-    ],
-}
+POLICY_ALIASES = {"pron": "porn", "Apple Podcasts": "媒体", "Direct": "DIRECT"}
 REAL_IP_DOMAINS = [
     "lancache.steamcontent.com",
     "*.msftconnecttest.com",
@@ -95,7 +80,7 @@ def apply_dns_model(model: dict[str, Any], dns_model: dict[str, Any]) -> dict[st
         if (not pinned or not current or current.get("behavior") != "domain"
                 or any(pinned.get(field) != current.get(field) for field in ("url", "behavior", "format"))):
             raise BuildError(f"DNS provider differs from converter snapshot: {provider}")
-    return {**model, "dns": dns_model["dns"]}
+    return {**model, "dns": dns_model["dns"], "hosts": dns_model["hosts"]}
 
 
 def regex_text(item: dict[str, str]) -> str:
@@ -150,7 +135,7 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
         raise BuildError("Mihomo already defines the local 订阅2 group")
     groups: list[dict[str, Any]] = []
     for source in model["groups"]:
-        if source["name"] == "Apple Podcasts":
+        if source["name"] in {"Apple Podcasts", "Direct"}:
             continue
         name = POLICY_ALIASES.get(source["name"], source["name"])
         if name == "porn":
@@ -188,8 +173,6 @@ def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], d
             ]
             groups.append({"select": {"name": name, "policies": policies, "flatten": False}})
             continue
-        if name == "Direct":
-            policies = ["DIRECT"]
         if name == "Google" and "订阅" not in policies:
             policies.append("订阅")
         if name in {"Telegram", "媒体", "PikPak"} and "香港" not in policies:
@@ -512,13 +495,20 @@ def nameservers(model: dict[str, Any]) -> list[str]:
     return result
 
 
-def proxy_nameservers() -> list[str]:
-    """Use the provider's private DNS from MESL.yaml (dns.nameserver).
+def proxy_nameservers(model: dict[str, Any]) -> list[str]:
+    """Translate the source proxy-server-nameserver without local overrides."""
+    result: list[str] = []
+    for value in model.get("dns", {}).get("proxy-server-nameserver", []):
+        if not isinstance(value, str):
+            raise BuildError("Mihomo proxy nameserver must be a string")
+        server, policy = split_nameserver_policy(value)
+        if policy not in {None, "DIRECT"}:
+            raise BuildError(f"Egern proxy DNS is always direct and cannot preserve {policy!r}")
+        result.append(server)
+    if not result:
+        raise BuildError("Mihomo DNS model contains no proxy-server-nameserver")
+    return result
 
-    Public resolvers cannot replace the provider's node-domain resolution.
-    This explicit Egern override must survive Mihomo DNS model updates.
-    """
-    return list(MESL_PROXY_NAMESERVERS)
 
 
 def bootstrap_nameservers(model: dict[str, Any]) -> list[str]:
@@ -643,21 +633,9 @@ def render_dns_forward(
 
 
 def hosts(model: dict[str, Any]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for hostname, value in model.get("hosts", {}).items():
-        if isinstance(value, list):
-            clean = [entry for entry in value if isinstance(entry, str) and entry]
-            if clean:
-                result[hostname] = clean
-        elif isinstance(value, str) and value:
-            result[hostname] = value
-    for hostname, additions in DNS_HOST_IP_ADDITIONS.items():
-        existing = result.get(hostname, [])
-        if not isinstance(existing, list):
-            raise BuildError(f"DNS host mapping must be an IP list: {hostname}")
-        result[hostname] = existing + [address for address in additions if address not in existing]
-    result.update(FLOWER_HOSTS)
-    return result
+    """Preserve the current source Hosts exactly, including order and duplicates."""
+    return json.loads(json.dumps(model["hosts"]))
+
 
 
 def validate_profile(
@@ -798,19 +776,14 @@ def validate_profile(
         source_cn = next(i for i, raw in enumerate(model["rules"]) if raw.startswith("RULE-SET,apple_cn,"))
         if (podcast_rule < cn_rule) != (source_podcasts < source_cn):
             raise BuildError("Apple Podcasts and Apple CN must retain source order")
-    if dns.get("proxy_nameservers") != proxy_nameservers():
-        raise BuildError("MESL private proxy nameservers were not preserved")
+    if dns.get("proxy_nameservers") != proxy_nameservers(model):
+        raise BuildError("Mihomo proxy nameservers were not preserved")
     if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
         raise BuildError("Repcz real-IP domain exclusions were not preserved")
-    for hostname, additions in DNS_HOST_IP_ADDITIONS.items():
-        current = dns["hosts"].get(hostname)
-        if not isinstance(current, list) or any(
-            address not in current for address in additions
-        ):
-            raise BuildError(f"Required DNS host IPs missing: {hostname}")
-    for hostname, target in FLOWER_HOSTS.items():
-        if dns["hosts"].get(hostname) != target:
-            raise BuildError(f"Flower host mapping missing: {hostname}")
+    if dns.get("hosts") != hosts(model):
+        raise BuildError("Current Mihomo Hosts were not preserved")
+    if "Direct" in names:
+        raise BuildError("Direct must use the built-in DIRECT policy, not a group")
 
 
 def load_manifest_rules(
@@ -960,7 +933,7 @@ def main() -> int:
                 "upstreams": render_dns_upstreams(model),
                 "forward": render_dns_forward(model, model["providers"], provider_files),
                 "hosts": hosts(model),
-                "proxy_nameservers": proxy_nameservers(),
+                "proxy_nameservers": proxy_nameservers(model),
             },
             "policy_groups": groups,
             "rules": rules,
@@ -1004,11 +977,12 @@ def main() -> int:
                 "bootstrap": profile["dns"]["bootstrap"],
                 "forward_rules": len(profile["dns"]["forward"]),
                 "upstreams": profile["dns"]["upstreams"],
+                "hosts": profile["dns"]["hosts"],
                 "proxy_nameservers": profile["dns"]["proxy_nameservers"],
                 "proxy_nameservers_source": {
-                    "reference_file": "MESL.yaml",
-                    "reference_field": "dns.nameserver",
-                    "overrides": "Mihomo proxy-server-nameserver",
+                    "repository": MIHOMO_REPO,
+                    "commit": args.dns_mihomo_commit,
+                    "reference_field": "dns.proxy-server-nameserver",
                 },
             },
             "subscription": {
@@ -1019,18 +993,18 @@ def main() -> int:
                 "reason": "Default group names are public; subscription credentials remain local.",
             },
             "migration_boundaries": [
-                "APNs traffic is first with Proxy; standalone Private Relay uses Proxy immediately before the shared Apple rule.",
-                "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use the declared Egern mappings, including Apple Podcasts to 媒体.",
-                "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; policy mappings are pron to porn and Apple Podcasts to 媒体.",
+                "APNs uses Proxy after the shared blocking stage; standalone Private Relay uses Proxy immediately before Apple.",
+                "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use the declared Egern mappings, including Apple Podcasts to 媒体 and Direct to DIRECT.",
+                "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; policy mappings are pron to porn, Apple Podcasts to 媒体, and Direct to DIRECT.",
                 "The independent converter Private Relay artifact is verified and retained as an Egern-only rule.",
                 "The Egern policy group is named porn; source pron targets and group references map to porn, offering Hong Kong, Singapore, US, and low-rate choices. EHentai adds US, Singapore, and low-rate choices; the low-rate filter also matches 实验.",
-                "Mihomo IPv4/IPv6 preferred DIRECT pseudo-proxies map to Egern DIRECT.",
+                "The Direct group is omitted; its rule targets and group references map to built-in DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
                 "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
-                "Source DNS server order and duplicates remain intact for shared DNS; proxy_nameservers explicitly uses the two private DoH endpoints from MESL.yaml dns.nameserver in reference order.",
+                "DNS and Hosts come from the same current Mihomo snapshot; proxy DNS preserves proxy-server-nameserver protocols, order, and duplicates without local resolver or Hosts overrides.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
-                "Real-IP exclusions, AliDNS host additions, Flower aliases, and subscription defaults remain explicit Egern settings.",
+                "Real-IP exclusions and subscription defaults remain explicit Egern settings; no AliDNS or Flower Hosts additions are injected.",
                 "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests.",
             ],
         }

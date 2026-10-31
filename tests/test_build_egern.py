@@ -165,30 +165,23 @@ class EgernProfileBuilderTests(unittest.TestCase):
         )]
         self.assertEqual(
             [(rule["match"].rsplit("/", 1)[-1], rule["policy"]) for rule in selected],
-            [("apple-cn.yaml", "Direct"), ("apple.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
+            [("apple-cn.yaml", "DIRECT"), ("apple.yaml", "Proxy"), ("apple-ip.yaml", "Proxy")],
         )
         self.assertTrue(selected[2]["no_resolve"])
 
-    def test_hosts_preserve_source_without_injecting_pcdn_blocks(self):
-        source_hosts = {
-            "example.com": ["203.0.113.13"],
+    def test_hosts_follow_source_exactly_without_local_additions(self):
+        source = {
+            "example.com": ["203.0.113.13", "203.0.113.13"],
             "alias.example.com": "target.example.com",
-            "dns.alidns.com": ["223.5.5.5"],
+            "dns.alidns.com": ["203.0.113.53"],
         }
-        source_snapshot = json.dumps(source_hosts, sort_keys=True)
-        rendered = hosts({"hosts": source_hosts})
-        for domain in ("mcdn.bilivideo.com", "mcdn.bilivideo.cn",
-                       "edge.mountaintoys.cn", "h2.smtcdns.net"):
-            self.assertNotIn(domain, rendered)
-            self.assertNotIn(f"*.{domain}", rendered)
-        self.assertEqual(rendered["example.com"], ["203.0.113.13"])
-        self.assertEqual(rendered["alias.example.com"], "target.example.com")
-        self.assertEqual(rendered["dns.alidns.com"], ["223.5.5.5", "223.6.6.6"])
-        self.assertEqual(
-            rendered["11612bj3-b76c.aws-agent.biz"],
-            "06996bj6-79x5.apt-agent.com",
-        )
-        self.assertEqual(json.dumps(source_hosts, sort_keys=True), source_snapshot)
+        rendered = hosts({"hosts": source})
+        self.assertEqual(rendered, source)
+        self.assertEqual(list(rendered), list(source))
+        self.assertNotIn("11612bj3-b76c.aws-agent.biz", rendered)
+        rendered["example.com"].append("203.0.113.14")
+        self.assertEqual(source["example.com"], ["203.0.113.13", "203.0.113.13"])
+        self.assertNotIn("dns.alidns.com", hosts({"hosts": {"source.example": "target.example"}}))
 
     def test_rules_preserve_order_and_no_resolve(self):
         model = {"rules": [
@@ -200,11 +193,11 @@ class EgernProfileBuilderTests(unittest.TestCase):
         self.assertEqual(rules, [
             {"rule_set": {"match": f"{RAW_BASE}/dist/egern/apns.yaml",
                           "policy": "Proxy", "update_interval": 86400, "no_resolve": True}},
-            {"domain_suffix": {"match": "example.com", "policy": "Direct"}},
+            {"domain_suffix": {"match": "example.com", "policy": "DIRECT"}},
             {"rule_set": {"match": f"{RAW_BASE}/dist/egern/domain.yaml",
                           "policy": "Proxy", "update_interval": 86400}},
             {"rule_set": {"match": f"{RAW_BASE}/dist/egern/ip.yaml",
-                          "policy": "Direct", "update_interval": 86400, "no_resolve": True}},
+                          "policy": "DIRECT", "update_interval": 86400, "no_resolve": True}},
             {"default": {"policy": "Final"}},
         ])
         validate_rule_alignment(rules, model, files)
@@ -222,7 +215,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         )}
         rules = render_rules(model, files)
         self.assertTrue(rules[1]["rule_set"]["match"].endswith("/claude.yaml"))
-        self.assertEqual(rules[2], {"domain": {"match": "cdn.jsdmirror.com", "policy": "Direct"}})
+        self.assertEqual(rules[2], {"domain": {"match": "cdn.jsdmirror.com", "policy": "DIRECT"}})
         self.assertTrue(rules[3]["rule_set"]["match"].endswith("/private.yaml"))
         self.assertTrue(rules[4]["rule_set"]["no_resolve"])
         self.assertEqual(rules[5]["rule_set"]["policy"], "REJECT")
@@ -378,7 +371,9 @@ class EgernProfileBuilderTests(unittest.TestCase):
             [next(iter(item.values()))["name"] for item in groups][1:3],
             ["订阅", "订阅2"],
         )
-        self.assertEqual(by_name["Direct"]["policies"], ["DIRECT"])
+        self.assertNotIn("Direct", by_name)
+        for group in by_name.values():
+            self.assertNotIn("Direct", group["policies"])
         self.assertEqual(by_name["GitHub"]["policies"], ["Proxy", "订阅", "AI"])
         self.assertEqual(by_name["Claude"]["policies"], ["Proxy", "日本", "其他节点"])
         for name in ("香港", "日本", "美国", "新加坡", "台湾", "德国", "其他节点", "低倍率节点"):
@@ -394,13 +389,13 @@ class EgernProfileBuilderTests(unittest.TestCase):
             by_name["媒体"]["policies"], ["Proxy", "低倍率节点", "香港", "订阅", "订阅2", "美国", "日本"]
         )
         self.assertFalse(by_name["媒体"].get("flatten", False))
-        self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "Direct", "低倍率节点", "香港"])
+        self.assertEqual(by_name["PikPak"]["policies"], ["Proxy", "DIRECT", "低倍率节点", "香港"])
         self.assertEqual(by_name["YouTube"]["policies"], ["Proxy", "香港", "低倍率节点"])
         self.assertFalse(by_name["YouTube"].get("flatten", False))
         self.assertEqual(by_name["porn"]["policies"], ["香港", "新加坡", "美国", "低倍率节点"])
         self.assertFalse(by_name["porn"].get("flatten", False))
         self.assertNotIn("pron", by_name)
-        self.assertEqual(by_name["Final"]["policies"], ["Proxy", "Direct", "porn"])
+        self.assertEqual(by_name["Final"]["policies"], ["Proxy", "DIRECT", "porn"])
         self.assertEqual(
             [next(iter(item.values()))["name"] for item in groups].index("YouTube"),
             [next(iter(item.values()))["name"] for item in groups].index("媒体") + 1,
@@ -488,27 +483,35 @@ class EgernProfileBuilderTests(unittest.TestCase):
     def test_dns_snapshot_removes_retired_policy_without_changing_routing(self):
         provider = {"behavior": "domain", "url": "https://example.test/cn.mrs", "format": "mrs"}
         pinned = {"dns": {"nameserver-policy": {"rule-set:apple_podcasts": ["system"]}},
-                  "rules": ["RULE-SET,cn,Direct"], "providers": {"cn": provider}}
+                  "rules": ["RULE-SET,cn,Direct"], "providers": {"cn": provider},
+                  "hosts": {"retired.example": "old.example"}}
         current = {"dns": {"nameserver-policy": {"rule-set:cn": ["system"]}},
-                   "rules": ["MATCH,Proxy"], "providers": {"cn": dict(provider)}}
+                   "rules": ["MATCH,Proxy"], "providers": {"cn": dict(provider)},
+                   "hosts": {"current.example": ["203.0.113.53"]}}
         combined = apply_dns_model(pinned, current)
         self.assertEqual(combined["dns"], current["dns"])
+        self.assertEqual(combined["hosts"], current["hosts"])
+        self.assertNotIn("retired.example", combined["hosts"])
         self.assertEqual(combined["rules"], pinned["rules"])
         self.assertIn("rule-set:apple_podcasts", pinned["dns"]["nameserver-policy"])
         current["providers"]["cn"]["url"] = "https://example.test/new-cn.mrs"
         with self.assertRaises(BuildError):
             apply_dns_model(pinned, current)
 
-    def test_node_dns_uses_mesl_private_resolvers(self):
-        expected = [
-            "https://zone.rlose.com:39933/api-query",
-            "https://radar.rlose.com/api-query",
-        ]
-        self.assertEqual(proxy_nameservers(), expected)
-        # Callers must not mutate the configured resolver list.
-        rendered = proxy_nameservers()
-        rendered.append("1.1.1.1")
-        self.assertEqual(proxy_nameservers(), expected)
+    def test_proxy_dns_tracks_source_protocols_order_and_duplicates(self):
+        model = {"dns": {"proxy-server-nameserver": [
+            "114.114.114.114#DIRECT", "tls://223.5.5.5#DIRECT",
+            "https://doh.pub/dns-query#DIRECT", "tls://223.5.5.5#DIRECT",
+        ]}}
+        self.assertEqual(proxy_nameservers(model), [
+            "114.114.114.114", "tls://223.5.5.5",
+            "https://doh.pub/dns-query", "tls://223.5.5.5",
+        ])
+        model["dns"]["proxy-server-nameserver"] = ["https://new.example/dns-query#DIRECT"]
+        self.assertEqual(proxy_nameservers(model), ["https://new.example/dns-query"])
+        model["dns"]["proxy-server-nameserver"] = ["https://new.example/dns-query#Proxy"]
+        with self.assertRaises(BuildError):
+            proxy_nameservers(model)
 
     def test_media_retains_existing_region_choices_once(self):
         model = {

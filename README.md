@@ -12,7 +12,8 @@ rule is retained immediately before Bett Apple and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
 effective `main()` output, preserving order, duplicate occurrences, and `no-resolve`
 flags. Policy mappings are Mihomo `pron` to Egern `porn`, and the former
-`Apple Podcasts` target to `媒体`; group references use the same mappings. The generator never independently moves Private, MCDN,
+`Apple Podcasts` target to `媒体`, and `Direct` to built-in `DIRECT`;
+group references use the same mappings. The `Direct` group is not emitted. The generator never independently moves Private, MCDN,
 Claude/AI, Steam, or any other business rule. Service targets follow the source
 with the declared policy mappings applied.
 
@@ -49,40 +50,36 @@ discarded and reconstructed after 媒体.
 Profile replacement remains manual to preserve locally entered subscription
 URLs; no root `auto_update` is emitted. Remote rule sets and subscriptions can
 update independently. DNS hijacking, all-network/APNs inclusion, closing old
-connections on policy changes, the real-IP exclusion list,
-AliDNS host additions, and the Flower host aliases remain existing Egern
-settings. These do not insert or reorder routing rules.
+connections on policy changes, the real-IP exclusion list, and subscription defaults remain existing Egern
+settings. DNS and Hosts are translated from the current published Mihomo script;
+no private resolver override, AliDNS addition, or Flower alias is injected. These do not insert or reorder routing rules.
 
 ## DNS mapping
 
 DNS Forward follows Mihomo's `nameserver-policy` in source order: Private uses
 `system`, Douyin uses `system` plus `180.184.1.1` and `180.184.2.2`, and CN uses
 `system`. Unmatched queries use the default foreign nameservers. APNs and Apple
-Podcasts have no independent DNS override. Traffic rules targeting Direct do
+Podcasts have no independent DNS override. Traffic rules targeting DIRECT do
 not synthesize DNS Forward entries; traffic policy selection and DNS matching
 remain separate, as in Mihomo.
 
-Proxy-server resolution explicitly uses the provider's private DoH endpoints
-from the user-supplied official `MESL.yaml` (`dns.nameserver`), in reference order:
-
-- `https://zone.rlose.com:39933/api-query`
-- `https://radar.rlose.com/api-query`
-
-These are emitted as Egern `dns.proxy_nameservers`, overriding Mihomo's
-generic `proxy-server-nameserver`. Their scheme, hostname, custom port and path
-are preserved. Egern connects to proxy DNS directly.
-This exception is recorded separately in `reports/source.json` under
-`dns.proxy_nameservers_source`; other DNS mapping continues to follow Mihomo.
-The reference subscription's node credentials are not copied or published.
+Proxy DNS is translated directly from the current Mihomo
+`dns.proxy-server-nameserver`: transport, server order, and duplicates are retained.
+The redundant `#DIRECT` suffix is removed because Egern proxy-DNS connections
+are always direct. The former fixed MESL private DoH override is removed.
+Hosts come from that same current Mihomo snapshot with no local additions.
 
 Mihomo `default-nameserver` IPs retain source order in Egern's plain-UDP
 bootstrap. Foreign resolver URLs retain their server order. The two existing
 excluded DoH endpoints, cloudflare-dns.com and dns.google, keep their clean
-URLs without injected routing rules. Any new DNS routing suffix fails with an
+URLs without injected routing rules. Ordinary Egern DNS upstream connections
+follow traffic routing rules; removing `#Proxy` does not force the selected
+Proxy node. Proxy-DNS connections and Bootstrap remain direct.
+Any new DNS routing suffix fails with an
 explicit error requiring a corresponding rule in Mihomo; it cannot create any additional Egern endpoint rules.
 
 Egern cannot reproduce Mihomo's runtime `direct-nameserver` re-resolution
-after a selectable policy switches to Direct. IPv4/IPv6-preferred DIRECT
+after a selectable policy switches to DIRECT. IPv4/IPv6-preferred DIRECT
 pseudo-proxies map to Egern's built-in DIRECT. Other Fake-IP behavior follows
 Egern defaults and the existing explicit real-IP exclusions.
 
@@ -123,27 +120,20 @@ system DNS at the direct exit when selected; Egern cannot reproduce that
 runtime re-resolution. General Apple uses Bett's `apple` source through the current upstream
 mirror; the former `apple-merged` provider is retired.
 
-## DNS audit (2026-10-27)
+## DNS and Hosts source
 
-Compared published Mihomo commit `21c52a92b2f4d851340a12facb3671d2bcfebe57`
-with the current upstream script at `071d4ec5764b4700d0c5de41797f20a8bdf6b6d8`.
-The retained `Script/mihomoScript.js` matches upstream SHA-256
-`55ae4b64b24f05568da69531dae20037092c3f9ca22dcbaedc6a203d00579e05`.
-DNS resolver selection matches after the intentional CN/direct `system`
-replacements and the `默认代理` to `Proxy` name mapping. Six VM comparisons cover
-empty input, private resolvers, node-domain policy, proxy-server policy, local
-listener/hosts rewriting, and private node resolvers.
+Routing stays pinned to the converter manifest's Mihomo commit. DNS and Hosts
+are extracted together from a separately pinned current Mihomo commit, recorded
+at `reports/source.json` → `dns.mihomo_script`. This prevents an older converter
+snapshot from retaining retired DNS policies or Hosts mappings. The workflow
+captures both commits once and downloads each script by its immutable SHA.
 
-This conclusion concerns resolver selection. The full DNS configuration retains
-additional Repcz Fake-IP exclusions, excludes optional FCM filtering, and uses
-custom hosts/provider data. Those are existing differences from upstream.
-Egern bootstrap remains plain UDP because its bootstrap field accepts IPs;
-Mihomo's TLS/HTTPS bootstrap transport and runtime Direct re-resolution cannot
-be reproduced exactly. Routing stays pinned to the converter manifest's Mihomo commit. DNS is extracted
-from a separately pinned current Mihomo commit, recorded at
-`reports/source.json` → `dns.mihomo_script`; this prevents an older converter
-snapshot from retaining retired DNS policies. The workflow captures both commits
-once and downloads each script by its immutable SHA.
+The extractor runs the source with placeholder nodes and empty input DNS/Hosts.
+It captures the published script's base output; it does not process private
+subscription credentials or reproduce subscription-specific runtime DNS changes.
+Egern's DNS routing, Bootstrap transport, and Direct re-resolution have the
+platform limits described above; this is a source-data translation rather than
+identical resolver behavior.
 
 ## Foreign QUIC control
 
@@ -167,8 +157,8 @@ the logical expression to verify source condition, flags, action, and order.
 
 ## YAML routing-order reference
 
-Mihomo generation pins the upstream `Config/mihomoConfig.yaml` alongside
-`Script/mihomoScript.js`. The shared prefix, QUIC placement, business order and
+Mihomo generation reads the upstream `Config/mihomoConfig.yaml` and
+`Script/mihomoScript.js` from the same source archive. The shared prefix, QUIC placement, business order and
 fallback order follow that YAML. The retained service additions are anchored:
 Claude before AI; AppleTV and Podcasts before Apple; Twitch after YouTube.
 The upstream domestic direct prefix precedes the service stage. MCDN occupies
