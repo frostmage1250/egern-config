@@ -7,7 +7,7 @@
     ],
     "forward_rules": 4,
     "mihomo_script": {
-      "commit": "c89b2a1ee77835d63c4f9028933221370823f9d2",
+      "commit": "a5e6f2a96710a1a5accab43252345a84bb17cdd0",
       "repository": "frostmage1250/mihomo-script"
     },
     "proxy_nameservers": [
