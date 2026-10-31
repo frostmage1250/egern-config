@@ -125,17 +125,25 @@ def rate_filter(entry: dict[str, str]) -> str:
 def render_policy_groups(model: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, str]]:
     regions = {entry["name"]: regex_text(entry) for entry in model["regions"]}
     rates = {entry["name"]: rate_filter(entry) for entry in model["rateRegions"]}
+    homes = {entry["name"]: regex_text(entry) for entry in model.get("homeRegions", [])}
     excluded: list[str] = []
     if model["options"].get("过滤非地区节点"):
         excluded.append(regex_text(model["excludeFilter"]))
     if model["options"].get("过滤低倍率节点"):
-        excluded.extend(rates.values())
+        name = model.get("lowRateRegionName", "低倍率节点")
+        if name in rates:
+            excluded.append(rates[name])
+    if model["options"].get("过滤高倍率节点"):
+        name = model.get("highRateRegionName", "高倍率节点")
+        if name in rates:
+            excluded.append(rates[name])
 
     filters: dict[str, str] = {"订阅": negative_filter(excluded)}
     display_name = {"台湾省": "台湾"}
     for source_name, pattern in regions.items():
         filters[display_name.get(source_name, source_name)] = pattern
     filters.update(rates)
+    filters.update(homes)
     filters["其他节点"] = negative_filter(list(regions.values()))
 
     if any(source["name"] == "订阅2" for source in model["groups"]):
@@ -701,6 +709,9 @@ def validate_profile(
     }
     filtered_groups.update({
         entry["name"]: rate_filter(entry) for entry in model["rateRegions"]
+    })
+    filtered_groups.update({
+        entry["name"]: regex_text(entry) for entry in model.get("homeRegions", [])
     })
     filtered_groups["其他节点"] = negative_filter([
         regex_text(entry) for entry in model["regions"]

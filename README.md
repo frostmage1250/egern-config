@@ -10,7 +10,7 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 The independent `privaterelay.yaml`
 rule is retained immediately before Bett Apple and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
-effective `buildRules()` list (with legacy `finalRules` support), preserving order, duplicate occurrences, and `no-resolve`
+effective `main()` output, preserving order, duplicate occurrences, and `no-resolve`
 flags. Policy mappings are Mihomo `pron` to Egern `porn`, and the former
 `Apple Podcasts` target to `媒体`; group references use the same mappings. The generator never independently moves Private, MCDN,
 Claude/AI, Steam, or any other business rule. Service targets follow the source
@@ -174,3 +174,8 @@ Claude before AI; AppleTV and Podcasts before Apple; Twitch after YouTube.
 The upstream domestic direct prefix precedes the service stage. MCDN occupies
 the blocking stage immediately after QUIC. APNs uses Proxy just after that
 blocking stage; Private Relay uses Proxy immediately before Apple.
+
+The Mihomo extractor uses the public main entry point with reserved placeholder
+nodes, so both pinned older scripts and the complete upstream runtime are supported.
+Home groups use their source filters over both subscriptions. Low-rate and high-rate
+subscription exclusions follow their independent source switches.
