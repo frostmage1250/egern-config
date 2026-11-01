@@ -45,7 +45,7 @@ REAL_IP_DOMAINS = [
     "*-appboot.netflix.com",
 ]
 BUILTIN_POLICIES = {"DIRECT", "REJECT"}
-LEGACY_DNS_ROUTE_EXCLUDED_HOSTS = {"cloudflare-dns.com", "dns.google"}
+DNS_PROXY_HOSTS = {"cloudflare-dns.com", "dns.google"}
 
 class BuildError(RuntimeError):
     pass
@@ -316,7 +316,7 @@ def render_rules(
     model: dict[str, Any], provider_files: dict[str, list[str]]
 ) -> list[dict[str, Any]]:
     """Keep YAML-derived source order, with APNs after blocking and Private Relay before Apple."""
-    rules: list[dict[str, Any]] = []
+    rules: list[dict[str, Any]] = render_dns_endpoint_rules(model)
     apns_rules: list[dict[str, Any]] = []
     for filename in provider_files.get("apns", [APNS_FILENAME]):
         apns_rules.append({
@@ -389,6 +389,10 @@ def validate_rule_alignment(
     provider_files: dict[str, list[str]],
 ) -> None:
     """Reverse the published rules and compare them with the untouched source list."""
+    endpoint_rules = render_dns_endpoint_rules(model)
+    if rules[:len(endpoint_rules)] != endpoint_rules:
+        raise BuildError("Foreign DoH endpoints must use Proxy before shared routing rules")
+    rules = rules[len(endpoint_rules):]
     apns_files = provider_files.get("apns", [APNS_FILENAME])
     apns_index = apns_source_index(model)
     if provider_files.get(PRIVATERELAY_PROVIDER):
@@ -483,16 +487,34 @@ def nameservers(model: dict[str, Any]) -> list[str]:
             continue
         server, policy = split_nameserver_policy(value)
         if policy is not None and (
-            urlsplit(server).hostname not in LEGACY_DNS_ROUTE_EXCLUDED_HOSTS or policy != "Proxy"
+            urlsplit(server).hostname not in DNS_PROXY_HOSTS or policy != "Proxy"
         ):
             raise BuildError(
-                "DNS routing suffix requires an explicit rule in the Mihomo source; "
-                f"Egern cannot inject endpoint routing rules: {value!r}"
+                f"Unsupported DNS routing suffix outside the foreign DoH Proxy mapping: {value!r}"
             )
         result.append(server)
     if not result:
         raise BuildError("Mihomo DNS model contains no nameservers")
     return result
+
+
+def render_dns_endpoint_rules(model: dict[str, Any]) -> list[dict[str, Any]]:
+    """Translate the two foreign DoH #Proxy bindings into Egern domain routes."""
+    nameservers_model = model.get("dns", {}).get("nameserver", [])
+    if not nameservers_model:
+        return []
+    nameservers(model)  # Reject suffixes that cannot be translated safely.
+    rules: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for value in nameservers_model:
+        if not isinstance(value, str):
+            continue
+        server, policy = split_nameserver_policy(value)
+        hostname = urlsplit(server).hostname
+        if policy == "Proxy" and hostname not in seen:
+            rules.append({"domain": {"match": hostname, "policy": "Proxy"}})
+            seen.add(hostname)
+    return rules
 
 
 def proxy_nameservers(model: dict[str, Any]) -> list[str]:
@@ -964,7 +986,8 @@ def main() -> int:
                 "enabled_by_default": any(raw in model["rules"] for raw in model.get("quic_rules", [])),
             },
             "routing_alignment": {
-                "exceptions": ["apns-after-blocking", "privaterelay-before-apple"],
+                "exceptions": ["dns-endpoint-proxy-prefix", "apns-after-blocking", "privaterelay-before-apple"],
+                "dns_endpoint_rules": render_dns_endpoint_rules(model),
                 "policy_aliases": POLICY_ALIASES,
                 "privaterelay_rules": 1,
                 "apns_rules": 1,
@@ -1000,7 +1023,7 @@ def main() -> int:
                 "The Egern policy group is named porn; source pron targets and group references map to porn, offering Hong Kong, Singapore, US, and low-rate choices. EHentai adds US, Singapore, and low-rate choices; the low-rate filter also matches 实验.",
                 "The Direct group is omitted; its rule targets and group references map to built-in DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
-                "The two legacy excluded DoH endpoint suffixes retain upstream URLs without injected routing; any new suffix fails explicitly.",
+                "The two foreign DoH #Proxy suffixes become explicit domain routes to Proxy before all shared rules; Egern upstream URLs omit the unsupported suffix. Other suffixes fail explicitly.",
                 "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
                 "DNS and Hosts come from the same current Mihomo snapshot; proxy DNS preserves proxy-server-nameserver protocols, order, and duplicates without local resolver or Hosts overrides.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",

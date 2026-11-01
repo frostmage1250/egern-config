@@ -290,7 +290,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 with self.assertRaises(BuildError):
                     validate_rule_alignment(rules, model, files)
 
-    def test_dns_never_injects_additional_routing_rules(self):
+    def test_foreign_doh_proxy_bindings_precede_shared_routing_rules(self):
         model = {"dns": {"nameserver": [
             "https://cloudflare-dns.com/dns-query#Proxy",
             "https://dns.google/dns-query#Proxy",
@@ -300,11 +300,41 @@ class EgernProfileBuilderTests(unittest.TestCase):
         ])
         self.assertEqual(render_dns_upstreams(model)["Foreign"], nameservers(model))
         rules = render_rules(model, {})
-        self.assertEqual(len(rules), 2)
+        self.assertEqual(rules[:2], [
+            {"domain": {"match": "cloudflare-dns.com", "policy": "Proxy"}},
+            {"domain": {"match": "dns.google", "policy": "Proxy"}},
+        ])
+        self.assertEqual(len(rules), 4)
         validate_rule_alignment(rules, model, {})
+        for change in ("missing", "reordered", "direct", "after-fallback"):
+            changed = json.loads(json.dumps(rules))
+            if change == "missing":
+                changed.pop(0)
+            elif change == "reordered":
+                changed[0], changed[1] = changed[1], changed[0]
+            elif change == "direct":
+                changed[0]["domain"]["policy"] = "DIRECT"
+            else:
+                changed.append(changed.pop(0))
+            with self.subTest(change=change), self.assertRaises(BuildError):
+                validate_rule_alignment(changed, model, {})
         for endpoint in ("1.1.1.1#DIRECT", "https://dns.example/dns-query#Proxy"):
             with self.subTest(endpoint=endpoint), self.assertRaises(BuildError):
                 nameservers({"dns": {"nameserver": [endpoint]}})
+
+    def test_dns_routes_require_explicit_proxy_binding_and_deduplicate_hosts(self):
+        model = {"dns": {"nameserver": [
+            "https://dns.google/dns-query",
+        ]}, "rules": ["DOMAIN,dns.google,Google", "MATCH,Final"]}
+        rules = render_rules(model, {})
+        self.assertEqual(rules[1], {"domain": {"match": "dns.google", "policy": "Google"}})
+        validate_rule_alignment(rules, model, {})
+        model["dns"]["nameserver"] *= 2
+        model["dns"]["nameserver"] = [value + "#Proxy" for value in model["dns"]["nameserver"]]
+        rules = render_rules(model, {})
+        self.assertEqual(rules[0], {"domain": {"match": "dns.google", "policy": "Proxy"}})
+        self.assertEqual(len(rules), 4)
+        validate_rule_alignment(rules, model, {})
 
     def test_nameserver_policy_suffix_cannot_be_silently_dropped(self):
         for endpoint in (

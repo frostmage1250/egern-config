@@ -263,6 +263,12 @@ policy_groups:
     - DIRECT
 rules:
 - domain:
+    match: cloudflare-dns.com
+    policy: Proxy
+- domain:
+    match: dns.google
+    policy: Proxy
+- domain:
     match: cdn.jsdmirror.com
     policy: DIRECT
 - rule_set:

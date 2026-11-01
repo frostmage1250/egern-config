@@ -7,6 +7,8 @@ into [`Profile.yaml`](https://raw.githubusercontent.com/frostmage1250/egern-conf
 ## Routing contract
 
 **APNs follows the shared blocking stage.** Its rule uses `Proxy`.
+The foreign DoH endpoints `cloudflare-dns.com` and `dns.google` use explicit
+`Proxy` domain rules at the start, translating Mihomo's `#Proxy` DNS bindings.
 The independent `privaterelay.yaml`
 rule is retained immediately before Bett Apple and also uses `Proxy`.
 All shared rules are a one-to-one syntax translation of the pinned Mihomo
@@ -25,9 +27,9 @@ policy group is also named `porn`.
 
 Validation reverses the generated rules into Mihomo rule strings and compares
 the shared list with the source after applying the declared policy mappings and
-checking both Egern additions.
+checking the DNS endpoint prefix and both other Egern additions.
 Reordering, extra or missing rules, policy changes outside the declared mappings, and changed `no-resolve` flags fail the build.
-`reports/source.json` records this source rule list and both approved Egern additions.
+`reports/source.json` records this source rule list and the Egern additions.
 
 ## Subscriptions and Egern settings
 
@@ -52,7 +54,7 @@ URLs; no root `auto_update` is emitted. Remote rule sets and subscriptions can
 update independently. DNS hijacking, all-network/APNs inclusion, closing old
 connections on policy changes, the real-IP exclusion list, and subscription defaults remain existing Egern
 settings. DNS and Hosts are translated from the current published Mihomo script;
-no private resolver override, AliDNS addition, or Flower alias is injected. These do not insert or reorder routing rules.
+no private resolver override, AliDNS addition, or Flower alias is injected.
 
 ## DNS mapping
 
@@ -70,13 +72,14 @@ are always direct. The former fixed MESL private DoH override is removed.
 Hosts come from that same current Mihomo snapshot with no local additions.
 
 Mihomo `default-nameserver` IPs retain source order in Egern's plain-UDP
-bootstrap. Foreign resolver URLs retain their server order. The two existing
-excluded DoH endpoints, cloudflare-dns.com and dns.google, keep their clean
-URLs without injected routing rules. Ordinary Egern DNS upstream connections
-follow traffic routing rules; removing `#Proxy` does not force the selected
-Proxy node. Proxy-DNS connections and Bootstrap remain direct.
-Any new DNS routing suffix fails with an
-explicit error requiring a corresponding rule in Mihomo; it cannot create any additional Egern endpoint rules.
+bootstrap. Foreign resolver URLs retain their server order. Egern does not support
+Mihomo's `#Proxy` DNS routing suffix, so the generator removes it from the URLs
+and emits exact domain rules for `cloudflare-dns.com` and `dns.google` targeting
+`Proxy` before all shared routing rules. Ordinary Egern DNS upstream connections
+follow those explicit routes, matching Mihomo's selected Proxy group rather
+than a service group or Final. Proxy-DNS connections and Bootstrap remain direct.
+Selecting DIRECT inside Proxy still makes these connections direct, as in Mihomo.
+Other DNS routing suffixes fail explicitly instead of being silently dropped.
 
 Egern cannot reproduce Mihomo's runtime `direct-nameserver` re-resolution
 after a selectable policy switches to DIRECT. IPv4/IPv6-preferred DIRECT
