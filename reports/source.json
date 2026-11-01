@@ -112,7 +112,7 @@
       "restored_from_egern_commit": "f04f307d2d7a8a4e3e2b4ddbc109c03b1a871c85"
     },
     "mihomo_script": {
-      "commit": "a53292ace9255289c7671834ef217685fb724294",
+      "commit": "d48c90f942754765a58211f23113d79b63ba3c4f",
       "repository": "frostmage1250/mihomo-script"
     },
     "proxy_nameservers": [
@@ -217,7 +217,7 @@
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
   ],
   "mihomo_script": {
-    "commit": "a53292ace9255289c7671834ef217685fb724294",
+    "commit": "d48c90f942754765a58211f23113d79b63ba3c4f",
     "repository": "frostmage1250/mihomo-script"
   },
   "native_rule_sets": [
@@ -964,12 +964,12 @@
     }
   ],
   "policy_groups": 24,
-  "profile_sha256": "8565f4f6dddae0056c447277e952b73503dc1febe28ee023c6b26b82e6169899",
+  "profile_sha256": "e40553c3ab7f4b38db74fd50f29dc4d639a4998c1d2108bfa801f2b2b69e5b6f",
   "proxy_rules_converter": {
     "branch": "main",
-    "commit": "235eca06241f9a7469c156954f7ee718c98f3d7e",
+    "commit": "b799004bae15da6433e0b76c5ddfe63b401046ed",
     "manifest_path": "reports/egern-source.json",
-    "manifest_sha256": "4ed19c65bb42995cbb06a0a3a507a01452ed683c0acceb99d58f49d0fbe18003",
+    "manifest_sha256": "70c1f9f89f7203c731a5e085eb8e0829c612710cd2eed9fd7a6585f55986cc2f",
     "repository": "frostmage1250/proxy-rules-converter"
   },
   "routing_alignment": {
@@ -1012,6 +1012,9 @@
       "RULE-SET,google_ip,Google,no-resolve",
       "RULE-SET,claude,Claude",
       "RULE-SET,ai,AI",
+      "DOMAIN,cdn.usefathom.com,AI",
+      "DOMAIN-SUFFIX,intercom.io,AI",
+      "DOMAIN-SUFFIX,intercomcdn.com,AI",
       "RULE-SET,github,GitHub",
       "RULE-SET,microsoft,Proxy",
       "RULE-SET,microsoft_ip,Proxy,no-resolve",
@@ -1043,9 +1046,9 @@
       "pron": "porn"
     },
     "privaterelay_rules": 1,
-    "shared_rule_count": 42
+    "shared_rule_count": 45
   },
-  "routing_rules": 46,
+  "routing_rules": 49,
   "schema_version": 4,
   "subscription": {
     "default_proxy_group": "代理",
