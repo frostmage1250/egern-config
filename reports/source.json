@@ -69,9 +69,15 @@
     ],
     "forward_rules": 13,
     "hosts": {
+      "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
+      "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
       "cloudflare-dns.com": [
         "1.1.1.1",
         "1.0.0.1"
+      ],
+      "dns.alidns.com": [
+        "223.5.5.5",
+        "223.6.6.6"
       ],
       "dns.google": [
         "8.8.8.8",
@@ -81,21 +87,36 @@
         "1.12.12.12",
         "120.53.53.53"
       ],
+      "fde63gz6-1y61.aws-agent.biz": "09571gz6-86k1.apt-agent.com",
       "services.googleapis.cn": "services.googleapis.com"
+    },
+    "hosts_overrides": {
+      "Flower": {
+        "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
+        "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
+        "fde63gz6-1y61.aws-agent.biz": "09571gz6-86k1.apt-agent.com"
+      },
+      "dns_server_ip_additions": {
+        "dns.alidns.com": [
+          "223.5.5.5",
+          "223.6.6.6"
+        ]
+      },
+      "restored_from_egern_commit": "f04f307d2d7a8a4e3e2b4ddbc109c03b1a871c85"
     },
     "mihomo_script": {
       "commit": "a53292ace9255289c7671834ef217685fb724294",
       "repository": "frostmage1250/mihomo-script"
     },
     "proxy_nameservers": [
-      "114.114.114.114",
-      "tls://223.5.5.5",
-      "https://doh.pub/dns-query"
+      "https://zone.rlose.com:39933/api-query",
+      "https://radar.rlose.com/api-query"
     ],
     "proxy_nameservers_source": {
-      "commit": "a53292ace9255289c7671834ef217685fb724294",
-      "reference_field": "dns.proxy-server-nameserver",
-      "repository": "frostmage1250/mihomo-script"
+      "overrides": "Mihomo proxy-server-nameserver",
+      "reference_field": "dns.nameserver",
+      "reference_file": "MESL.yaml",
+      "restored_from_egern_commit": "f04f307d2d7a8a4e3e2b4ddbc109c03b1a871c85"
     },
     "upstreams": {
       "Foreign": [
@@ -182,9 +203,9 @@
     "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
     "The two foreign DoH #Proxy suffixes become explicit domain routes to Proxy before all shared rules; Egern upstream URLs omit the unsupported suffix. Other suffixes fail explicitly.",
     "Fixed DIRECT domain rules become system DNS Forward entries before Mihomo nameserver-policy and the foreign fallback; IP-only rules and runtime policy-group selections do not select DNS.",
-    "DNS and Hosts come from the same current Mihomo snapshot; proxy DNS preserves proxy-server-nameserver protocols, order, and duplicates without local resolver or Hosts overrides.",
+    "Shared DNS and Hosts follow the current Mihomo snapshot; reviewed MESL private DoH resolvers override generic proxy DNS and retain their order, port, and path.",
     "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
-    "Real-IP exclusions and subscription defaults remain explicit Egern settings; no AliDNS or Flower Hosts additions are injected.",
+    "Reviewed Flower node aliases and AliDNS Hosts additions remain explicit Egern settings alongside real-IP exclusions and subscription defaults; Mihomo updates must preserve them.",
     "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests."
   ],
   "mihomo_script": {
@@ -917,7 +938,7 @@
     }
   ],
   "policy_groups": 24,
-  "profile_sha256": "c6198e06e8b0a503e4f6ebf3b5c0f96aef9a5afed31a015e78f25bbbe2a59e75",
+  "profile_sha256": "feaa3d41ec55b4ee02abe0f6fda6831fe855e8289345aa9d4c0ebbf7b94b37bc",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "9d708a3b2b57c1c96c5f35b5a8d085f6fc09ba44",

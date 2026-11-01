@@ -169,19 +169,34 @@ class EgernProfileBuilderTests(unittest.TestCase):
         )
         self.assertTrue(selected[2]["no_resolve"])
 
-    def test_hosts_follow_source_exactly_without_local_additions(self):
+    def test_reviewed_provider_hosts_survive_shared_source_updates(self):
         source = {
             "example.com": ["203.0.113.13", "203.0.113.13"],
             "alias.example.com": "target.example.com",
             "dns.alidns.com": ["203.0.113.53"],
         }
         rendered = hosts({"hosts": source})
-        self.assertEqual(rendered, source)
-        self.assertEqual(list(rendered), list(source))
-        self.assertNotIn("11612bj3-b76c.aws-agent.biz", rendered)
+        expected_aliases = {
+            "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
+            "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
+            "fde63gz6-1y61.aws-agent.biz": "09571gz6-86k1.apt-agent.com",
+        }
+        self.assertEqual(rendered["example.com"], source["example.com"])
+        self.assertEqual(rendered["alias.example.com"], "target.example.com")
+        self.assertEqual(rendered["dns.alidns.com"], ["203.0.113.53", "223.5.5.5", "223.6.6.6"])
+        for hostname, target in expected_aliases.items():
+            self.assertEqual(rendered[hostname], target)
+            # Missing or conflicting upstream mappings must not erase provider aliases.
+            self.assertEqual(hosts({"hosts": {hostname: "wrong.example"}})[hostname], target)
         rendered["example.com"].append("203.0.113.14")
         self.assertEqual(source["example.com"], ["203.0.113.13", "203.0.113.13"])
-        self.assertNotIn("dns.alidns.com", hosts({"hosts": {"source.example": "target.example"}}))
+        self.assertEqual(source["dns.alidns.com"], ["203.0.113.53"])
+        self.assertEqual(hosts({"hosts": {}}), {
+            "dns.alidns.com": ["223.5.5.5", "223.6.6.6"], **expected_aliases,
+        })
+        for domain in ("mcdn.bilivideo.com", "mcdn.bilivideo.cn", "edge.mountaintoys.cn", "h2.smtcdns.net"):
+            self.assertNotIn(domain, rendered)
+            self.assertNotIn(f"*.{domain}", rendered)
 
     def test_rules_preserve_order_and_no_resolve(self):
         model = {"rules": [
@@ -545,20 +560,19 @@ class EgernProfileBuilderTests(unittest.TestCase):
         with self.assertRaises(BuildError):
             apply_dns_model(pinned, current)
 
-    def test_proxy_dns_tracks_source_protocols_order_and_duplicates(self):
+    def test_reviewed_mesl_private_dns_survives_shared_source_updates(self):
         model = {"dns": {"proxy-server-nameserver": [
             "114.114.114.114#DIRECT", "tls://223.5.5.5#DIRECT",
             "https://doh.pub/dns-query#DIRECT", "tls://223.5.5.5#DIRECT",
         ]}}
-        self.assertEqual(proxy_nameservers(model), [
-            "114.114.114.114", "tls://223.5.5.5",
-            "https://doh.pub/dns-query", "tls://223.5.5.5",
-        ])
+        expected = ["https://zone.rlose.com:39933/api-query", "https://radar.rlose.com/api-query"]
+        self.assertEqual(proxy_nameservers(model), expected)
         model["dns"]["proxy-server-nameserver"] = ["https://new.example/dns-query#DIRECT"]
-        self.assertEqual(proxy_nameservers(model), ["https://new.example/dns-query"])
-        model["dns"]["proxy-server-nameserver"] = ["https://new.example/dns-query#Proxy"]
-        with self.assertRaises(BuildError):
-            proxy_nameservers(model)
+        self.assertEqual(proxy_nameservers(model), expected)
+        self.assertEqual(proxy_nameservers({}), expected)
+        result = proxy_nameservers(model)
+        result.append("1.1.1.1")
+        self.assertEqual(proxy_nameservers(model), expected)
 
     def test_media_retains_existing_region_choices_once(self):
         model = {

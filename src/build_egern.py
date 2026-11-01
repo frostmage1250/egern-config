@@ -27,6 +27,22 @@ APNS_FILENAME = "apns.yaml"
 PRIVATERELAY_PROVIDER = "privaterelay"
 PRIVATERELAY_FILENAME = "privaterelay.yaml"
 POLICY_ALIASES = {"pron": "porn", "Apple Podcasts": "媒体", "Direct": "DIRECT"}
+FLOWER_HOSTS = {
+    "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
+    "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
+    "fde63gz6-1y61.aws-agent.biz": "09571gz6-86k1.apt-agent.com",
+}
+MESL_PROXY_NAMESERVERS = (
+    "https://zone.rlose.com:39933/api-query",
+    "https://radar.rlose.com/api-query",
+)
+DNS_HOST_IP_ADDITIONS = {"dns.alidns.com": ["223.5.5.5", "223.6.6.6"]}
+PROVIDER_DNS_SOURCE = {
+    "reference_file": "MESL.yaml",
+    "reference_field": "dns.nameserver",
+    "overrides": "Mihomo proxy-server-nameserver",
+    "restored_from_egern_commit": "f04f307d2d7a8a4e3e2b4ddbc109c03b1a871c85",
+}
 REAL_IP_DOMAINS = [
     "lancache.steamcontent.com",
     "*.msftconnecttest.com",
@@ -518,18 +534,8 @@ def render_dns_endpoint_rules(model: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def proxy_nameservers(model: dict[str, Any]) -> list[str]:
-    """Translate the source proxy-server-nameserver without local overrides."""
-    result: list[str] = []
-    for value in model.get("dns", {}).get("proxy-server-nameserver", []):
-        if not isinstance(value, str):
-            raise BuildError("Mihomo proxy nameserver must be a string")
-        server, policy = split_nameserver_policy(value)
-        if policy not in {None, "DIRECT"}:
-            raise BuildError(f"Egern proxy DNS is always direct and cannot preserve {policy!r}")
-        result.append(server)
-    if not result:
-        raise BuildError("Mihomo DNS model contains no proxy-server-nameserver")
-    return result
+    """Preserve the reviewed MESL private resolvers across Mihomo source updates."""
+    return list(MESL_PROXY_NAMESERVERS)
 
 
 
@@ -699,8 +705,15 @@ def render_dns_forward(
 
 
 def hosts(model: dict[str, Any]) -> dict[str, Any]:
-    """Preserve the current source Hosts exactly, including order and duplicates."""
-    return json.loads(json.dumps(model["hosts"]))
+    """Merge current shared Hosts with the reviewed provider-specific mappings."""
+    result = json.loads(json.dumps(model.get("hosts", {})))
+    for hostname, additions in DNS_HOST_IP_ADDITIONS.items():
+        existing = result.get(hostname, [])
+        if not isinstance(existing, list):
+            raise BuildError(f"DNS host mapping must be an IP list: {hostname}")
+        result[hostname] = existing + [address for address in additions if address not in existing]
+    result.update(FLOWER_HOSTS)
+    return result
 
 
 
@@ -843,11 +856,11 @@ def validate_profile(
         if (podcast_rule < cn_rule) != (source_podcasts < source_cn):
             raise BuildError("Apple Podcasts and Apple CN must retain source order")
     if dns.get("proxy_nameservers") != proxy_nameservers(model):
-        raise BuildError("Mihomo proxy nameservers were not preserved")
+        raise BuildError("Reviewed MESL private proxy nameservers were not preserved")
     if profile.get("real_ip_domains") != REAL_IP_DOMAINS:
         raise BuildError("Repcz real-IP domain exclusions were not preserved")
     if dns.get("hosts") != hosts(model):
-        raise BuildError("Current Mihomo Hosts were not preserved")
+        raise BuildError("Shared and reviewed provider Hosts were not preserved")
     if "Direct" in names:
         raise BuildError("Direct must use the built-in DIRECT policy, not a group")
 
@@ -1047,10 +1060,11 @@ def main() -> int:
                 "upstreams": profile["dns"]["upstreams"],
                 "hosts": profile["dns"]["hosts"],
                 "proxy_nameservers": profile["dns"]["proxy_nameservers"],
-                "proxy_nameservers_source": {
-                    "repository": MIHOMO_REPO,
-                    "commit": args.dns_mihomo_commit,
-                    "reference_field": "dns.proxy-server-nameserver",
+                "proxy_nameservers_source": dict(PROVIDER_DNS_SOURCE),
+                "hosts_overrides": {
+                    "Flower": dict(FLOWER_HOSTS),
+                    "dns_server_ip_additions": dict(DNS_HOST_IP_ADDITIONS),
+                    "restored_from_egern_commit": PROVIDER_DNS_SOURCE["restored_from_egern_commit"],
                 },
             },
             "subscription": {
@@ -1070,9 +1084,9 @@ def main() -> int:
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two foreign DoH #Proxy suffixes become explicit domain routes to Proxy before all shared rules; Egern upstream URLs omit the unsupported suffix. Other suffixes fail explicitly.",
                 "Fixed DIRECT domain rules become system DNS Forward entries before Mihomo nameserver-policy and the foreign fallback; IP-only rules and runtime policy-group selections do not select DNS.",
-                "DNS and Hosts come from the same current Mihomo snapshot; proxy DNS preserves proxy-server-nameserver protocols, order, and duplicates without local resolver or Hosts overrides.",
+                "Shared DNS and Hosts follow the current Mihomo snapshot; reviewed MESL private DoH resolvers override generic proxy DNS and retain their order, port, and path.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
-                "Real-IP exclusions and subscription defaults remain explicit Egern settings; no AliDNS or Flower Hosts additions are injected.",
+                "Reviewed Flower node aliases and AliDNS Hosts additions remain explicit Egern settings alongside real-IP exclusions and subscription defaults; Mihomo updates must preserve them.",
                 "Egern-native rules are fetched at the converter commit and verified against manifest hashes, entry counts, and native-field-order digests.",
             ],
         }

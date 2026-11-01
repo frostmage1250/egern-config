@@ -53,8 +53,10 @@ Profile replacement remains manual to preserve locally entered subscription
 URLs; no root `auto_update` is emitted. Remote rule sets and subscriptions can
 update independently. DNS hijacking, all-network/APNs inclusion, closing old
 connections on policy changes, the real-IP exclusion list, and subscription defaults remain existing Egern
-settings. DNS and Hosts are translated from the current published Mihomo script;
-no private resolver override, AliDNS addition, or Flower alias is injected.
+settings. Shared DNS and Hosts follow the current published Mihomo script,
+with the previously reviewed MESL private DNS, Flower node aliases, and AliDNS
+Hosts preserved as explicit provider overrides. Changes to shared upstream
+configuration must retain these provider settings.
 
 ## DNS mapping
 
@@ -72,11 +74,23 @@ Remaining queries follow Mihomo's `nameserver-policy` in source order: Private u
 Podcasts have no independent DNS override. Manually selecting DIRECT inside a
 policy group does not change DNS Forward; only fixed domain DIRECT rules do.
 
-Proxy DNS is translated directly from the current Mihomo
-`dns.proxy-server-nameserver`: transport, server order, and duplicates are retained.
-The redundant `#DIRECT` suffix is removed because Egern proxy-DNS connections
-are always direct. The former fixed MESL private DoH override is removed.
-Hosts come from that same current Mihomo snapshot with no local additions.
+Proxy DNS retains the two private DoH endpoints from the reviewed official
+`MESL.yaml` (`dns.nameserver`), in reference order:
+
+- `https://zone.rlose.com:39933/api-query`
+- `https://radar.rlose.com/api-query`
+
+These override generic Mihomo `proxy-server-nameserver` and are emitted as
+Egern `dns.proxy_nameservers`; Egern connects to them directly. The custom
+port, paths and order are preserved. Hosts merge the current shared mappings
+with the three reviewed Flower node aliases and the AliDNS addresses
+`223.5.5.5` and `223.6.6.6` for `dns.alidns.com`. Provider aliases take priority
+over conflicting shared entries. Node credentials are not included.
+
+These settings were recovered from the reviewed configuration at commit
+`f04f307d2d7a8a4e3e2b4ddbc109c03b1a871c85`, before commit `f09b731` removed them.
+The generated report records their provenance under
+`dns.proxy_nameservers_source` and `dns.hosts_overrides`.
 
 Mihomo `default-nameserver` IPs retain source order in Egern's plain-UDP
 bootstrap. Foreign resolver URLs retain their server order. Egern does not support
@@ -140,7 +154,7 @@ at `reports/source.json` → `dns.mihomo_script`. This prevents an older convert
 snapshot from retaining retired DNS policies or Hosts mappings. The workflow
 captures both commits once and downloads each script by its immutable SHA.
 
-The extractor runs the source with placeholder nodes and empty input DNS/Hosts.
+The extractor runs the shared source with placeholder nodes and empty input DNS/Hosts.
 It captures the published script's base output; it does not process private
 subscription credentials or reproduce subscription-specific runtime DNS changes.
 Egern's DNS routing, Bootstrap transport, and Direct re-resolution have the
