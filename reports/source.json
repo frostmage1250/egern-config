@@ -5,7 +5,69 @@
       "223.5.5.5",
       "1.12.12.12"
     ],
-    "forward_rules": 4,
+    "fixed_direct_forward": [
+      {
+        "domain": {
+          "match": "cdn.jsdmirror.com",
+          "value": "system"
+        }
+      },
+      {
+        "proxy_rule_set": {
+          "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml",
+          "update_interval": 86400,
+          "value": "system"
+        }
+      },
+      {
+        "proxy_rule_set": {
+          "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-cn.yaml",
+          "update_interval": 86400,
+          "value": "system"
+        }
+      },
+      {
+        "proxy_rule_set": {
+          "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml",
+          "update_interval": 86400,
+          "value": "system"
+        }
+      },
+      {
+        "proxy_rule_set": {
+          "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/nvidia-cn.yaml",
+          "update_interval": 86400,
+          "value": "system"
+        }
+      },
+      {
+        "proxy_rule_set": {
+          "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-cn.yaml",
+          "update_interval": 86400,
+          "value": "system"
+        }
+      },
+      {
+        "proxy_rule_set": {
+          "match": "https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml",
+          "update_interval": 86400,
+          "value": "system"
+        }
+      },
+      {
+        "domain": {
+          "match": "international-gfe.download.nvidia.com",
+          "value": "system"
+        }
+      },
+      {
+        "domain_suffix": {
+          "match": "ctaiot.com",
+          "value": "system"
+        }
+      }
+    ],
+    "forward_rules": 13,
     "hosts": {
       "cloudflare-dns.com": [
         "1.1.1.1",
@@ -119,7 +181,7 @@
     "The Direct group is omitted; its rule targets and group references map to built-in DIRECT.",
     "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
     "The two foreign DoH #Proxy suffixes become explicit domain routes to Proxy before all shared rules; Egern upstream URLs omit the unsupported suffix. Other suffixes fail explicitly.",
-    "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
+    "Fixed DIRECT domain rules become system DNS Forward entries before Mihomo nameserver-policy and the foreign fallback; IP-only rules and runtime policy-group selections do not select DNS.",
     "DNS and Hosts come from the same current Mihomo snapshot; proxy DNS preserves proxy-server-nameserver protocols, order, and duplicates without local resolver or Hosts overrides.",
     "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
     "Real-IP exclusions and subscription defaults remain explicit Egern settings; no AliDNS or Flower Hosts additions are injected.",
@@ -855,7 +917,7 @@
     }
   ],
   "policy_groups": 24,
-  "profile_sha256": "418e5013f7317206dee8e6a3a6dc37291b2d9d9c01a037642e86e2466207616d",
+  "profile_sha256": "c6198e06e8b0a503e4f6ebf3b5c0f96aef9a5afed31a015e78f25bbbe2a59e75",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "9d708a3b2b57c1c96c5f35b5a8d085f6fc09ba44",

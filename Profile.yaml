@@ -37,6 +37,39 @@ dns:
     - 180.184.1.1
     - 180.184.2.2
   forward:
+  - domain:
+      match: cdn.jsdmirror.com
+      value: system
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/geolocation-cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/nvidia-cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/apple-cn.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/microsoft-cn.yaml
+      value: system
+      update_interval: 86400
+  - domain:
+      match: international-gfe.download.nvidia.com
+      value: system
+  - domain_suffix:
+      match: ctaiot.com
+      value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/private.yaml
       value: system

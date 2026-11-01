@@ -470,7 +470,7 @@ class EgernProfileBuilderTests(unittest.TestCase):
         model["dns"]["default-nameserver"].pop(0)
         self.assertEqual(bootstrap_nameservers(model), ["223.5.5.5", "9.9.9.9"])
 
-    def test_dns_does_not_infer_policy_from_traffic_routing(self):
+    def test_fixed_direct_domains_use_system_before_shared_dns_policy(self):
         model = {
             "dns": {"nameserver-policy": {
                 "rule-set:private": "system",
@@ -478,23 +478,40 @@ class EgernProfileBuilderTests(unittest.TestCase):
                 "rule-set:cn": ["system"],
             }},
             "rules": [
-                "RULE-SET,apple_podcasts,Apple Podcasts", "RULE-SET,apple_cn,Direct",
-                "RULE-SET,private,Direct", "DOMAIN-SUFFIX,internal.example,Direct",
-                "DOMAIN,cdn.example,Direct", "MATCH,Final",
+                "RULE-SET,apple_cn,Direct", "RULE-SET,private,Direct",
+                "DOMAIN-SUFFIX,internal.example,DIRECT", "DOMAIN,cdn.example,Direct",
+                "RULE-SET,apple_podcasts,媒体", "RULE-SET,cn_ip,Direct", "MATCH,Final",
             ],
         }
         providers = {name: {"behavior": "domain"} for name in
                      ("apns", "apple_podcasts", "apple_cn", "private", "douyin", "cn")}
         files = {name: [name + ".yaml"] for name in providers}
+        providers["cn_ip"] = {"behavior": "ipcidr"}
+        files["cn_ip"] = ["cn-ip.yaml"]
         forward = render_dns_forward(model, providers, files)
-        self.assertEqual(forward, [
+        direct = [
+            {"proxy_rule_set": {"match": f"{RAW_BASE}/dist/egern/{provider}.yaml",
+                                "value": "system", "update_interval": 86400}}
+            for provider in ("apple_cn", "private")
+        ] + [
+            {"domain_suffix": {"match": "internal.example", "value": "system"}},
+            {"domain": {"match": "cdn.example", "value": "system"}},
+        ]
+        self.assertEqual(forward, direct + [
             {"proxy_rule_set": {"match": f"{RAW_BASE}/dist/egern/{provider}.yaml",
                                 "value": target, "update_interval": 86400}}
             for provider, target in (("private", "system"), ("douyin", "Policy-douyin"), ("cn", "system"))
         ] + [{"domain_wildcard": {"match": "*", "value": "Foreign"}}])
-        # Changing a selectable traffic policy must not add a DNS override.
-        model["rules"][0] = "RULE-SET,apple_podcasts,Direct"
+        # Selecting DIRECT inside a policy group is a runtime setting, not a fixed rule.
+        model["groups"] = [{"name": "媒体", "proxies": ["DIRECT"]}]
         self.assertEqual(render_dns_forward(model, providers, files), forward)
+
+    def test_fixed_direct_dns_rejects_late_or_untranslatable_domain_rules(self):
+        providers = {"mixed": {"behavior": "classical"}}
+        for rules in (["DOMAIN,service.example,Proxy", "DOMAIN,late.example,Direct"],
+                      ["RULE-SET,mixed,Direct"], ["RULE-SET,missing,Direct"]):
+            with self.subTest(rules=rules), self.assertRaises(BuildError):
+                render_dns_forward({"rules": rules}, providers, {})
 
     def test_podcasts_dns_override_requires_explicit_source_policy(self):
         resolvers = ["https://cloudflare-dns.com/dns-query#Proxy", "https://dns.google/dns-query#Proxy"]
@@ -635,7 +652,11 @@ class EgernProfileBuilderTests(unittest.TestCase):
         }
         self.assertEqual(len(nameservers(model)), 2)
         forward = render_dns_forward(model, {}, {})
-        self.assertEqual(forward, [{"domain_wildcard": {"match": "*", "value": "Foreign"}}])
+        self.assertEqual(forward, [
+            {"domain_suffix": {"match": "internal.example", "value": "system"}},
+            {"domain_suffix": {"match": "internal.example", "value": "system"}},
+            {"domain_wildcard": {"match": "*", "value": "Foreign"}},
+        ])
 
     def test_dns_forward_references_one_native_file_per_provider(self):
         model = {

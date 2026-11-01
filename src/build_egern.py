@@ -615,12 +615,56 @@ def render_dns_upstreams(model: dict[str, Any]) -> dict[str, list[str]]:
     return upstreams
 
 
+def render_direct_dns_forward(
+    model: dict[str, Any],
+    providers: dict[str, Any],
+    provider_files: dict[str, list[str]],
+) -> list[dict[str, Any]]:
+    """Use system DNS for the fixed DIRECT domain prefix before business rules."""
+    forward: list[dict[str, Any]] = []
+    passed_direct_prefix = False
+    for raw in model.get("rules", []):
+        parts = split_rule(raw)
+        kind = parts[0]
+        policy = parts[-1] if kind in {"AND", "OR", "NOT", "MATCH"} else parts[2]
+        if POLICY_ALIASES.get(policy, policy) != "DIRECT":
+            passed_direct_prefix = True
+            continue
+        if kind == "RULE-SET":
+            provider = parts[1]
+            definition = providers.get(provider)
+            if definition is None:
+                raise BuildError(f"Fixed DIRECT DNS provider is missing: {provider}")
+            if definition.get("behavior") == "ipcidr":
+                continue  # An IP match cannot select DNS before resolution.
+            if definition.get("behavior") != "domain":
+                raise BuildError(f"Fixed DIRECT DNS requires a domain provider: {provider}")
+            filenames = provider_files.get(provider)
+            if not filenames:
+                raise BuildError(f"Fixed DIRECT DNS provider was not generated: {provider}")
+            entries = [{"proxy_rule_set": {
+                "match": f"{RAW_BASE}/dist/egern/{filename}",
+                "value": "system", "update_interval": 86400,
+            }} for filename in filenames]
+        elif kind in {"DOMAIN", "DOMAIN-SUFFIX"}:
+            matcher = {"DOMAIN": "domain", "DOMAIN-SUFFIX": "domain_suffix"}[kind]
+            entries = [{matcher: {"match": parts[1], "value": "system"}}]
+        elif kind in {"IP-CIDR", "IP-CIDR6", "GEOIP"}:
+            continue
+        else:
+            raise BuildError(f"Unsupported fixed DIRECT DNS rule: {raw}")
+        if passed_direct_prefix:
+            raise BuildError(f"Fixed DIRECT DNS domain rule must precede business rules: {raw}")
+        forward.extend(entries)
+    return forward
+
+
 def render_dns_forward(
     model: dict[str, Any],
     providers: dict[str, Any],
     provider_files: dict[str, list[str]],
 ) -> list[dict[str, Any]]:
-    forward: list[dict[str, Any]] = []
+    forward = render_direct_dns_forward(model, providers, provider_files)
 
     def add(kind: str, match: str, value: str) -> None:
         item: dict[str, Any] = {"match": match, "value": value}
@@ -628,7 +672,7 @@ def render_dns_forward(
             item["update_interval"] = 86400
         forward.append({kind: item})
 
-    # DNS selection follows the source policy, independently of traffic routing.
+    # Fixed DIRECT domains override the shared DNS policy; all other domains retain it.
     for key, target in model.get("dns", {}).get("nameserver-policy", {}).items():
         if not isinstance(key, str) or not key.startswith("rule-set:"):
             raise BuildError(f"Unsupported Mihomo nameserver-policy matcher: {key!r}")
@@ -782,7 +826,7 @@ def validate_profile(
         raise BuildError("Mihomo nameserver-policy upstreams were not preserved")
     expected_forward = render_dns_forward(model, model["providers"], provider_files)
     if dns.get("forward") != expected_forward:
-        raise BuildError("Mihomo nameserver-policy and default DNS were not preserved")
+            raise BuildError("Fixed DIRECT system DNS and shared DNS policy were not preserved")
     if "apple_podcasts" in model["providers"]:
         if "Apple Podcasts" in names:
             raise BuildError("Apple Podcasts must route to 媒体 without a standalone group")
@@ -999,6 +1043,7 @@ def main() -> int:
                 "mihomo_script": {"repository": MIHOMO_REPO, "commit": args.dns_mihomo_commit},
                 "bootstrap": profile["dns"]["bootstrap"],
                 "forward_rules": len(profile["dns"]["forward"]),
+                "fixed_direct_forward": render_direct_dns_forward(model, model["providers"], provider_files),
                 "upstreams": profile["dns"]["upstreams"],
                 "hosts": profile["dns"]["hosts"],
                 "proxy_nameservers": profile["dns"]["proxy_nameservers"],
@@ -1024,7 +1069,7 @@ def main() -> int:
                 "The Direct group is omitted; its rule targets and group references map to built-in DIRECT.",
                 "Mihomo default-nameserver IPs retain their order as plain-UDP Egern bootstrap.",
                 "The two foreign DoH #Proxy suffixes become explicit domain routes to Proxy before all shared rules; Egern upstream URLs omit the unsupported suffix. Other suffixes fail explicitly.",
-                "Only Mihomo nameserver-policy entries become ordered DNS Forward rules, followed by the default foreign nameservers; no APNs, Podcasts, or static Direct DNS overrides are synthesized.",
+                "Fixed DIRECT domain rules become system DNS Forward entries before Mihomo nameserver-policy and the foreign fallback; IP-only rules and runtime policy-group selections do not select DNS.",
                 "DNS and Hosts come from the same current Mihomo snapshot; proxy DNS preserves proxy-server-nameserver protocols, order, and duplicates without local resolver or Hosts overrides.",
                 "Egern cannot reproduce Mihomo runtime direct-nameserver re-resolution after a policy-group selection changes.",
                 "Real-IP exclusions and subscription defaults remain explicit Egern settings; no AliDNS or Flower Hosts additions are injected.",

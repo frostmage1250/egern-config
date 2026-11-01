@@ -58,12 +58,19 @@ no private resolver override, AliDNS addition, or Flower alias is injected.
 
 ## DNS mapping
 
-DNS Forward follows Mihomo's `nameserver-policy` in source order: Private uses
+DNS Forward first maps the fixed DIRECT domain prefix to `system`: explicit
+domains/suffixes plus Private, geolocation-cn, Steam CN, NVIDIA CN, Apple CN,
+and Microsoft CN. These entries take priority over the shared DNS policy,
+including Douyin. The builder derives them from the pinned traffic rules and
+rejects domain DIRECT rules placed after business rules to avoid overriding
+earlier proxy matches. IP-only CN/private fallback rules cannot select DNS
+before resolution and do not produce Forward entries.
+
+Remaining queries follow Mihomo's `nameserver-policy` in source order: Private uses
 `system`, Douyin uses `system` plus `180.184.1.1` and `180.184.2.2`, and CN uses
 `system`. Unmatched queries use the default foreign nameservers. APNs and Apple
-Podcasts have no independent DNS override. Traffic rules targeting DIRECT do
-not synthesize DNS Forward entries; traffic policy selection and DNS matching
-remain separate, as in Mihomo.
+Podcasts have no independent DNS override. Manually selecting DIRECT inside a
+policy group does not change DNS Forward; only fixed domain DIRECT rules do.
 
 Proxy DNS is translated directly from the current Mihomo
 `dns.proxy-server-nameserver`: transport, server order, and duplicates are retained.
@@ -81,7 +88,8 @@ than a service group or Final. Proxy-DNS connections and Bootstrap remain direct
 Selecting DIRECT inside Proxy still makes these connections direct, as in Mihomo.
 Other DNS routing suffixes fail explicitly instead of being silently dropped.
 
-Egern cannot reproduce Mihomo's runtime `direct-nameserver` re-resolution
+Existing Hosts mappings still take precedence over DNS Forward. Egern cannot
+reproduce Mihomo's runtime `direct-nameserver` re-resolution
 after a selectable policy switches to DIRECT. IPv4/IPv6-preferred DIRECT
 pseudo-proxies map to Egern's built-in DIRECT. Other Fake-IP behavior follows
 Egern defaults and the existing explicit real-IP exclusions.
@@ -117,8 +125,9 @@ previously imported profiles; they are not inputs or outputs of this generator.
 Apple Podcasts uses the `媒体` policy group, with no independent select group.
 The former source target maps to `媒体` until the converter snapshot catches up.
 Bett's `apple-podcasts` native rule set follows the pinned Mihomo order,
-in the business stage before Apple, following Microsoft and AppleTV. Its DNS follows the shared nameserver policy, including CN/system when a domain
-matches CN, then the default foreign nameservers. Mihomo additionally uses
+in the business stage before Apple, following Microsoft and AppleTV. Its DNS first
+uses system DNS for domains covered by the fixed DIRECT prefix, then follows
+the shared nameserver policy and the default foreign nameservers. Mihomo additionally uses
 system DNS at the direct exit when selected; Egern cannot reproduce that
 runtime re-resolution. General Apple uses Bett's `apple` source through the current upstream
 mirror; the former `apple-merged` provider is retired.
