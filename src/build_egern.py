@@ -823,6 +823,8 @@ def validate_profile(
     if list(profile["rules"][-1]) != ["default"]:
         raise BuildError("Default rule must be last")
     dns = profile["dns"]
+    if profile.get("vif_only") is not True:
+        raise BuildError("Egern must enable virtual-interface-only mode by default")
     if profile.get("block_quic") is not False:
         raise BuildError("Foreign QUIC logic requires global block_quic=false")
     if profile.get("hijack_dns") != ["*:53"]:
@@ -999,6 +1001,7 @@ def main() -> int:
         rules = render_rules(model, provider_files)
         profile = {
             "ipv6": True,
+            "vif_only": True,
             "hijack_dns": ["*:53"],
             "block_quic": False,
             "close_connections_on_policy_change": True,
@@ -1075,6 +1078,7 @@ def main() -> int:
                 "reason": "Default group names are public; subscription credentials remain local.",
             },
             "migration_boundaries": [
+                "Virtual-interface-only mode is enabled by default with vif_only=true.",
                 "APNs uses Proxy after the shared blocking stage; standalone Private Relay uses Proxy immediately before Apple.",
                 "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use the declared Egern mappings, including Apple Podcasts to 媒体 and Direct to DIRECT.",
                 "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; policy mappings are pron to porn, Apple Podcasts to 媒体, and Direct to DIRECT.",

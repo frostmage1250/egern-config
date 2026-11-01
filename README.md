@@ -33,6 +33,8 @@ Reordering, extra or missing rules, policy changes outside the declared mappings
 
 ## Subscriptions and Egern settings
 
+Virtual-interface-only mode is enabled by default with `vif_only: true`.
+
 Subscription credentials stay local. After importing the profile, add your URL
 to **订阅**. **订阅2** starts with empty `policies` and `urls` and uses the same
 node exclusion filter. The profile keeps `default_subscription_group: 订阅`

@@ -1,4 +1,5 @@
 ipv6: true
+vif_only: true
 hijack_dns:
 - '*:53'
 block_quic: false

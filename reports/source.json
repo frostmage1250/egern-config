@@ -194,6 +194,7 @@
     "高倍率节点": "(?i)(?:[*×✕✖⨯⨉x](?:[2-9]\\d*|[1-9]\\d+)(?:\\.\\d+)?)|(?:(?<![\\d.])(?:[2-9]\\d*|[1-9]\\d+)(?:\\.\\d+)?(?:倍|[*×✕✖⨯⨉x]))"
   },
   "migration_boundaries": [
+    "Virtual-interface-only mode is enabled by default with vif_only=true.",
     "APNs uses Proxy after the shared blocking stage; standalone Private Relay uses Proxy immediately before Apple.",
     "All shared routing rules preserve Mihomo source order, duplicates, and no-resolve flags; target policies use the declared Egern mappings, including Apple Podcasts to 媒体 and Direct to DIRECT.",
     "Private, MCDN, Claude/AI, Steam, and all other providers have no Egern-specific reordering; policy mappings are pron to porn, Apple Podcasts to 媒体, and Direct to DIRECT.",
@@ -938,7 +939,7 @@
     }
   ],
   "policy_groups": 24,
-  "profile_sha256": "feaa3d41ec55b4ee02abe0f6fda6831fe855e8289345aa9d4c0ebbf7b94b37bc",
+  "profile_sha256": "6def8a73525ed4b90ef458a4db5c315c6abd70a39b8d8da007a1484ce69b3993",
   "proxy_rules_converter": {
     "branch": "main",
     "commit": "9d708a3b2b57c1c96c5f35b5a8d085f6fc09ba44",
