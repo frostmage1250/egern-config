@@ -54,6 +54,10 @@ dns:
       value: system
       update_interval: 86400
   - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/synology.yaml
+      value: system
+      update_interval: 86400
+  - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/nvidia-cn.yaml
       value: system
       update_interval: 86400
@@ -320,6 +324,10 @@ rules:
     update_interval: 86400
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/steam-cn.yaml
+    policy: DIRECT
+    update_interval: 86400
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/main/dist/egern/synology.yaml
     policy: DIRECT
     update_interval: 86400
 - rule_set:
