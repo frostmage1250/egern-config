@@ -22,7 +22,7 @@
       "services.googleapis.cn": "services.googleapis.com"
     },
     "mihomo_script": {
-      "commit": "533e026631ea7873f494e14fa54cc3f190e6d38e",
+      "commit": "a53292ace9255289c7671834ef217685fb724294",
       "repository": "frostmage1250/mihomo-script"
     },
     "proxy_nameservers": [
@@ -31,7 +31,7 @@
       "https://doh.pub/dns-query"
     ],
     "proxy_nameservers_source": {
-      "commit": "533e026631ea7873f494e14fa54cc3f190e6d38e",
+      "commit": "a53292ace9255289c7671834ef217685fb724294",
       "reference_field": "dns.proxy-server-nameserver",
       "repository": "frostmage1250/mihomo-script"
     },
