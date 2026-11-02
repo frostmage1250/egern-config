@@ -89,6 +89,10 @@
       "provider": "privaterelay",
       "policy": "Proxy",
       "before_provider": "apple"
+    },
+    "mcdn": {
+      "provider": "mcdn屏蔽",
+      "before_provider": "geolocation-cn"
     }
   },
   "dns": {

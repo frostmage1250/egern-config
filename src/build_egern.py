@@ -221,6 +221,16 @@ def render_rules(model, files):
             result.append(rule_reference(apns["provider"], files, policy=apns["policy"], no_resolve=apns["no_resolve"]))
     if not any(raw.startswith("RULE-SET," + private["before_provider"] + ",") for raw in shared):
         raise BuildError("Private Relay Apple anchor is missing")
+    # Apply the Egern-only blocking placement without changing the shared DNS model.
+    mcdn = CUSTOM["routing"]["mcdn"]
+    blocking_rule = rule_reference(mcdn["provider"], files, policy="REJECT")
+    anchor_url = rule_reference(mcdn["before_provider"], files)["rule_set"]["match"]
+    anchors = [rule for rule in result
+               if rule.get("rule_set", {}).get("match") == anchor_url]
+    if result.count(blocking_rule) != 1 or len(anchors) != 1:
+        raise BuildError("MCDN placement requires one blocking rule and one anchor")
+    result.remove(blocking_rule)
+    result.insert(result.index(anchors[0]), blocking_rule)
     return result
 
 

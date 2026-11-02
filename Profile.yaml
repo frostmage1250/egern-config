@@ -317,6 +317,10 @@ rules:
     update_interval: 86400
     policy: DIRECT
 - rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/mcdn-block.yaml
+    update_interval: 86400
+    policy: REJECT
+- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-cn.yaml
     update_interval: 86400
     policy: DIRECT
@@ -346,10 +350,6 @@ rules:
 - domain_suffix:
     match: ctaiot.com
     policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/mcdn-block.yaml
-    update_interval: 86400
-    policy: REJECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apns.yaml
     update_interval: 86400

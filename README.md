@@ -13,6 +13,7 @@ All personal choices and DNS adaptation selections live in [custom/customization
 - Service groups inherit source choices plus the listed additions. Porn uses the listed four choices.
 - Direct and the IPv4/IPv6-preferred candidates are removed. Built-in direct action output is handled by format adaptation. No legacy pron, Apple Podcasts or Taiwan name aliases are applied.
 - Foreign QUIC rejection is omitted and global block_quic stays false.
+- MCDN blocking is placed immediately before geolocation-cn by the Egern routing manifest, so the broad direct rule cannot bypass it. DNS keeps the shared source order.
 - APNs uses Proxy after the shared blocking stage. Private Relay uses Proxy immediately before Apple. Rule data belongs to the converter branch.
 - Shared DNS/Hosts follow the same script snapshot. Fixed DIRECT domain prefixes use system DNS before source nameserver-policy and foreign fallback. DoH Proxy bindings become explicit endpoint routes. Bootstrap uses source IPs as plain UDP.
 - Policy-group selection does not cause Mihomo-style direct-nameserver re-resolution; fixed-direct-prefix forwarding is the declared approximation.
