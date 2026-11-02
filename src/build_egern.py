@@ -153,7 +153,7 @@ def render_policy_groups(model):
             continue
         if name in patterns:
             groups.append({"select": {
-                "name": name, "policies": subscriptions,
+                "name": name, "policies": list(subscriptions),
                 "flatten": True, "filter": patterns[name],
             }})
             continue
