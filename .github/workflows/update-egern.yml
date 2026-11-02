@@ -11,7 +11,7 @@ on:
       - "tests/**"
       - "requirements.txt"
   schedule:
-    - cron: "17 1,7,13,19 * * *"
+    - cron: "17 1-23/2 * * *"
 
 permissions:
   contents: write
