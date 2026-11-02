@@ -364,6 +364,10 @@ rules:
     update_interval: 86400
     policy: Google
 - rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/claude.yaml
+    update_interval: 86400
+    policy: Claude
+- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/ai.yaml
     update_interval: 86400
     policy: AI
@@ -384,6 +388,14 @@ rules:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft.yaml
     update_interval: 86400
     policy: Proxy
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/appletv.yaml
+    update_interval: 86400
+    policy: 媒体
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-podcasts.yaml
+    update_interval: 86400
+    policy: 媒体
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/privaterelay.yaml
     update_interval: 86400
@@ -422,25 +434,9 @@ rules:
     update_interval: 86400
     policy: EHentai
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/appletv.yaml
-    update_interval: 86400
-    policy: 媒体
-- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/porn.yaml
     update_interval: 86400
     policy: porn
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/claude.yaml
-    update_interval: 86400
-    policy: Claude
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/twitch.yaml
-    update_interval: 86400
-    policy: 媒体
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-podcasts.yaml
-    update_interval: 86400
-    policy: 媒体
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-non-cn.yaml
     update_interval: 86400
