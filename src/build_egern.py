@@ -198,14 +198,14 @@ def render_rules(model, files):
         kind = parts[0]
         if kind == "RULE-SET":
             provider = parts[1]
-            if provider == private["before_provider"]:
-                result.append(rule_reference(private["provider"], files, policy=private["policy"], name=private["provider"]))
             attributes = {"policy": policy_target(parts[2])}
             if parts[3:] == ["no-resolve"]:
                 attributes["no_resolve"] = True
             elif parts[3:]:
                 raise BuildError(f"Unsupported rule flags: {raw}")
             result.append(rule_reference(provider, files, **attributes))
+            if provider == private["after_provider"]:
+                result.append(rule_reference(private["provider"], files, policy=private["policy"], name=private["provider"]))
         elif kind == "MATCH" and len(parts) == 2:
             result.append({"default": {"policy": policy_target(parts[1])}})
         elif kind in {"DOMAIN", "DOMAIN-SUFFIX"} and len(parts) == 3:
@@ -219,8 +219,8 @@ def render_rules(model, files):
             raise BuildError(f"Unsupported source rule: {raw}")
         if index == max(blocking):
             result.append(rule_reference(apns["provider"], files, policy=apns["policy"], no_resolve=apns["no_resolve"]))
-    if not any(raw.startswith("RULE-SET," + private["before_provider"] + ",") for raw in shared):
-        raise BuildError("Private Relay Apple anchor is missing")
+    if not any(raw.startswith("RULE-SET," + private["after_provider"] + ",") for raw in shared):
+        raise BuildError("Private Relay anchor is missing: " + private["after_provider"])
     # Apply the Egern-only blocking placement without changing the shared DNS model.
     mcdn = CUSTOM["routing"]["mcdn"]
     blocking_rule = rule_reference(mcdn["provider"], files, policy="REJECT")

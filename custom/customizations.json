@@ -88,7 +88,7 @@
     "privaterelay": {
       "provider": "privaterelay",
       "policy": "Proxy",
-      "before_provider": "apple"
+      "after_provider": "microsoft"
     },
     "mcdn": {
       "provider": "mcdn屏蔽",
