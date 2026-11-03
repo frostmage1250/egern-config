@@ -180,6 +180,7 @@ policy_groups:
     name: AI
     policies:
     - Proxy
+    - 订阅
     - 日本
     - 台湾
     - 其他节点
