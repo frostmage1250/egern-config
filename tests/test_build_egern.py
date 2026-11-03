@@ -7,28 +7,33 @@ import build_egern as builder
 
 
 class EgernAdaptationTests(unittest.TestCase):
-    def test_mcdn_precedes_geolocation_cn_without_changing_source_or_dns(self):
+    def test_mcdn_and_private_relay_placements_preserve_source_and_dns(self):
         quic = "AND,((NETWORK,UDP),(DST-PORT,443)),REJECT"
         source = [
             "DOMAIN,first.example,Direct", "RULE-SET,private,Direct",
             "RULE-SET,geolocation-cn,Direct", quic, "RULE-SET,mcdn屏蔽,REJECT",
-            "RULE-SET,apple,Proxy", "RULE-SET,cn_ip,Direct,no-resolve", "MATCH,Final",
+            "RULE-SET,microsoft,Proxy", "RULE-SET,appletv,媒体",
+            "RULE-SET,apple_podcasts,媒体", "RULE-SET,apple,Proxy",
+            "RULE-SET,cn_ip,Direct,no-resolve", "MATCH,Final",
         ]
         model = {"rules": source, "quic_rules": [quic], "dns": {}}
         files = {name: [file] for name, file in [
             ("private", "private.yaml"), ("geolocation-cn", "geolocation-cn.yaml"),
             ("mcdn屏蔽", "mcdn-block.yaml"), ("apns", "apns.yaml"),
+            ("microsoft", "microsoft.yaml"), ("appletv", "appletv.yaml"),
+            ("apple_podcasts", "apple-podcasts.yaml"),
             ("apple", "apple.yaml"), ("privaterelay", "privaterelay.yaml"), ("cn_ip", "cn-ip.yaml"),
         ]}
         rules = builder.render_rules(model, files)
         self.assertEqual([next(iter(item)) for item in rules],
-                         ["domain"] + ["rule_set"] * 7 + ["default"])
+                         ["domain"] + ["rule_set"] * 10 + ["default"])
         values = [next(iter(item.values())) for item in rules]
         self.assertEqual(values[0]["policy"], "DIRECT")
         self.assertTrue(values[-2]["no_resolve"])
         self.assertEqual([value["match"].rsplit("/", 1)[-1] for value in values[1:-1]],
                          ["private.yaml", "mcdn-block.yaml", "geolocation-cn.yaml",
-                          "apns.yaml", "privaterelay.yaml", "apple.yaml", "cn-ip.yaml"])
+                          "apns.yaml", "microsoft.yaml", "privaterelay.yaml", "appletv.yaml",
+                          "apple-podcasts.yaml", "apple.yaml", "cn-ip.yaml"])
         self.assertEqual(values[2]["policy"], "REJECT")
         self.assertEqual(model["rules"], source)
         self.assertEqual(model["rules"][2], "RULE-SET,geolocation-cn,Direct")
