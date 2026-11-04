@@ -34,7 +34,6 @@ dns:
     - https://cloudflare-dns.com/dns-query
     - https://dns.google/dns-query
     Policy-douyin:
-    - system
     - 180.184.1.1
     - 180.184.2.2
   forward:
