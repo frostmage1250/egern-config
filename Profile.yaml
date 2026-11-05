@@ -20,12 +20,6 @@ dns:
     - 180.184.2.2
   forward:
   - domain:
-      match: cloudflare-dns.com
-      value: Foreign
-  - domain:
-      match: dns.google
-      value: Foreign
-  - domain:
       match: cdn.jsdmirror.com
       value: system
   - proxy_rule_set:
