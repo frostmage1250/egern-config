@@ -125,6 +125,9 @@ def render_condition(text: str, provider_files: dict[str, list[str]]) -> dict[st
 def render_policy_groups(model):
     definitions = [*model["regions"], *model["rateRegions"], *model.get("homeRegions", [])]
     patterns = {entry["name"]: regex_text(entry) for entry in definitions}
+    for name, addition in CUSTOM.get("groups", {}).get("filter_append", {}).items():
+        if name in patterns:
+            patterns[name] += "|" + addition
     patterns["其他节点"] = negative_filter([regex_text(entry) for entry in model["regions"]])
     excluded = []
     if model["options"].get("过滤非地区节点"):
@@ -140,6 +143,11 @@ def render_policy_groups(model):
                    if services.get(group["name"], {}).get("includeAll") and group["type"] == "select"), None)
     if manual is None:
         raise BuildError("Upstream needs a manual node group to host an Egern subscription")
+    extra_subscriptions = CUSTOM.get("groups", {}).get("extra_subscriptions", [])
+    source_names = {group["name"] for group in model["groups"]}
+    if len(extra_subscriptions) != len(set(extra_subscriptions)) or source_names.intersection(extra_subscriptions):
+        raise BuildError("Extra subscription names must be unique and absent from source groups")
+    subscriptions = [manual, *extra_subscriptions]
     result = []
     for group in model["groups"]:
         kind = {"select": "select", "url-test": "auto_test", "load-balance": "load_balance"}.get(group["type"])
@@ -164,14 +172,19 @@ def render_policy_groups(model):
         if name == manual:
             item.update({"policies": [], "urls": [], "filter": source_filter})
             result.append({kind: item})
+            for subscription in extra_subscriptions:
+                result.append({"select": {**item, "name": subscription, "policies": [], "urls": []}})
             continue
         choices = []
         dynamic = False
         for choice in group.get("proxies", []):
             if choice in templates:
                 dynamic = True
-                if manual not in choices:
-                    choices.append(manual)
+                for subscription in subscriptions:
+                    if subscription not in choices:
+                        choices.append(subscription)
+            elif choice == manual:
+                choices.extend(subscriptions)
             elif choice in direct_names:
                 choices.append("DIRECT")
             elif choice not in {"REJECT-DROP", "PASS"}:
@@ -388,6 +401,7 @@ def hosts(model):
             result["*" + pattern] = value
         else:
             result[pattern] = value
+    result.update(CUSTOM.get("dns", {}).get("hosts_override", {}))
     return result
 
 
@@ -420,8 +434,19 @@ def validate_profile(profile, model):
     names = [group["name"] for group in groups]
     if len(names) != len(set(names)):
         raise BuildError("Duplicate policy group")
-    if names != [group["name"] for group in model["groups"]]:
-        raise BuildError("Native group names/order must match the source model")
+    expected_names = []
+    subscription = profile["default_subscription_group"]
+    extras = CUSTOM.get("groups", {}).get("extra_subscriptions", [])
+    for group in model["groups"]:
+        expected_names.append(group["name"])
+        if group["name"] == subscription:
+            expected_names.extend(extras)
+    if names != expected_names:
+        raise BuildError("Native group order must match the source plus explicit subscriptions")
+    for name in [subscription, *extras]:
+        group = next(item for item in groups if item["name"] == name)
+        if group["policies"] or group["urls"] or "update_interval" in group:
+            raise BuildError("Public subscriptions must start empty without an update interval")
     known = set(names) | {"DIRECT", "REJECT"}
     for group in groups:
         if any(policy not in known for policy in group["policies"]):
@@ -459,7 +484,7 @@ def main():
             "upstreams": render_dns_upstreams(model),
             "forward": render_dns_forward(model, files),
             "hosts": hosts(model),
-            "proxy_nameservers": [split_nameserver_policy(value)[0] for value in model["dns"].get("proxy-server-nameserver", [])],
+            "proxy_nameservers": CUSTOM.get("dns", {}).get("proxy_nameservers", [split_nameserver_policy(value)[0] for value in model["dns"].get("proxy-server-nameserver", [])]),
         },
         "policy_groups": groups,
         "rules": render_rules(model, files),
@@ -467,10 +492,11 @@ def main():
     hijack = source.get("tun", {}).get("dns-hijack", [])
     if hijack:
         profile["hijack_dns"] = list(dict.fromkeys("*" if value in {"any:53", "tcp://any:53"} else value for value in hijack))
-    # Only literal source Fake-IP exceptions can be represented by this native field.
+    # Merge literal source exceptions with the explicit Egern real-IP list.
     literals = [value for value in model["dns"].get("fake-ip-filter", []) if not value.startswith("rule-set:")]
-    if literals:
-        profile["real_ip_domains"] = literals
+    real_ip_domains = list(dict.fromkeys([*literals, *CUSTOM.get("real_ip_domains", [])]))
+    if real_ip_domains:
+        profile["real_ip_domains"] = real_ip_domains
     validate_profile(profile, model)
     (ROOT / "Profile.yaml").write_text(yaml.safe_dump(profile, allow_unicode=True, sort_keys=False, width=1000), encoding="utf-8")
     print(f'Published {len(groups)} native policy groups and {len(profile["rules"])} rules.')

@@ -29,9 +29,13 @@ Two Egern-only routes remain explicitly in custom/customizations.json:
 APNs tunnel capture (include_all_networks/include_apns) remains enabled so that
 the retained APNs route can receive the traffic.
 
-No independent DNS server, hosts alias, real-IP exclusion list, service exclusion,
-policy alias, group candidate/order override, low-rate regex supplement, or extra
-subscription group is retained.
+The manifest additionally retains the 15 explicit real-IP domain exceptions,
+the 实验 supplement for the 低倍率节点 filter, and an empty 订阅2 group immediately
+after 手动选择. Both subscription groups feed the dynamic node filters and replace
+the manual subscription choice wherever it is referenced.
+No service exclusion, policy alias, or former service candidate/order override
+is retained. The manifest also restores the two MESL proxy DNS endpoints and
+three Flower hostname aliases. MESL proxy DNS applies to all proxy hostnames.
 
 ## Native adaptation
 
@@ -42,8 +46,8 @@ supported; timeout milliseconds become seconds.
 
 Enter subscription URLs locally in the upstream 手动选择 group (initially empty).
 Groups that enumerate subscription nodes use native flatten/filter against this
-group, including regional/rate/home/other groups. The source node filters are
-translated without the retired 实验 supplement. No 订阅2 group is added.
+group and 订阅2, including regional/rate/home/other groups. Source filters are
+preserved with the explicit 实验 supplement for 低倍率节点.
 
 Egern has no native Mihomo direct-proxy variants: their candidates map to DIRECT.
 Unsupported REJECT-DROP/PASS group choices are omitted; the source rule actions
@@ -53,15 +57,17 @@ dynamic node lists does not preserve every nested group as a selectable item.
 Mihomo-only group fields (lazy, max-failed-times, empty-fallback,
 default-selected, exclude-type) have no exact native equivalent and are omitted.
 
-DNS forwarding policies, default foreign DNS, proxy DNS, endpoint routing suffixes,
-and hosts come from the source. Bootstrap is derived from source startup IPs as
+DNS forwarding policies, default foreign DNS, endpoint routing suffixes,
+and base hosts come from the source. The explicit MESL proxy DNS list replaces
+the inherited proxy DNS list; the three Flower aliases overlay source hosts. Bootstrap is derived from source startup IPs as
 plain UDP because Egern bootstrap accepts only UDP IPs. Mihomo +. hosts become
 an apex mapping plus a *. wildcard mapping. The old system-DNS direct-prefix
-override, MESL proxy DNS, Flower aliases and AliDNS additions are removed.
+override and AliDNS additions remain removed.
 
 Mihomo's rule-set-based fake-ip-filter and direct-nameserver re-resolution have
 no equivalent in this static native profile. Only literal source Fake-IP
-exceptions can map to real_ip_domains; no independent exception list is added.
+exceptions map to real_ip_domains and are merged, without duplicates, with the
+15 retained Egern exceptions. These affect DNS answers, not routing policy.
 Egern-only defaults apply to unsupported platform/global fields. Supported IPv6,
 LAN access, tunnel mode and DNS hijacking fields inherit the source. A global
 QUIC block stays off; any source selective QUIC rules are translated normally.
