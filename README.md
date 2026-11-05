@@ -86,7 +86,8 @@ No additional consolidated media selector is inserted.
   entries from the final routes on every build, through the last fixed DIRECT
   domain rule. Preserve earlier proxy domain exceptions (including APNs,
   AppleTV and Apple Podcasts) as Foreign DNS entries in the same order.
-  IP-only routes do not create DNS forwarding entries.
+  IP-only routes and exact domains already pinned to IP addresses in hosts do
+  not create DNS forwarding entries.
 - Set `dns.system_dns_providers: ["cn"]`: the inherited cn DNS policy also
   uses system DNS instead of its source resolver addresses.
 - Append remaining source DNS policies without duplicate matchers, then retain

@@ -437,9 +437,22 @@ def direct_domain_dns_prefix(model, files, rules):
         f'{RULE_BASE}/{files[CUSTOM["routing"][name]["provider"]][0]}'
         for name in ("apns", "privaterelay")
     )
+    # Exact hosts entries containing only IPs resolve before Forward rules.
+    fixed_hostnames = set()
+    for hostname, values in hosts(model).items():
+        values = values if isinstance(values, list) else [values]
+        try:
+            for value in values:
+                ipaddress.ip_address(value)
+        except ValueError:
+            continue
+        if values:
+            fixed_hostnames.add(hostname)
     candidates = []
     for wrapper in rules:
         kind, item = next(iter(wrapper.items()))
+        if kind == "domain" and item["match"] in fixed_hostnames:
+            continue
         if kind == "rule_set":
             if item["match"] not in domain_sets:
                 continue
