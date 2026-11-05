@@ -58,9 +58,6 @@ Existing service routing targets otherwise follow the source.
 - Replace inherited proxy DNS with the two MESL endpoints in the manifest.
   This applies to all proxy hostnames, not only MESL subscription nodes.
 - Restore the three Flower hostname aliases.
-- Supplement dns.alidns.com hosts with 223.5.5.5 and 223.6.6.6. This is an explicit
-  Egern customization from the former manifest's dns.hosts_add_ips, not an
-  inherited hosts mapping from the current Mihomo script.
 - Merge the 15 retained Egern real-IP exceptions with literal source Fake-IP
   exceptions, without duplicates. This affects DNS answers, not routing policy.
 

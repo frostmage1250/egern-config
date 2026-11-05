@@ -456,11 +456,6 @@ def hosts(model):
             result["*" + pattern] = value
         else:
             result[pattern] = value
-    for domain, additions in CUSTOM.get("dns", {}).get("hosts_add_ips", {}).items():
-        existing = result.get(domain, [])
-        if not isinstance(existing, list):
-            raise BuildError("Expected an IP list for hosts additions: " + domain)
-        result[domain] = existing + [value for value in additions if value not in existing]
     result.update(CUSTOM.get("dns", {}).get("hosts_override", {}))
     return result
 
