@@ -1,29 +1,11 @@
 ipv6: true
+allow_external_connections: true
 vif_only: true
-hijack_dns:
-- '*:53'
-block_quic: false
-close_connections_on_policy_change: true
 include_all_networks: true
 include_apns: true
-default_subscription_group: 订阅
-default_proxy_group: 代理
-real_ip_domains:
-- lancache.steamcontent.com
-- '*.msftconnecttest.com'
-- '*.msftncsi.com'
-- '*.srv.nintendo.net'
-- '*.stun.playstation.net'
-- xbox.*.microsoft.com
-- '*.xboxlive.com'
-- '*.logon.battlenet.com.cn'
-- '*.logon.battle.net'
-- stun.l.google.com
-- easy-login.10099.com.cn
-- '*-update.xoyocdn.com'
-- '*.prod.cloud.netflix.com'
-- appboot.netflix.com
-- '*-appboot.netflix.com'
+block_quic: false
+default_subscription_group: 手动选择
+default_proxy_group: 默认代理
 dns:
   bootstrap:
   - 114.114.114.114
@@ -36,56 +18,22 @@ dns:
     Policy-douyin:
     - 180.184.1.1
     - 180.184.2.2
+    Policy-cn:
+    - 223.5.5.5
+    - 119.29.29.29
   forward:
-  - domain:
-      match: cdn.jsdmirror.com
-      value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
-      value: system
       update_interval: 86400
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-cn.yaml
       value: system
-      update_interval: 86400
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/steam-cn.yaml
-      value: system
-      update_interval: 86400
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/synology.yaml
-      value: system
-      update_interval: 86400
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/nvidia-cn.yaml
-      value: system
-      update_interval: 86400
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-cn.yaml
-      value: system
-      update_interval: 86400
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft-cn.yaml
-      value: system
-      update_interval: 86400
-  - domain:
-      match: international-gfe.download.nvidia.com
-      value: system
-  - domain_suffix:
-      match: ctaiot.com
-      value: system
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
-      value: system
-      update_interval: 86400
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/douyin.yaml
-      value: Policy-douyin
       update_interval: 86400
+      value: Policy-douyin
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cn.yaml
-      value: system
       update_interval: 86400
+      value: Policy-cn
   - domain_wildcard:
       match: '*'
       value: Foreign
@@ -100,33 +48,152 @@ dns:
     - 8.8.8.8
     - 8.8.4.4
     services.googleapis.cn: services.googleapis.com
-    dns.alidns.com:
-    - 223.5.5.5
-    - 223.6.6.6
-    11612bj3-b76c.aws-agent.biz: 06996bj6-79x5.apt-agent.com
-    b76c5sh0-fde6.aws-agent.biz: 08233sh6-12d1.apt-agent.com
-    fde63gz6-1y61.aws-agent.biz: 09571gz6-86k1.apt-agent.com
+    mcdn.bilivideo.com: &id001
+    - 0.0.0.0
+    '*.mcdn.bilivideo.com': *id001
+    mcdn.bilivideo.cn: &id002
+    - 0.0.0.0
+    '*.mcdn.bilivideo.cn': *id002
+    edge.mountaintoys.cn: &id003
+    - 0.0.0.0
+    '*.edge.mountaintoys.cn': *id003
+    h2.smtcdns.net: &id004
+    - 0.0.0.0
+    '*.h2.smtcdns.net': *id004
   proxy_nameservers:
-  - https://zone.rlose.com:39933/api-query
-  - https://radar.rlose.com/api-query
+  - 114.114.114.114
+  - tls://223.5.5.5
+  - https://doh.pub/dns-query
 policy_groups:
 - select:
     name: GLOBAL
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Global.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - Proxy
-    - 订阅
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - FCM
     - YouTube
     - Google
     - AI
     - GitHub
+    - Microsoft
+    - Apple
     - Telegram
-    - 媒体
+    - Steam
+    - TikTok
+    - Twitter
+    - Meta
+    - Line
+    - Netflix
+    - Emby
     - PikPak
+    - Spotify
+    - Crypto
+    - PayPal
+    - Patreon
     - EHentai
+    - AdBlock
+    - AppleTV
     - porn
     - Claude
-    - Final
-    - DIRECT
+    - Apple Podcasts
+    - 漏网之鱼
+    - 直连
+    - 香港-自动选择
+    - 香港
+    - 日本-自动选择
+    - 日本
+    - 美国-自动选择
+    - 美国
+    - 新加坡-自动选择
+    - 新加坡
+    - 台湾-自动选择
+    - 台湾
+    - 低倍率节点-自动选择
+    - 低倍率节点
+    - 高倍率节点-自动选择
+    - 高倍率节点
+    - 家宽节点-自动选择
+    - 家宽节点
+    - 其他节点-自动选择
+    - 其他节点
+- select:
+    name: 默认代理
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Proxy.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+- select:
+    name: 手动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Static.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies: []
+    urls: []
+    filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
+- auto_test:
+    name: 自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
+    flatten: true
+    filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
+- load_balance:
+    name: 负载均衡
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/RoundRobin.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    algorithm: hash
+    policies:
+    - 手动选择
+    flatten: true
+    filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
+- select:
+    name: FCM
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Fcm.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: YouTube
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/YouTube.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
     - 香港
     - 日本
     - 美国
@@ -137,10 +204,14 @@ policy_groups:
     - 家宽节点
     - 其他节点
 - select:
-    name: Proxy
+    name: Google
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Google.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
     - 香港
     - 日本
     - 美国
@@ -149,212 +220,711 @@ policy_groups:
     - 低倍率节点
     - 高倍率节点
     - 家宽节点
-    - 其他节点
-    flatten: false
-- select:
-    name: 订阅
-    policies: []
-    urls: []
-    filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
-- select:
-    name: 订阅2
-    policies: []
-    urls: []
-    filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
-- select:
-    name: GitHub
-    policies:
-    - Proxy
-    - 订阅
-    - AI
-- select:
-    name: Claude
-    policies:
-    - Proxy
-    - 订阅
-    - 日本
-    - 台湾
     - 其他节点
 - select:
     name: AI
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/OpenAI.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - Proxy
-    - 订阅
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
     - 日本
+    - 美国
+    - 新加坡
     - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: GitHub
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/GitHub.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Microsoft
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Microsoft.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: Apple
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Apple.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: Telegram
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Telegram.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Steam
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Steam.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: TikTok
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/TikTok.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Twitter
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Twitter.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Meta
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Meta.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Line
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Line.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Netflix
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Netflix.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Emby
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Emby.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: PikPak
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PikPak.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: Spotify
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Spotify.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: Crypto
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Bitcoin.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: PayPal
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PayPal.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Patreon
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Patreon.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: EHentai
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/EHentai.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+    - 直连
+- select:
+    name: AdBlock
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/AdBlock.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - REJECT
+- select:
+    name: AppleTV
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
     - 其他节点
 - select:
     name: porn
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
     - 香港
-    - 新加坡
-    - 美国
-    - 低倍率节点
-- select:
-    name: Google
-    policies:
-    - Proxy
-    - 订阅
-- select:
-    name: 媒体
-    policies:
-    - Proxy
-    - 低倍率节点
-    - 香港
-    - 美国
-    - 订阅
-    - 订阅2
     - 日本
-- select:
-    name: YouTube
-    policies:
-    - Proxy
-    - 香港
-    - 低倍率节点
-- select:
-    name: Telegram
-    policies:
-    - Proxy
-    - 低倍率节点
-    - 香港
-    - 订阅
-    - 订阅2
-- select:
-    name: PikPak
-    policies:
-    - Proxy
-    - DIRECT
-    - 低倍率节点
-    - 香港
-- select:
-    name: EHentai
-    policies:
-    - Proxy
     - 美国
     - 新加坡
-    - 香港
+    - 台湾
     - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
 - select:
-    name: 香港
+    name: Claude
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: Apple Podcasts
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 手动选择
+    - 自动选择
+    - 负载均衡
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: 漏网之鱼
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Stack.svg
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 默认代理
+    - 直连
+    - 香港
+    - 日本
+    - 美国
+    - 新加坡
+    - 台湾
+    - 低倍率节点
+    - 高倍率节点
+    - 家宽节点
+    - 其他节点
+- select:
+    name: 直连
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/China.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - DIRECT
+- auto_test:
+    name: 香港-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
 - select:
-    name: 日本
+    name: 香港
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/HongKong.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    - 香港-自动选择
+    flatten: true
+    filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
+- auto_test:
+    name: 日本-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
 - select:
-    name: 美国
+    name: 日本
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Japan.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    - 日本-自动选择
+    flatten: true
+    filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
+- auto_test:
+    name: 美国-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
 - select:
-    name: 新加坡
+    name: 美国
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/America.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    - 美国-自动选择
+    flatten: true
+    filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
+- auto_test:
+    name: 新加坡-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
 - select:
-    name: 台湾
+    name: 新加坡
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Singapore.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    - 新加坡-自动选择
+    flatten: true
+    filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
+- auto_test:
+    name: 台湾-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
 - select:
-    name: 低倍率节点
+    name: 台湾
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Taiwan.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    - 台湾-自动选择
     flatten: true
-    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])|实验
-- select:
-    name: 高倍率节点
+    filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
+- auto_test:
+    name: 低倍率节点-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    flatten: true
+    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])
+- select:
+    name: 低倍率节点
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Available.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
+    policies:
+    - 手动选择
+    - 低倍率节点-自动选择
+    flatten: true
+    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])
+- auto_test:
+    name: 高倍率节点-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)(?:[*×✕✖⨯⨉x](?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?)|(?:(?<![\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?(?:倍|[*×✕✖⨯⨉x]))
 - select:
-    name: 家宽节点
+    name: 高倍率节点
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Airport.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    - 高倍率节点-自动选择
+    flatten: true
+    filter: (?i)(?:[*×✕✖⨯⨉x](?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?)|(?:(?<![\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?(?:倍|[*×✕✖⨯⨉x]))
+- auto_test:
+    name: 家宽节点-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)家宽|住宅|原生\s*IP|家庭宽带|\bISP\b|\bRES\b|residential
 - select:
-    name: 其他节点
+    name: 家宽节点
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Home.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - 订阅
-    - 订阅2
+    - 手动选择
+    - 家宽节点-自动选择
+    flatten: true
+    filter: (?i)家宽|住宅|原生\s*IP|家庭宽带|\bISP\b|\bRES\b|residential
+- auto_test:
+    name: 其他节点-自动选择
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
+    hidden: true
+    latency_test_url: https://www.apple.com/library/test/success.html
+    interval: 600
+    tolerance: 50
+    timeout: 3
+    policies:
+    - 手动选择
     flatten: true
     filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
 - select:
-    name: Final
+    name: 其他节点
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/WorldMap.svg
+    hidden: false
+    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
-    - Proxy
-    - DIRECT
+    - 手动选择
+    - 其他节点-自动选择
+    flatten: true
+    filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
 rules:
 - domain:
     match: cloudflare-dns.com
-    policy: Proxy
+    policy: 默认代理
 - domain:
     match: dns.google
-    policy: Proxy
+    policy: 默认代理
+- ip_cidr:
+    match: 223.5.5.5/32
+    policy: DIRECT
+- ip_cidr:
+    match: 119.29.29.29/32
+    policy: DIRECT
 - domain:
     match: cdn.jsdmirror.com
-    policy: DIRECT
+    policy: 直连
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
     update_interval: 86400
-    policy: DIRECT
+    policy: 直连
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-cn.yaml
+    update_interval: 86400
+    policy: 直连
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/games-cn.yaml
+    update_interval: 86400
+    policy: 直连
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/synology.yaml
+    update_interval: 86400
+    policy: 直连
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/nvidia-cn.yaml
+    update_interval: 86400
+    policy: 直连
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/appletv.yaml
+    update_interval: 86400
+    policy: AppleTV
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-podcasts.yaml
+    update_interval: 86400
+    policy: Apple Podcasts
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-cn.yaml
+    update_interval: 86400
+    policy: 直连
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft-cn.yaml
+    update_interval: 86400
+    policy: 直连
+- domain:
+    match: fsend.cn
+    policy: 直连
+- domain:
+    match: international-gfe.download.nvidia.com
+    policy: 直连
+- domain_suffix:
+    match: ctaiot.com
+    policy: 直连
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/mcdn-block.yaml
     update_interval: 86400
     policy: REJECT
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-cn.yaml
-    update_interval: 86400
-    policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/steam-cn.yaml
-    update_interval: 86400
-    policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/synology.yaml
-    update_interval: 86400
-    policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/nvidia-cn.yaml
-    update_interval: 86400
-    policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-cn.yaml
-    update_interval: 86400
-    policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft-cn.yaml
-    update_interval: 86400
-    policy: DIRECT
-- domain:
-    match: international-gfe.download.nvidia.com
-    policy: DIRECT
-- domain_suffix:
-    match: ctaiot.com
-    policy: DIRECT
-- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apns.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: 默认代理
     no_resolve: true
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/category-ads.yaml
+    update_interval: 86400
+    policy: AdBlock
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/googlefcm.yaml
+    update_interval: 86400
+    policy: FCM
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/youtube.yaml
     update_interval: 86400
@@ -387,24 +957,15 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: Microsoft
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/privaterelay.yaml
     update_interval: 86400
-    policy: Proxy
-    name: privaterelay
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/appletv.yaml
-    update_interval: 86400
-    policy: 媒体
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-podcasts.yaml
-    update_interval: 86400
-    policy: 媒体
+    policy: 默认代理
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: Apple
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/telegram.yaml
     update_interval: 86400
@@ -412,23 +973,64 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/steam.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: Steam
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/tiktok.yaml
     update_interval: 86400
-    policy: 媒体
+    policy: TikTok
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/twitter.yaml
     update_interval: 86400
-    policy: 媒体
+    policy: Twitter
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/meta.yaml
     update_interval: 86400
-    policy: 媒体
+    policy: Meta
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/line.yaml
+    update_interval: 86400
+    policy: Line
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/netflix.yaml
+    update_interval: 86400
+    policy: Netflix
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/emby.yaml
+    update_interval: 86400
+    policy: Emby
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/emos.yaml
+    update_interval: 86400
+    policy: Emby
+- domain_suffix:
+    match: mb3admin.com
+    policy: Emby
+- domain_suffix:
+    match: nubebelle.com
+    policy: Emby
+- domain_keyword:
+    match: emby
+    policy: Emby
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/pikpak.yaml
     update_interval: 86400
     policy: PikPak
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/spotify.yaml
+    update_interval: 86400
+    policy: Spotify
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cryptocurrency.yaml
+    update_interval: 86400
+    policy: Crypto
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/paypal.yaml
+    update_interval: 86400
+    policy: PayPal
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/patreon.yaml
+    update_interval: 86400
+    policy: Patreon
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/ehentai.yaml
     update_interval: 86400
@@ -440,7 +1042,7 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-non-cn.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: 默认代理
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/google-ip.yaml
     update_interval: 86400
@@ -448,11 +1050,11 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft-ip.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: Microsoft
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-ip.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: Apple
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/telegram-ip.yaml
     update_interval: 86400
@@ -460,26 +1062,36 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/steam-ip.yaml
     update_interval: 86400
-    policy: Proxy
+    policy: Steam
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/tiktok-ip.yaml
     update_interval: 86400
-    policy: 媒体
+    policy: TikTok
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/twitter-ip.yaml
     update_interval: 86400
-    policy: 媒体
+    policy: Twitter
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/facebook-ip.yaml
     update_interval: 86400
-    policy: 媒体
+    policy: Meta
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/netflix-ip.yaml
+    update_interval: 86400
+    policy: Netflix
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/spotify-ip.yaml
+    update_interval: 86400
+    policy: Spotify
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cn-ip.yaml
     update_interval: 86400
-    policy: DIRECT
+    policy: 直连
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private-ip.yaml
     update_interval: 86400
-    policy: DIRECT
+    policy: 直连
 - default:
-    policy: Final
+    policy: 漏网之鱼
+hijack_dns:
+- '*'
