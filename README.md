@@ -77,8 +77,17 @@ No additional consolidated media selector is inserted.
 - Merge the 15 retained Egern real-IP exceptions with literal source Fake-IP
   exceptions, without duplicates. This affects DNS answers, not routing policy.
 
-The former fixed-direct-prefix system-DNS override is deliberately not restored.
-DNS forwarding policies and default foreign DNS continue to follow the source.
+- Enable `dns.direct_domain_system_dns`: each fixed DIRECT domain rule and
+  domain rule set gets a matching `system` DNS forwarding entry. Generate these
+  entries from the final routes on every build, through the last fixed DIRECT
+  domain rule. Preserve earlier proxy domain exceptions (including APNs,
+  AppleTV and Apple Podcasts) as Foreign DNS entries in the same order.
+  IP-only routes do not create DNS forwarding entries.
+- Set `dns.system_dns_providers: ["cn"]`: the inherited cn DNS policy also
+  uses system DNS instead of its source resolver addresses.
+- Append remaining source DNS policies without duplicate matchers, then retain
+  the final `* -> Foreign` fallback. Egern cannot reproduce Mihomo's
+  direct-nameserver re-resolution, so explicit forwarding entries are required.
 
 ## Native adaptation
 

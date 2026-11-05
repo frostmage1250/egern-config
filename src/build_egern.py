@@ -392,6 +392,8 @@ def dns_policy_servers(value: Any) -> list[str]:
 def dns_policy_target(
     value: Any, provider: str, *, foreign_servers: list[str] | None = None
 ) -> str:
+    if provider in CUSTOM.get("dns", {}).get("system_dns_providers", []):
+        return "system"
     values = value if isinstance(value, list) else [value]
     if foreign_servers and values == foreign_servers:
         return "Foreign"
@@ -421,14 +423,62 @@ def render_dns_upstreams(model: dict[str, Any]) -> dict[str, list[str]]:
 
 
 
-def render_dns_forward(model, files):
-    forward = []
+def direct_domain_dns_prefix(model, files, rules):
+    """Mirror domain routes through the final fixed DIRECT domain rule."""
+    if not CUSTOM.get("dns", {}).get("direct_domain_system_dns", False):
+        return []
+    domain_sets = {
+        f"{RULE_BASE}/{files[name][0]}"
+        for name, provider in model["providers"].items()
+        if name in files and provider.get("behavior") == "domain"
+    }
+    # These retained mixed sets also contain domain matchers used by DNS.
+    domain_sets.update(
+        f'{RULE_BASE}/{files[CUSTOM["routing"][name]["provider"]][0]}'
+        for name in ("apns", "privaterelay")
+    )
+    candidates = []
+    for wrapper in rules:
+        kind, item = next(iter(wrapper.items()))
+        if kind == "rule_set":
+            if item["match"] not in domain_sets:
+                continue
+            dns_kind = "proxy_rule_set"
+        elif kind in {"domain", "domain_suffix", "domain_keyword", "domain_regex"}:
+            dns_kind = kind
+        else:
+            continue
+        if item["policy"] == "REJECT":
+            continue
+        entry = {"match": item["match"]}
+        if "update_interval" in item:
+            entry["update_interval"] = item["update_interval"]
+        entry["value"] = "system" if item["policy"] == "DIRECT" else "Foreign"
+        candidates.append({dns_kind: entry})
+    last_direct = max(
+        (i for i, wrapper in enumerate(candidates)
+         if next(iter(wrapper.values()))["value"] == "system"),
+        default=-1,
+    )
+    return candidates[:last_direct + 1]
+
+
+def render_dns_forward(model, files, rules):
+    forward = direct_domain_dns_prefix(model, files, rules)
+    seen = {
+        (kind, item["match"])
+        for wrapper in forward for kind, item in wrapper.items()
+    }
     for key, target in model["dns"].get("nameserver-policy", {}).items():
         if not key.startswith("rule-set:"):
             raise BuildError(f"Unsupported DNS policy: {key}")
         provider = key.removeprefix("rule-set:")
+        match = f"{RULE_BASE}/{files[provider][0]}"
+        if ("proxy_rule_set", match) in seen:
+            continue
+        seen.add(("proxy_rule_set", match))
         forward.append({"proxy_rule_set": {
-            "match": f"{RULE_BASE}/{files[provider][0]}",
+            "match": match,
             "update_interval": INTERVAL,
             "value": dns_policy_target(target, provider, foreign_servers=model["dns"]["nameserver"]),
         }})
@@ -522,6 +572,18 @@ def validate_profile(profile, model):
             raise BuildError(f'Undefined rule policy: {item["policy"]}')
     if list(profile["rules"][-1]) != ["default"]:
         raise BuildError("Default rule must be last")
+    dns = profile["dns"]
+    if dns["forward"][-1] != {"domain_wildcard": {"match": "*", "value": "Foreign"}}:
+        raise BuildError("Foreign DNS fallback must be last")
+    seen_dns = set()
+    for wrapper in dns["forward"]:
+        kind, item = next(iter(wrapper.items()))
+        identity = (kind, item["match"])
+        if identity in seen_dns:
+            raise BuildError(f"Duplicate DNS forwarding matcher: {identity}")
+        seen_dns.add(identity)
+        if item["value"] not in {"system", *dns["upstreams"]}:
+            raise BuildError(f'Undefined DNS forwarding upstream: {item["value"]}')
 
 
 def render_dns_hijack(source):
@@ -564,6 +626,7 @@ def main():
     files = provider_files(model, index)
     groups, subscription = render_policy_groups(model)
     source = model["globals"]
+    rules = render_rules(model, files)
     # Egern-only tunnel capture is needed for the retained APNs route.
     profile = {
         "ipv6": source.get("ipv6", False),
@@ -577,12 +640,12 @@ def main():
         "dns": {
             "bootstrap": bootstrap_nameservers(model),
             "upstreams": render_dns_upstreams(model),
-            "forward": render_dns_forward(model, files),
+            "forward": render_dns_forward(model, files, rules),
             "hosts": hosts(model),
             "proxy_nameservers": CUSTOM.get("dns", {}).get("proxy_nameservers", [split_nameserver_policy(value)[0] for value in model["dns"].get("proxy-server-nameserver", [])]),
         },
         "policy_groups": groups,
-        "rules": render_rules(model, files),
+        "rules": rules,
     }
     profile.update(CUSTOM.get("profile", {}))
     # Preserve source destination ports using Egern's wildcard address notation.
