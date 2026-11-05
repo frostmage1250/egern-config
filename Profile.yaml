@@ -74,7 +74,6 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
-    - FCM
     - YouTube
     - Google
     - AI
@@ -86,14 +85,7 @@ policy_groups:
     - TikTok
     - Twitter
     - Meta
-    - Line
-    - Netflix
-    - Emby
     - PikPak
-    - Spotify
-    - Crypto
-    - PayPal
-    - Patreon
     - EHentai
     - AdBlock
     - AppleTV
@@ -139,23 +131,6 @@ policy_groups:
     policies: []
     urls: []
     filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
-- select:
-    name: FCM
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Fcm.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
-    - DIRECT
 - select:
     name: YouTube
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/YouTube.svg
@@ -336,55 +311,6 @@ policy_groups:
     - 家宽节点
     - 其他节点
 - select:
-    name: Line
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Line.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
-- select:
-    name: Netflix
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Netflix.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
-- select:
-    name: Emby
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Emby.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
-    - DIRECT
-- select:
     name: PikPak
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PikPak.svg
     policies:
@@ -401,71 +327,6 @@ policy_groups:
     - 家宽节点
     - 其他节点
     - DIRECT
-- select:
-    name: Spotify
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Spotify.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
-    - DIRECT
-- select:
-    name: Crypto
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Bitcoin.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
-- select:
-    name: PayPal
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PayPal.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
-- select:
-    name: Patreon
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Patreon.svg
-    policies:
-    - 代理
-    - 订阅
-    - 订阅2
-    - 香港
-    - 日本
-    - 美国
-    - 新加坡
-    - 台湾
-    - 低倍率节点
-    - 高倍率节点
-    - 家宽节点
-    - 其他节点
 - select:
     name: EHentai
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/EHentai.svg
@@ -711,10 +572,6 @@ rules:
     update_interval: 86400
     policy: AdBlock
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/googlefcm.yaml
-    update_interval: 86400
-    policy: FCM
-- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/youtube.yaml
     update_interval: 86400
     policy: YouTube
@@ -776,50 +633,9 @@ rules:
     update_interval: 86400
     policy: Meta
 - rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/line.yaml
-    update_interval: 86400
-    policy: Line
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/netflix.yaml
-    update_interval: 86400
-    policy: Netflix
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/emby.yaml
-    update_interval: 86400
-    policy: Emby
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/emos.yaml
-    update_interval: 86400
-    policy: Emby
-- domain_suffix:
-    match: mb3admin.com
-    policy: Emby
-- domain_suffix:
-    match: nubebelle.com
-    policy: Emby
-- domain_keyword:
-    match: emby
-    policy: Emby
-- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/pikpak.yaml
     update_interval: 86400
     policy: PikPak
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/spotify.yaml
-    update_interval: 86400
-    policy: Spotify
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cryptocurrency.yaml
-    update_interval: 86400
-    policy: Crypto
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/paypal.yaml
-    update_interval: 86400
-    policy: PayPal
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/patreon.yaml
-    update_interval: 86400
-    policy: Patreon
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/ehentai.yaml
     update_interval: 86400
@@ -864,14 +680,6 @@ rules:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/facebook-ip.yaml
     update_interval: 86400
     policy: Meta
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/netflix-ip.yaml
-    update_interval: 86400
-    policy: Netflix
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/spotify-ip.yaml
-    update_interval: 86400
-    policy: Spotify
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cn-ip.yaml
     update_interval: 86400
