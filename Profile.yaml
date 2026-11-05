@@ -18,13 +18,64 @@ dns:
     Policy-douyin:
     - 180.184.1.1
     - 180.184.2.2
-    Policy-cn:
-    - 223.5.5.5
-    - 119.29.29.29
   forward:
+  - domain:
+      match: cloudflare-dns.com
+      value: Foreign
+  - domain:
+      match: dns.google
+      value: Foreign
+  - domain:
+      match: cdn.jsdmirror.com
+      value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
       update_interval: 86400
+      value: system
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apns.yaml
+      update_interval: 86400
+      value: Foreign
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-cn.yaml
+      update_interval: 86400
+      value: system
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/games-cn.yaml
+      update_interval: 86400
+      value: system
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/synology.yaml
+      update_interval: 86400
+      value: system
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/nvidia-cn.yaml
+      update_interval: 86400
+      value: system
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/appletv.yaml
+      update_interval: 86400
+      value: Foreign
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-podcasts.yaml
+      update_interval: 86400
+      value: Foreign
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-cn.yaml
+      update_interval: 86400
+      value: system
+  - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft-cn.yaml
+      update_interval: 86400
+      value: system
+  - domain:
+      match: fsend.cn
+      value: system
+  - domain:
+      match: international-gfe.download.nvidia.com
+      value: system
+  - domain_suffix:
+      match: ctaiot.com
       value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/douyin.yaml
@@ -33,7 +84,7 @@ dns:
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cn.yaml
       update_interval: 86400
-      value: Policy-cn
+      value: system
   - domain_wildcard:
       match: '*'
       value: Foreign
