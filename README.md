@@ -47,7 +47,8 @@ translated without the retired 实验 supplement. No 订阅2 group is added.
 
 Egern has no native Mihomo direct-proxy variants: their candidates map to DIRECT.
 Unsupported REJECT-DROP/PASS group choices are omitted; the source rule actions
-are otherwise unchanged. The AdBlock group retains REJECT. Native flattening of
+are otherwise unchanged. The AdBlock group retains REJECT. PROCESS-NAME rules are omitted because Egern
+on iOS exposes no process matcher; Emby's domain rules remain active. Native flattening of
 dynamic node lists does not preserve every nested group as a selectable item.
 Mihomo-only group fields (lazy, max-failed-times, empty-fallback,
 default-selected, exclude-type) have no exact native equivalent and are omitted.

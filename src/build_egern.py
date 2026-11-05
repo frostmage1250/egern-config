@@ -228,6 +228,9 @@ def render_rules(model, files):
             elif parts[3:]:
                 raise BuildError(f"Unsupported rule flags: {raw}")
             result.append({field: item})
+        elif kind == "PROCESS-NAME":
+            # Egern on iOS exposes no process-name matcher; domain rules remain active.
+            continue
         elif kind in {"AND", "OR", "NOT"} and len(parts) == 3:
             condition = render_condition(",".join(parts[:-1]), files)
             condition[kind.lower()]["policy"] = policy_target(parts[-1])
