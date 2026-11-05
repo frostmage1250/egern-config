@@ -60,20 +60,20 @@ dns:
     h2.smtcdns.net: &id004
     - 0.0.0.0
     '*.h2.smtcdns.net': *id004
+    11612bj3-b76c.aws-agent.biz: 06996bj6-79x5.apt-agent.com
+    b76c5sh0-fde6.aws-agent.biz: 08233sh6-12d1.apt-agent.com
+    fde63gz6-1y61.aws-agent.biz: 09571gz6-86k1.apt-agent.com
   proxy_nameservers:
-  - 114.114.114.114
-  - tls://223.5.5.5
-  - https://doh.pub/dns-query
+  - https://zone.rlose.com:39933/api-query
+  - https://radar.rlose.com/api-query
 policy_groups:
 - select:
     name: GLOBAL
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Global.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - FCM
     - YouTube
     - Google
@@ -102,28 +102,18 @@ policy_groups:
     - Apple Podcasts
     - 漏网之鱼
     - 直连
-    - 香港-自动选择
     - 香港
-    - 日本-自动选择
     - 日本
-    - 美国-自动选择
     - 美国
-    - 新加坡-自动选择
     - 新加坡
-    - 台湾-自动选择
     - 台湾
-    - 低倍率节点-自动选择
     - 低倍率节点
-    - 高倍率节点-自动选择
     - 高倍率节点
-    - 家宽节点-自动选择
     - 家宽节点
-    - 其他节点-自动选择
     - 其他节点
 - select:
     name: 默认代理
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Proxy.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 香港
     - 日本
@@ -135,46 +125,26 @@ policy_groups:
     - 家宽节点
     - 其他节点
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
 - select:
     name: 手动选择
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Static.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies: []
     urls: []
     filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
-- auto_test:
-    name: 自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
-- load_balance:
-    name: 负载均衡
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/RoundRobin.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    algorithm: hash
-    policies:
-    - 手动选择
-    flatten: true
+- select:
+    name: 订阅2
+    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Static.svg
+    policies: []
+    urls: []
     filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
 - select:
     name: FCM
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Fcm.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -188,12 +158,10 @@ policy_groups:
 - select:
     name: YouTube
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/YouTube.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -206,12 +174,10 @@ policy_groups:
 - select:
     name: Google
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Google.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -224,12 +190,10 @@ policy_groups:
 - select:
     name: AI
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/OpenAI.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -242,12 +206,10 @@ policy_groups:
 - select:
     name: GitHub
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/GitHub.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -260,12 +222,10 @@ policy_groups:
 - select:
     name: Microsoft
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Microsoft.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -279,12 +239,10 @@ policy_groups:
 - select:
     name: Apple
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Apple.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -298,12 +256,10 @@ policy_groups:
 - select:
     name: Telegram
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Telegram.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -316,12 +272,10 @@ policy_groups:
 - select:
     name: Steam
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Steam.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -335,12 +289,10 @@ policy_groups:
 - select:
     name: TikTok
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/TikTok.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -353,12 +305,10 @@ policy_groups:
 - select:
     name: Twitter
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Twitter.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -371,12 +321,10 @@ policy_groups:
 - select:
     name: Meta
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Meta.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -389,12 +337,10 @@ policy_groups:
 - select:
     name: Line
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Line.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -407,12 +353,10 @@ policy_groups:
 - select:
     name: Netflix
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Netflix.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -425,12 +369,10 @@ policy_groups:
 - select:
     name: Emby
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Emby.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -444,12 +386,10 @@ policy_groups:
 - select:
     name: PikPak
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PikPak.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -463,12 +403,10 @@ policy_groups:
 - select:
     name: Spotify
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Spotify.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -482,12 +420,10 @@ policy_groups:
 - select:
     name: Crypto
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Bitcoin.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -500,12 +436,10 @@ policy_groups:
 - select:
     name: PayPal
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PayPal.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -518,12 +452,10 @@ policy_groups:
 - select:
     name: Patreon
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Patreon.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -536,12 +468,10 @@ policy_groups:
 - select:
     name: EHentai
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/EHentai.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -555,17 +485,14 @@ policy_groups:
 - select:
     name: AdBlock
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/AdBlock.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - REJECT
 - select:
     name: AppleTV
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -577,12 +504,10 @@ policy_groups:
     - 其他节点
 - select:
     name: porn
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -594,12 +519,10 @@ policy_groups:
     - 其他节点
 - select:
     name: Claude
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -611,12 +534,10 @@ policy_groups:
     - 其他节点
 - select:
     name: Apple Podcasts
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 手动选择
-    - 自动选择
-    - 负载均衡
+    - 订阅2
     - 香港
     - 日本
     - 美国
@@ -629,7 +550,6 @@ policy_groups:
 - select:
     name: 漏网之鱼
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Stack.svg
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 默认代理
     - 直连
@@ -646,205 +566,87 @@ policy_groups:
     name: 直连
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/China.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - DIRECT
-- auto_test:
-    name: 香港-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
 - select:
     name: 香港
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/HongKong.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 香港-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
-- auto_test:
-    name: 日本-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
 - select:
     name: 日本
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Japan.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 日本-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
-- auto_test:
-    name: 美国-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
 - select:
     name: 美国
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/America.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 美国-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
-- auto_test:
-    name: 新加坡-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
 - select:
     name: 新加坡
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Singapore.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 新加坡-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
-- auto_test:
-    name: 台湾-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
 - select:
     name: 台湾
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Taiwan.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 台湾-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
-- auto_test:
-    name: 低倍率节点-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])
 - select:
     name: 低倍率节点
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Available.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 低倍率节点-自动选择
+    - 订阅2
     flatten: true
-    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])
-- auto_test:
-    name: 高倍率节点-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)(?:[*×✕✖⨯⨉x](?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?)|(?:(?<![\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?(?:倍|[*×✕✖⨯⨉x]))
+    filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])|实验
 - select:
     name: 高倍率节点
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Airport.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 高倍率节点-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)(?:[*×✕✖⨯⨉x](?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?)|(?:(?<![\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?(?:倍|[*×✕✖⨯⨉x]))
-- auto_test:
-    name: 家宽节点-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)家宽|住宅|原生\s*IP|家庭宽带|\bISP\b|\bRES\b|residential
 - select:
     name: 家宽节点
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Home.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 家宽节点-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)家宽|住宅|原生\s*IP|家庭宽带|\bISP\b|\bRES\b|residential
-- auto_test:
-    name: 其他节点-自动选择
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Auto.svg
-    hidden: true
-    latency_test_url: https://www.apple.com/library/test/success.html
-    interval: 600
-    tolerance: 50
-    timeout: 3
-    policies:
-    - 手动选择
-    flatten: true
-    filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
 - select:
     name: 其他节点
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/WorldMap.svg
     hidden: false
-    latency_test_url: https://www.apple.com/library/test/success.html
     policies:
     - 手动选择
-    - 其他节点-自动选择
+    - 订阅2
     flatten: true
     filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
 rules:
@@ -1095,3 +897,19 @@ rules:
     policy: 漏网之鱼
 hijack_dns:
 - '*'
+real_ip_domains:
+- lancache.steamcontent.com
+- '*.msftconnecttest.com'
+- '*.msftncsi.com'
+- '*.srv.nintendo.net'
+- '*.stun.playstation.net'
+- xbox.*.microsoft.com
+- '*.xboxlive.com'
+- '*.logon.battlenet.com.cn'
+- '*.logon.battle.net'
+- stun.l.google.com
+- easy-login.10099.com.cn
+- '*-update.xoyocdn.com'
+- '*.prod.cloud.netflix.com'
+- appboot.netflix.com
+- '*-appboot.netflix.com'
