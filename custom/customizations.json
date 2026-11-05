@@ -124,5 +124,20 @@
     "include_apns": true,
     "default_subscription_group": "订阅",
     "default_proxy_group": "代理"
+  },
+  "services": {
+    "exclude": [
+      "Line",
+      "Netflix",
+      "Emby",
+      "Spotify",
+      "Crypto",
+      "PayPal",
+      "Patreon",
+      "FCM"
+    ]
+  },
+  "latency_tests": {
+    "enabled": false
   }
 }

@@ -500,6 +500,15 @@ def validate_profile(profile, model):
     for field in ("default_subscription_group", "default_proxy_group"):
         if profile[field] not in names:
             raise BuildError("Default group is undefined: " + field)
+    excluded = set(CUSTOM.get("services", {}).get("exclude", []))
+    if excluded.intersection(names):
+        raise BuildError("Excluded service group remains in the profile")
+    if CUSTOM.get("latency_tests", {}).get("enabled", True) is False:
+        if any(next(iter(wrapper)) in {"auto_test", "fallback"} for wrapper in profile["policy_groups"]):
+            raise BuildError("Latency-based group remains in the profile")
+        forbidden = {"latency_test_url", "interval", "timeout", "tolerance"}
+        if any(forbidden.intersection(group) for group in groups):
+            raise BuildError("Latency-test fields remain in the profile")
     known = set(names) | {"DIRECT", "REJECT"}
     for group in groups:
         if any(policy not in known for policy in group["policies"]):
@@ -529,6 +538,17 @@ def render_dns_hijack(source):
         if protocols != {"tcp", "udp"}:
             raise BuildError("Cannot preserve a protocol-only DNS hijack target: " + str(port))
     return [f"*:{port}" for port in by_port]
+
+
+def remove_latency_settings(profile):
+    if CUSTOM.get("latency_tests", {}).get("enabled", True):
+        return
+    for field in ("proxy_latency_test_url", "direct_latency_test_url", "proxy_latency_test_timeout", "direct_latency_test_timeout"):
+        profile.pop(field, None)
+    for wrapper in profile["policy_groups"]:
+        item = next(iter(wrapper.values()))
+        for field in ("latency_test_url", "interval", "timeout", "tolerance"):
+            item.pop(field, None)
 
 
 def main():
@@ -573,6 +593,7 @@ def main():
     real_ip_domains = list(dict.fromkeys([*literals, *CUSTOM.get("real_ip_domains", [])]))
     if real_ip_domains:
         profile["real_ip_domains"] = real_ip_domains
+    remove_latency_settings(profile)
     validate_profile(profile, model)
     (ROOT / "Profile.yaml").write_text(yaml.safe_dump(profile, allow_unicode=True, sort_keys=False, width=1000), encoding="utf-8")
     print(f'Published {len(groups)} native policy groups and {len(profile["rules"])} rules.')

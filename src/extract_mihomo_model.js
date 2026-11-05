@@ -3,10 +3,22 @@
 
 const fs = require("fs");
 const vm = require("vm");
+const path = require("path");
+const custom = JSON.parse(fs.readFileSync(path.join(__dirname, "../custom/customizations.json"), "utf8"));
 
 if (process.argv.length !== 3) throw new Error("usage: node extract_mihomo_model.js <mihomoScript.js>");
 const source = fs.readFileSync(process.argv[2], "utf8");
 const exportCode = `
+;for (const name of (globalThis.__egernCustom.services?.exclude || [])) {
+  if (!serviceConfigs.some(service => service.name === name)) {
+    throw new Error("Unknown excluded service: " + name);
+  }
+  ruleOptionsEnable[name] = false;
+}
+;if (globalThis.__egernCustom.latency_tests?.enabled === false) {
+  ruleOptionsEnable["自动选择"] = false;
+  ruleOptionsEnable["生成地区自动选择组"] = false;
+}
 ;const __egernDefinitions = typeof allRegionDefinitions !== "undefined"
   ? allRegionDefinitions
   : [...regionDefinitions, ...rateRegionDefinitions,
@@ -27,6 +39,13 @@ const exportCode = `
     cipher:"aes-128-gcm", password:"model-extraction-placeholder"})),
   dns:{}, hosts:{}
 });
+;if (globalThis.__egernCustom.latency_tests?.enabled === false) {
+  const testing = new Set(__egernConfig["proxy-groups"]
+    .filter(group => ["url-test", "fallback"].includes(group.type)).map(group => group.name));
+  __egernConfig["proxy-groups"] = __egernConfig["proxy-groups"]
+    .filter(group => !testing.has(group.name))
+    .map(group => ({...group, proxies: (group.proxies || []).filter(name => !testing.has(name))}));
+}
 ;const __egernGroupNames = new Set(__egernConfig["proxy-groups"].map(group => group.name));
 ;globalThis.__egernModel = {
   providers: __egernConfig["rule-providers"],
@@ -53,7 +72,7 @@ const exportCode = `
   hosts: __egernConfig.hosts
 };
 `;
-const sandbox = {};
+const sandbox = {__egernCustom: custom};
 vm.createContext(sandbox);
 vm.runInContext(source + exportCode, sandbox, {timeout: 5000});
 process.stdout.write(JSON.stringify(sandbox.__egernModel, null, 2) + "\n");
