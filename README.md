@@ -23,10 +23,13 @@ EHentai. The manifest applies the following Egern-only customizations.
 ### Profile and routing
 
 - Force IPv6 and virtual-interface-only mode on.
-- Copy DNS hijack entries verbatim from the source tun.dns-hijack list, preserving
-  port and protocol qualifiers. No independent hijack override or wildcard
-  normalization is applied. This synchronization does not validate Egern's
-  runtime interpretation of Mihomo-specific entry syntax.
+- Derive DNS hijacking from the source tun.dns-hijack list. Paired any:PORT
+  (UDP) and tcp://any:PORT targets become the Egern address pattern '*:PORT'.
+  The current source pair produces '*:53', not a bare '*'. Reject unsupported
+  targets or protocol-only selections instead of copying foreign syntax or
+  silently broadening their scope. There is no independent hijack override.
+  Syntax reference: [maintainer's Egern configuration](https://github.com/Repcz/Tool/blob/X/Egern/Egern.yaml).
+  This reference and generation checks are not a device-level runtime test.
 - Enable close_connections_on_policy_change, include_all_networks and include_apns.
 - Keep the global QUIC block off and omit the source's foreign QUIC blocking rules.
 - Place MCDN blocking immediately before geolocation-cn, followed by APNs through

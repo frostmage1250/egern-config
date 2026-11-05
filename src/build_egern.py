@@ -526,6 +526,25 @@ def validate_profile(profile, model):
         raise BuildError("Default rule must be last")
 
 
+def render_dns_hijack(source):
+    """Translate paired Mihomo UDP/TCP wildcard targets to Egern address patterns."""
+    by_port = {}
+    for value in source.get("tun", {}).get("dns-hijack", []):
+        if not isinstance(value, str):
+            raise BuildError("DNS hijack entries must be strings")
+        match = re.fullmatch(r"(?:(tcp|udp)://)?any:([0-9]+)", value)
+        if not match:
+            raise BuildError("DNS hijack target requires an explicit Egern adaptation: " + value)
+        port = int(match[2])
+        if not 1 <= port <= 65535:
+            raise BuildError("Invalid DNS hijack port: " + value)
+        by_port.setdefault(port, set()).add(match[1] or "udp")
+    for port, protocols in by_port.items():
+        if protocols != {"tcp", "udp"}:
+            raise BuildError("Cannot preserve a protocol-only DNS hijack target: " + str(port))
+    return [f"*:{port}" for port in by_port]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=Path, required=True)
@@ -557,10 +576,10 @@ def main():
         "rules": render_rules(model, files),
     }
     profile.update(CUSTOM.get("profile", {}))
-    # Follow the source DNS hijack entries verbatim; do not widen their scope.
-    hijack = source.get("tun", {}).get("dns-hijack", [])
+    # Preserve source destination ports using Egern's wildcard address notation.
+    hijack = render_dns_hijack(source)
     if hijack:
-        profile["hijack_dns"] = list(hijack)
+        profile["hijack_dns"] = hijack
     else:
         profile.pop("hijack_dns", None)
     # Merge literal source exceptions with the explicit Egern real-IP list.
