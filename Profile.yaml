@@ -4,8 +4,8 @@ vif_only: true
 include_all_networks: true
 include_apns: true
 block_quic: false
-default_subscription_group: 手动选择
-default_proxy_group: 默认代理
+default_subscription_group: 订阅
+default_proxy_group: 代理
 dns:
   bootstrap:
   - 114.114.114.114
@@ -60,6 +60,9 @@ dns:
     h2.smtcdns.net: &id004
     - 0.0.0.0
     '*.h2.smtcdns.net': *id004
+    dns.alidns.com:
+    - 223.5.5.5
+    - 223.6.6.6
     11612bj3-b76c.aws-agent.biz: 06996bj6-79x5.apt-agent.com
     b76c5sh0-fde6.aws-agent.biz: 08233sh6-12d1.apt-agent.com
     fde63gz6-1y61.aws-agent.biz: 09571gz6-86k1.apt-agent.com
@@ -71,8 +74,8 @@ policy_groups:
     name: GLOBAL
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Global.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - FCM
     - YouTube
@@ -101,7 +104,7 @@ policy_groups:
     - Claude
     - Apple Podcasts
     - 漏网之鱼
-    - 直连
+    - DIRECT
     - 香港
     - 日本
     - 美国
@@ -112,10 +115,10 @@ policy_groups:
     - 家宽节点
     - 其他节点
 - select:
-    name: 默认代理
+    name: 代理
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Proxy.svg
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -128,7 +131,7 @@ policy_groups:
     - 其他节点
     flatten: false
 - select:
-    name: 手动选择
+    name: 订阅
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Static.svg
     policies: []
     urls: []
@@ -143,8 +146,8 @@ policy_groups:
     name: FCM
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Fcm.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -155,13 +158,13 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: YouTube
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/YouTube.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -176,8 +179,8 @@ policy_groups:
     name: Google
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Google.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -191,19 +194,19 @@ policy_groups:
 - select:
     name: 媒体
     policies:
-    - 默认代理
+    - 代理
     - 低倍率节点
     - 香港
     - 美国
-    - 手动选择
+    - 订阅
     - 订阅2
     - 日本
 - select:
     name: AI
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/OpenAI.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -218,8 +221,8 @@ policy_groups:
     name: GitHub
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/GitHub.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -234,8 +237,8 @@ policy_groups:
     name: Microsoft
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Microsoft.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -246,13 +249,13 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: Apple
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Apple.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -263,13 +266,13 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: Telegram
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Telegram.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -284,8 +287,8 @@ policy_groups:
     name: Steam
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Steam.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -296,13 +299,13 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: TikTok
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/TikTok.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -317,8 +320,8 @@ policy_groups:
     name: Twitter
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Twitter.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -333,8 +336,8 @@ policy_groups:
     name: Meta
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Meta.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -349,8 +352,8 @@ policy_groups:
     name: Line
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Line.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -365,8 +368,8 @@ policy_groups:
     name: Netflix
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Netflix.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -381,8 +384,8 @@ policy_groups:
     name: Emby
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Emby.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -393,13 +396,13 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: PikPak
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PikPak.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -410,13 +413,13 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: Spotify
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Spotify.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -427,13 +430,13 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: Crypto
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Bitcoin.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -448,8 +451,8 @@ policy_groups:
     name: PayPal
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/PayPal.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -464,8 +467,8 @@ policy_groups:
     name: Patreon
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Patreon.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -480,8 +483,8 @@ policy_groups:
     name: EHentai
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/EHentai.svg
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -492,7 +495,7 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
-    - 直连
+    - DIRECT
 - select:
     name: AdBlock
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/AdBlock.svg
@@ -501,8 +504,8 @@ policy_groups:
 - select:
     name: AppleTV
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -523,8 +526,8 @@ policy_groups:
 - select:
     name: Claude
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -538,8 +541,8 @@ policy_groups:
 - select:
     name: Apple Podcasts
     policies:
-    - 默认代理
-    - 手动选择
+    - 代理
+    - 订阅
     - 订阅2
     - 香港
     - 日本
@@ -554,8 +557,8 @@ policy_groups:
     name: 漏网之鱼
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Stack.svg
     policies:
-    - 默认代理
-    - 直连
+    - 代理
+    - DIRECT
     - 香港
     - 日本
     - 美国
@@ -566,17 +569,11 @@ policy_groups:
     - 家宽节点
     - 其他节点
 - select:
-    name: 直连
-    icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/China.svg
-    hidden: false
-    policies:
-    - DIRECT
-- select:
     name: 香港
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/HongKong.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
@@ -585,7 +582,7 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Japan.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
@@ -594,7 +591,7 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/America.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
@@ -603,7 +600,7 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Singapore.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
@@ -612,7 +609,7 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Taiwan.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
@@ -621,7 +618,7 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Available.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])|实验
@@ -630,7 +627,7 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Airport.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)(?:[*×✕✖⨯⨉x](?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?)|(?:(?<![\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?(?:倍|[*×✕✖⨯⨉x]))
@@ -639,7 +636,7 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/Home.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)家宽|住宅|原生\s*IP|家庭宽带|\bISP\b|\bRES\b|residential
@@ -648,17 +645,17 @@ policy_groups:
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/WorldMap.svg
     hidden: false
     policies:
-    - 手动选择
+    - 订阅
     - 订阅2
     flatten: true
     filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
 rules:
 - domain:
     match: cloudflare-dns.com
-    policy: 默认代理
+    policy: 代理
 - domain:
     match: dns.google
-    policy: 默认代理
+    policy: 代理
 - ip_cidr:
     match: 223.5.5.5/32
     policy: DIRECT
@@ -667,27 +664,36 @@ rules:
     policy: DIRECT
 - domain:
     match: cdn.jsdmirror.com
-    policy: 直连
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/mcdn-block.yaml
+    update_interval: 86400
+    policy: REJECT
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apns.yaml
+    update_interval: 86400
+    policy: 代理
+    no_resolve: true
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-cn.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/games-cn.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/synology.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/nvidia-cn.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/appletv.yaml
     update_interval: 86400
@@ -699,29 +705,20 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple-cn.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/microsoft-cn.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - domain:
     match: fsend.cn
-    policy: 直连
+    policy: DIRECT
 - domain:
     match: international-gfe.download.nvidia.com
-    policy: 直连
+    policy: DIRECT
 - domain_suffix:
     match: ctaiot.com
-    policy: 直连
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/mcdn-block.yaml
-    update_interval: 86400
-    policy: REJECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apns.yaml
-    update_interval: 86400
-    policy: 默认代理
-    no_resolve: true
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/category-ads.yaml
     update_interval: 86400
@@ -766,7 +763,7 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/privaterelay.yaml
     update_interval: 86400
-    policy: 默认代理
+    policy: 代理
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/apple.yaml
     update_interval: 86400
@@ -847,7 +844,7 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/geolocation-non-cn.yaml
     update_interval: 86400
-    policy: 默认代理
+    policy: 代理
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/google-ip.yaml
     update_interval: 86400
@@ -891,15 +888,16 @@ rules:
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cn-ip.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private-ip.yaml
     update_interval: 86400
-    policy: 直连
+    policy: DIRECT
 - default:
     policy: 漏网之鱼
 hijack_dns:
 - '*'
+close_connections_on_policy_change: true
 real_ip_domains:
 - lancache.steamcontent.com
 - '*.msftconnecttest.com'
