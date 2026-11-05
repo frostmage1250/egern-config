@@ -159,7 +159,7 @@ def render_policy_groups(model):
         name = group["name"]
         item = {"name": name}
         for key in ("icon", "hidden"):
-            if key in group:
+            if key in group and (key != "icon" or CUSTOM.get("icons", {}).get("enabled", True)):
                 item[key] = group[key]
         if group.get("url"):
             item["latency_test_url"] = group["url"]
@@ -509,6 +509,9 @@ def validate_profile(profile, model):
         forbidden = {"latency_test_url", "interval", "timeout", "tolerance"}
         if any(forbidden.intersection(group) for group in groups):
             raise BuildError("Latency-test fields remain in the profile")
+    if CUSTOM.get("icons", {}).get("enabled", True) is False:
+        if any("icon" in group for group in groups):
+            raise BuildError("Policy group icons remain in the profile")
     known = set(names) | {"DIRECT", "REJECT"}
     for group in groups:
         if any(policy not in known for policy in group["policies"]):

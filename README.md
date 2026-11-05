@@ -51,6 +51,7 @@ URLs, intervals, timeouts and tolerances. Rule-set update_interval is retained.
 
 ### Groups
 
+- Remove all icons (`icons.enabled: false`), including subscription and policy-group icons.
 - Rename source 手动选择 to 订阅 and 默认代理 to 代理, including all references.
 - Remove legacy Direct/source 直连 groups and map their references to built-in DIRECT.
 - Keep 订阅 and 订阅2 empty in the published profile; enter subscription URLs locally.
@@ -81,9 +82,9 @@ DNS forwarding policies and default foreign DNS continue to follow the source.
 
 ## Native adaptation
 
-Source group order, icons, visibility, service routing and supported parameters
+Source group order, visibility, service routing and supported parameters
 are preserved subject to the explicit manifest aliases, removed groups and extra
-groups and disabled services. select stays select; load-balance becomes
+groups and disabled services. Icons are omitted when icons.enabled is false. select stays select; load-balance becomes
 native load_balance. With latency tests disabled, no latency-driven groups or
 latency-test parameters are published.
 

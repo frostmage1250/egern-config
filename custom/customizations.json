@@ -137,6 +137,9 @@
       "FCM"
     ]
   },
+  "icons": {
+    "enabled": false
+  },
   "latency_tests": {
     "enabled": false
   }
