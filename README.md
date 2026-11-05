@@ -33,9 +33,25 @@ The manifest additionally retains the 15 explicit real-IP domain exceptions,
 the 实验 supplement for the 低倍率节点 filter, and an empty 订阅2 group immediately
 after 手动选择. Both subscription groups feed the dynamic node filters and replace
 the manual subscription choice wherever it is referenced.
-No service exclusion, policy alias, or former service candidate/order override
-is retained. The manifest also restores the two MESL proxy DNS endpoints and
-three Flower hostname aliases. MESL proxy DNS applies to all proxy hostnames.
+The manifest also restores the two MESL proxy DNS endpoints and three Flower
+hostname aliases. MESL proxy DNS applies to all proxy hostnames.
+
+Retained service candidate overrides (duplicates retain their first position):
+
+- 默认代理: prepend 手动选择, 订阅2; set flatten to false.
+- Google and AI: append 手动选择.
+- Telegram: append 香港, 手动选择, 订阅2.
+- 媒体: append 香港, 手动选择, 订阅2, 美国, 日本.
+- PikPak: append 香港.
+- EHentai: append 美国, 新加坡, 低倍率节点.
+- porn: replace candidates with 香港, 新加坡, 美国, 低倍率节点.
+- Omit IPv4优先 and IPv6优先 candidates throughout.
+
+The legacy 订阅 and Proxy references are adapted to current 手动选择 and 默认代理
+names. If the source has no 媒体 group, insert a selectable group after Google with
+the former candidate order: 默认代理, 低倍率节点, 香港, 美国, 手动选择, 订阅2, 日本.
+Existing service routing targets are inherited from the source.
+No other former service exclusion or policy alias is restored.
 
 ## Native adaptation
 

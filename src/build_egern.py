@@ -195,7 +195,35 @@ def render_policy_groups(model):
             pattern_name = name.removesuffix("-自动选择")
             item["filter"] = patterns.get(pattern_name, source_filter)
         result.append({kind: item})
+    apply_group_customizations(result)
     return result, manual
+
+
+def apply_group_customizations(groups):
+    custom = CUSTOM.get("groups", {})
+    for definition in custom.get("extra_groups", []):
+        names = [next(iter(wrapper.values()))["name"] for wrapper in groups]
+        if definition["name"] in names:
+            continue
+        if definition["after"] not in names:
+            raise BuildError("Extra group placement anchor is missing: " + definition["after"])
+        groups.insert(names.index(definition["after"]) + 1, {"select": {
+            "name": definition["name"], "policies": list(definition["policies"]),
+        }})
+    removed = set(custom.get("remove_candidates", []))
+    for wrapper in groups:
+        item = next(iter(wrapper.values()))
+        name = item["name"]
+        choices = list(item["policies"])
+        front = custom.get("prepend", {}).get(name, [])
+        choices = front + [choice for choice in choices if choice not in front]
+        if name in custom.get("replace", {}):
+            choices = list(custom["replace"][name])
+        else:
+            choices.extend(custom.get("append", {}).get(name, []))
+        item["policies"] = list(dict.fromkeys(choice for choice in choices if choice not in removed))
+        if name in custom.get("flatten", {}):
+            item["flatten"] = custom["flatten"][name]
 
 
 def rule_reference(provider, files, **attributes):
@@ -441,8 +469,13 @@ def validate_profile(profile, model):
         expected_names.append(group["name"])
         if group["name"] == subscription:
             expected_names.extend(extras)
+    for definition in CUSTOM.get("groups", {}).get("extra_groups", []):
+        if definition["name"] not in expected_names:
+            if definition["after"] not in expected_names:
+                raise BuildError("Extra group placement anchor is missing: " + definition["after"])
+            expected_names.insert(expected_names.index(definition["after"]) + 1, definition["name"])
     if names != expected_names:
-        raise BuildError("Native group order must match the source plus explicit subscriptions")
+        raise BuildError("Native group order must match the source plus explicit extra groups")
     for name in [subscription, *extras]:
         group = next(item for item in groups if item["name"] == name)
         if group["policies"] or group["urls"] or "update_interval" in group:
