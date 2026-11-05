@@ -74,6 +74,10 @@ No additional consolidated media selector is inserted.
 - Replace inherited proxy DNS with the two MESL endpoints in the manifest.
   This applies to all proxy hostnames, not only MESL subscription nodes.
 - Restore the three Flower hostname aliases.
+- Exclude MCDN blocking hosts via `dns.hosts_exclude_suffixes`:
+  mcdn.bilivideo.com, mcdn.bilivideo.cn, edge.mountaintoys.cn and h2.smtcdns.net,
+  including their wildcard/subdomain mappings. Apply this exclusion on every
+  generation; MCDN blocking continues through the existing REJECT rule set.
 - Merge the 15 retained Egern real-IP exceptions with literal source Fake-IP
   exceptions, without duplicates. This affects DNS answers, not routing policy.
 

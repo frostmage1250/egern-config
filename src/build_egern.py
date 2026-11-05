@@ -498,6 +498,11 @@ def hosts(model):
         else:
             result[pattern] = value
     result.update(CUSTOM.get("dns", {}).get("hosts_override", {}))
+    excluded = CUSTOM.get("dns", {}).get("hosts_exclude_suffixes", [])
+    for pattern in list(result):
+        hostname = pattern.lstrip("*+.").lower()
+        if any(hostname == suffix or hostname.endswith("." + suffix) for suffix in excluded):
+            del result[pattern]
     return result
 
 

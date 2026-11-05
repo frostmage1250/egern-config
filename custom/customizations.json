@@ -117,6 +117,12 @@
     "direct_domain_system_dns": true,
     "system_dns_providers": [
       "cn"
+    ],
+    "hosts_exclude_suffixes": [
+      "mcdn.bilivideo.com",
+      "mcdn.bilivideo.cn",
+      "edge.mountaintoys.cn",
+      "h2.smtcdns.net"
     ]
   },
   "profile": {
