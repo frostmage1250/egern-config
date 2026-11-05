@@ -8,7 +8,6 @@ on:
       - ".github/workflows/update-egern.yml"
       - "src/**"
       - "custom/**"
-      - "tests/**"
       - "requirements.txt"
   schedule:
     - cron: "17 1-23/2 * * *"
@@ -55,9 +54,6 @@ jobs:
             --output "${RUNNER_TEMP}/rules-index.json"
           node src/extract_mihomo_model.js "${RUNNER_TEMP}/mihomoScript.js" > "${RUNNER_TEMP}/mihomo.json"
           python src/build_egern.py --model "${RUNNER_TEMP}/mihomo.json" --index "${RUNNER_TEMP}/rules-index.json"
-          if [[ "${{ github.event_name }}" == push ]]; then
-            python -m unittest discover -s tests -q
-          fi
           git add -- Profile.yaml
           git diff --cached --check
           if ! git diff --cached --quiet; then

@@ -33,6 +33,11 @@ const exportCode = `
   rules: __egernConfig.rules,
   quic_rules: typeof blockForeignQuic === "undefined" ? [] : blockForeignQuic,
   groups: __egernConfig["proxy-groups"],
+  template_node_names: __egernConfig.proxies.filter(proxy => proxy.type !== "direct").map(proxy => proxy.name),
+  direct_proxies: __egernConfig.proxies.filter(proxy => proxy.type === "direct"),
+  services: serviceConfigs.map(({name, includeAll, reject}) => ({name, includeAll: !!includeAll, reject: !!reject})),
+  globals: Object.fromEntries(Object.entries(__egernConfig).filter(([key]) =>
+    !["dns", "hosts", "proxies", "proxy-groups", "rule-providers", "rules"].includes(key))),
   regions: regionDefinitions.filter(entry => __egernGroupNames.has(entry.name))
     .map(({name,regex}) => ({name,source:regex.source,flags:regex.flags})),
   rateRegions: rateRegionDefinitions.filter(entry => __egernGroupNames.has(entry.name))
