@@ -189,16 +189,6 @@ policy_groups:
     - 家宽节点
     - 其他节点
 - select:
-    name: 媒体
-    policies:
-    - 代理
-    - 低倍率节点
-    - 香港
-    - 美国
-    - 订阅
-    - 订阅2
-    - 日本
-- select:
     name: AI
     icon: https://cdn.jsdmirror.com/gh/AIsouler/MyClash@main/Icons/svg/OpenAI.svg
     policies:
