@@ -556,16 +556,13 @@ def main():
         "policy_groups": groups,
         "rules": render_rules(model, files),
     }
+    profile.update(CUSTOM.get("profile", {}))
+    # Follow the source DNS hijack entries verbatim; do not widen their scope.
     hijack = source.get("tun", {}).get("dns-hijack", [])
     if hijack:
-        profile["hijack_dns"] = list(dict.fromkeys("*" if value in {"any:53", "tcp://any:53"} else value for value in hijack))
-    profile.update(CUSTOM.get("profile", {}))
-    # Egern's native wildcard captures DNS without Mihomo's port suffix.
-    if profile.get("hijack_dns"):
-        profile["hijack_dns"] = list(dict.fromkeys(
-            "*" if value in {"*:53", "any:53", "tcp://any:53"} else value
-            for value in profile["hijack_dns"]
-        ))
+        profile["hijack_dns"] = list(hijack)
+    else:
+        profile.pop("hijack_dns", None)
     # Merge literal source exceptions with the explicit Egern real-IP list.
     literals = [value for value in model["dns"].get("fake-ip-filter", []) if not value.startswith("rule-set:")]
     real_ip_domains = list(dict.fromkeys([*literals, *CUSTOM.get("real_ip_domains", [])]))

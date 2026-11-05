@@ -22,8 +22,11 @@ EHentai. The manifest applies the following Egern-only customizations.
 
 ### Profile and routing
 
-- Force IPv6 and virtual-interface-only mode on; capture DNS using the native
-  '*' wildcard (adapted from the legacy '*:53' setting).
+- Force IPv6 and virtual-interface-only mode on.
+- Copy DNS hijack entries verbatim from the source tun.dns-hijack list, preserving
+  port and protocol qualifiers. No independent hijack override or wildcard
+  normalization is applied. This synchronization does not validate Egern's
+  runtime interpretation of Mihomo-specific entry syntax.
 - Enable close_connections_on_policy_change, include_all_networks and include_apns.
 - Keep the global QUIC block off and omit the source's foreign QUIC blocking rules.
 - Place MCDN blocking immediately before geolocation-cn, followed by APNs through
