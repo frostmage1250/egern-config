@@ -30,7 +30,10 @@ def policy_target(value):
     # The two Mihomo-only rule actions have no native Egern counterpart.
     if value in {"REJECT-DROP", "PASS"}:
         raise BuildError(f"Unsupported Egern rule action: {value}")
-    return value
+    custom = CUSTOM.get("groups", {})
+    if value in custom.get("remove", []):
+        return "DIRECT"
+    return custom.get("aliases", {}).get(value, value)
 
 
 def regex_text(item: dict[str, str]) -> str:
@@ -195,8 +198,14 @@ def render_policy_groups(model):
             pattern_name = name.removesuffix("-自动选择")
             item["filter"] = patterns.get(pattern_name, source_filter)
         result.append({kind: item})
+    removed = set(CUSTOM.get("groups", {}).get("remove", []))
+    result = [wrapper for wrapper in result if next(iter(wrapper.values()))["name"] not in removed]
+    for wrapper in result:
+        item = next(iter(wrapper.values()))
+        item["name"] = policy_target(item["name"])
+        item["policies"] = list(dict.fromkeys(policy_target(choice) for choice in item["policies"]))
     apply_group_customizations(result)
-    return result, manual
+    return result, policy_target(manual)
 
 
 def apply_group_customizations(groups):
@@ -238,9 +247,12 @@ def rule_reference(provider, files, **attributes):
 
 def render_rules(model, files):
     result = render_dns_endpoint_rules(model)
-    extras = list(CUSTOM["routing"].values())
+    extras = [CUSTOM["routing"][name] for name in ("apns", "privaterelay")]
     inserted = set()
+    omitted = set(model.get("quic_rules", [])) if CUSTOM["routing"].get("omit_foreign_quic") else set()
     for raw in model["rules"]:
+        if raw in omitted:
+            continue
         parts = split_rule(raw)
         kind = parts[0]
         if kind == "RULE-SET":
@@ -252,7 +264,7 @@ def render_rules(model, files):
             result.append(rule_reference(parts[1], files, **attributes))
             for extra in extras:
                 if parts[1] == extra["after_provider"]:
-                    attributes = {"policy": extra["policy"]}
+                    attributes = {"policy": policy_target(extra["policy"])}
                     if extra.get("no_resolve"):
                         attributes["no_resolve"] = True
                     result.append(rule_reference(extra["provider"], files, **attributes))
@@ -280,6 +292,21 @@ def render_rules(model, files):
             raise BuildError(f"Unsupported source rule: {raw}")
     if inserted != {extra["provider"] for extra in extras}:
         raise BuildError("An APNs or Private Relay placement anchor is missing")
+    placement = CUSTOM["routing"].get("mcdn")
+    if placement:
+        blocking = rule_reference(placement["provider"], files, policy="REJECT")
+        apns = CUSTOM["routing"]["apns"]
+        apns_rule = rule_reference(apns["provider"], files,
+                                   policy=policy_target(apns["policy"]), no_resolve=apns["no_resolve"])
+        anchor = rule_reference(placement["before_provider"], files)["rule_set"]["match"]
+        if result.count(blocking) != 1 or result.count(apns_rule) != 1:
+            raise BuildError("MCDN/APNs placement requires one rule each")
+        result.remove(blocking)
+        result.remove(apns_rule)
+        positions = [i for i, rule in enumerate(result) if rule.get("rule_set", {}).get("match") == anchor]
+        if len(positions) != 1:
+            raise BuildError("MCDN placement anchor must be unique")
+        result[positions[0]:positions[0]] = [blocking, apns_rule]
     return result
 
 
@@ -303,7 +330,7 @@ def render_dns_endpoint_rules(model):
         server, suffix = split_nameserver_policy(value)
         if not suffix:
             continue
-        target = suffix.split("&", 1)[0]
+        target = policy_target(suffix.split("&", 1)[0])
         host = urlsplit(server).hostname if "://" in server else server
         if not host or host in {"system", "system://"}:
             continue
@@ -429,6 +456,11 @@ def hosts(model):
             result["*" + pattern] = value
         else:
             result[pattern] = value
+    for domain, additions in CUSTOM.get("dns", {}).get("hosts_add_ips", {}).items():
+        existing = result.get(domain, [])
+        if not isinstance(existing, list):
+            raise BuildError("Expected an IP list for hosts additions: " + domain)
+        result[domain] = existing + [value for value in additions if value not in existing]
     result.update(CUSTOM.get("dns", {}).get("hosts_override", {}))
     return result
 
@@ -449,7 +481,7 @@ def provider_files(model, index):
         if not re.fullmatch(r"[a-z0-9.-]+\.yaml", filename):
             raise BuildError(f"Invalid native filename: {filename}")
         files[name] = [filename]
-    for item in CUSTOM["routing"].values():
+    for item in (CUSTOM["routing"][name] for name in ("apns", "privaterelay")):
         filename = item["provider"] + ".yaml"
         if filename not in index["extra_files"]:
             raise BuildError(f"Missing retained Egern rule: {filename}")
@@ -465,9 +497,13 @@ def validate_profile(profile, model):
     expected_names = []
     subscription = profile["default_subscription_group"]
     extras = CUSTOM.get("groups", {}).get("extra_subscriptions", [])
+    removed = set(CUSTOM.get("groups", {}).get("remove", []))
     for group in model["groups"]:
-        expected_names.append(group["name"])
-        if group["name"] == subscription:
+        if group["name"] in removed:
+            continue
+        name = policy_target(group["name"])
+        expected_names.append(name)
+        if name == subscription:
             expected_names.extend(extras)
     for definition in CUSTOM.get("groups", {}).get("extra_groups", []):
         if definition["name"] not in expected_names:
@@ -480,6 +516,9 @@ def validate_profile(profile, model):
         group = next(item for item in groups if item["name"] == name)
         if group["policies"] or group["urls"] or "update_interval" in group:
             raise BuildError("Public subscriptions must start empty without an update interval")
+    for field in ("default_subscription_group", "default_proxy_group"):
+        if profile[field] not in names:
+            raise BuildError("Default group is undefined: " + field)
     known = set(names) | {"DIRECT", "REJECT"}
     for group in groups:
         if any(policy not in known for policy in group["policies"]):
@@ -511,7 +550,7 @@ def main():
         "include_apns": True,
         "block_quic": False,
         "default_subscription_group": subscription,
-        "default_proxy_group": "默认代理",
+        "default_proxy_group": policy_target("默认代理"),
         "dns": {
             "bootstrap": bootstrap_nameservers(model),
             "upstreams": render_dns_upstreams(model),
@@ -525,6 +564,13 @@ def main():
     hijack = source.get("tun", {}).get("dns-hijack", [])
     if hijack:
         profile["hijack_dns"] = list(dict.fromkeys("*" if value in {"any:53", "tcp://any:53"} else value for value in hijack))
+    profile.update(CUSTOM.get("profile", {}))
+    # Egern's native wildcard captures DNS without Mihomo's port suffix.
+    if profile.get("hijack_dns"):
+        profile["hijack_dns"] = list(dict.fromkeys(
+            "*" if value in {"*:53", "any:53", "tcp://any:53"} else value
+            for value in profile["hijack_dns"]
+        ))
     # Merge literal source exceptions with the explicit Egern real-IP list.
     literals = [value for value in model["dns"].get("fake-ip-filter", []) if not value.startswith("rule-set:")]
     real_ip_domains = list(dict.fromkeys([*literals, *CUSTOM.get("real_ip_domains", [])]))

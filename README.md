@@ -16,77 +16,78 @@ frozen compatibility URLs and are not used by the generated profile.
 
 ## Retained customization list
 
-The shared script owns five additional providers and their native service groups:
-Claude, porn, AppleTV, Apple Podcasts, and the MCDN REJECT action.
-TV and Podcasts precede apple_cn; Claude precedes AI; porn follows EHentai.
-MCDN blocking remains after the prefix/optional QUIC stage and before services.
+The shared script owns Claude, porn, AppleTV, Apple Podcasts, and the MCDN
+REJECT action. TV and Podcasts precede apple_cn; Claude precedes AI; porn follows
+EHentai. The manifest applies the following Egern-only customizations.
 
-Two Egern-only routes remain explicitly in custom/customizations.json:
+### Profile and routing
 
-- APNs: 默认代理, immediately after the MCDN REJECT rule, with no_resolve.
-- Private Relay: 默认代理, immediately after the Microsoft domain rules.
+- Force IPv6 and virtual-interface-only mode on; capture DNS using the native
+  '*' wildcard (adapted from the legacy '*:53' setting).
+- Enable close_connections_on_policy_change, include_all_networks and include_apns.
+- Keep the global QUIC block off and omit the source's foreign QUIC blocking rules.
+- Place MCDN blocking immediately before geolocation-cn, followed by APNs through
+  代理 with no_resolve. APNs remains adjacent to MCDN when the block is relocated.
+- Route Private Relay through 代理 immediately after the Microsoft domain rules.
+- Restore default_subscription_group: 订阅 and default_proxy_group: 代理.
+  Both defaults reference actual output groups.
 
-APNs tunnel capture (include_all_networks/include_apns) remains enabled so that
-the retained APNs route can receive the traffic.
+### Groups
 
-The manifest additionally retains the 15 explicit real-IP domain exceptions,
-the 实验 supplement for the 低倍率节点 filter, and an empty 订阅2 group immediately
-after 手动选择. Both subscription groups feed the dynamic node filters and replace
-the manual subscription choice wherever it is referenced.
-The manifest also restores the two MESL proxy DNS endpoints and three Flower
-hostname aliases. MESL proxy DNS applies to all proxy hostnames.
-
-Retained service candidate overrides (duplicates retain their first position):
-
-- 默认代理: prepend 手动选择, 订阅2; set flatten to false.
-- Google and AI: append 手动选择.
-- Telegram: append 香港, 手动选择, 订阅2.
-- 媒体: append 香港, 手动选择, 订阅2, 美国, 日本.
+- Rename source 手动选择 to 订阅 and 默认代理 to 代理, including all references.
+- Remove legacy Direct/source 直连 groups and map their references to built-in DIRECT.
+- Keep 订阅 and 订阅2 empty in the published profile; enter subscription URLs locally.
+  Both feed dynamic regional/rate/home/other node filters.
+- Append 实验 to the 低倍率节点 filter.
+- 代理: prepend 订阅, 订阅2; set flatten to false.
+- Google and AI: append 订阅.
+- Telegram: append 香港, 订阅, 订阅2.
+- 媒体: append 香港, 订阅, 订阅2, 美国, 日本.
 - PikPak: append 香港.
 - EHentai: append 美国, 新加坡, 低倍率节点.
 - porn: replace candidates with 香港, 新加坡, 美国, 低倍率节点.
 - Omit IPv4优先 and IPv6优先 candidates throughout.
 
-The legacy 订阅 and Proxy references are adapted to current 手动选择 and 默认代理
-names. If the source has no 媒体 group, insert a selectable group after Google with
-the former candidate order: 默认代理, 低倍率节点, 香港, 美国, 手动选择, 订阅2, 日本.
-Existing service routing targets are inherited from the source.
-No other former service exclusion or policy alias is restored.
+Candidate additions retain the first occurrence of duplicates. If the source
+has no 媒体 group, insert it after Google with the former candidate order:
+代理, 低倍率节点, 香港, 美国, 订阅, 订阅2, 日本.
+Existing service routing targets otherwise follow the source.
+
+### DNS and real-IP exceptions
+
+- Replace inherited proxy DNS with the two MESL endpoints in the manifest.
+  This applies to all proxy hostnames, not only MESL subscription nodes.
+- Restore the three Flower hostname aliases.
+- Supplement dns.alidns.com hosts with 223.5.5.5 and 223.6.6.6. This is an explicit
+  Egern customization from the former manifest's dns.hosts_add_ips, not an
+  inherited hosts mapping from the current Mihomo script.
+- Merge the 15 retained Egern real-IP exceptions with literal source Fake-IP
+  exceptions, without duplicates. This affects DNS answers, not routing policy.
+
+The former fixed-direct-prefix system-DNS override is deliberately not restored.
+DNS forwarding policies and default foreign DNS continue to follow the source.
 
 ## Native adaptation
 
-Group names/order/icons/visibility and routing order come from the source.
-select stays select; url-test becomes auto_test; load-balance becomes native
-destination-hash load_balance. Source intervals/tolerances are preserved where
-supported; timeout milliseconds become seconds.
-
-Enter subscription URLs locally in the upstream 手动选择 group (initially empty).
-Groups that enumerate subscription nodes use native flatten/filter against this
-group and 订阅2, including regional/rate/home/other groups. Source filters are
-preserved with the explicit 实验 supplement for 低倍率节点.
+Source group order, icons, visibility, service routing and supported parameters
+are preserved subject to the explicit manifest aliases, removed groups and extra
+groups. select stays select; url-test becomes auto_test; load-balance becomes
+native load_balance. Source intervals/tolerances are preserved where supported;
+timeout milliseconds become seconds.
 
 Egern has no native Mihomo direct-proxy variants: their candidates map to DIRECT.
 Unsupported REJECT-DROP/PASS group choices are omitted; the source rule actions
-are otherwise unchanged. The AdBlock group retains REJECT. PROCESS-NAME rules are omitted because Egern
-on iOS exposes no process matcher; Emby's domain rules remain active. Native flattening of
-dynamic node lists does not preserve every nested group as a selectable item.
-Mihomo-only group fields (lazy, max-failed-times, empty-fallback,
-default-selected, exclude-type) have no exact native equivalent and are omitted.
+are otherwise unchanged. The AdBlock group retains REJECT. PROCESS-NAME rules
+are omitted because Egern on iOS exposes no process matcher; Emby's domain rules
+remain active. Dynamic flattening does not preserve every nested group as a
+selectable item. Mihomo-only group fields lazy, max-failed-times, empty-fallback,
+default-selected and exclude-type have no exact native equivalent and are omitted.
 
-DNS forwarding policies, default foreign DNS, endpoint routing suffixes,
-and base hosts come from the source. The explicit MESL proxy DNS list replaces
-the inherited proxy DNS list; the three Flower aliases overlay source hosts. Bootstrap is derived from source startup IPs as
-plain UDP because Egern bootstrap accepts only UDP IPs. Mihomo +. hosts become
-an apex mapping plus a *. wildcard mapping. The old system-DNS direct-prefix
-override and AliDNS additions remain removed.
-
-Mihomo's rule-set-based fake-ip-filter and direct-nameserver re-resolution have
-no equivalent in this static native profile. Only literal source Fake-IP
-exceptions map to real_ip_domains and are merged, without duplicates, with the
-15 retained Egern exceptions. These affect DNS answers, not routing policy.
-Egern-only defaults apply to unsupported platform/global fields. Supported IPv6,
-LAN access, tunnel mode and DNS hijacking fields inherit the source. A global
-QUIC block stays off; any source selective QUIC rules are translated normally.
+DNS endpoint routing suffixes and base hosts come from the source. Bootstrap
+uses source startup IPs as plain UDP because Egern bootstrap accepts only UDP IPs.
+Mihomo +. hosts become an apex mapping plus a *. wildcard mapping.
+Rule-set-based fake-ip-filter and direct-nameserver re-resolution have no exact
+equivalent in this static native profile.
 
 The workflow performs one generation and its integrated structural/reference
 validation before publishing. No local tests, model artifact, or extra test stage
