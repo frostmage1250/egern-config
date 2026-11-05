@@ -894,8 +894,7 @@ rules:
     policy: 漏网之鱼
 close_connections_on_policy_change: true
 hijack_dns:
-- any:53
-- tcp://any:53
+- '*:53'
 real_ip_domains:
 - lancache.steamcontent.com
 - '*.msftconnecttest.com'
