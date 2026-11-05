@@ -46,6 +46,9 @@ jobs:
           rules_dir="$(jq -r '.rule_source.directory' "$manifest")"
           mihomo_commit="$(gh api "repos/${script_repo}/commits/${script_branch}" --jq .sha)"
           rules_commit="$(gh api "repos/${rules_repo}/commits/${rules_branch}" --jq .sha)"
+          manifest_blob="$(git hash-object "$manifest")"
+          printf 'Mihomo commit: %s\nRules commit: %s\nCustomization blob: %s\n' \
+            "$mihomo_commit" "$rules_commit" "$manifest_blob" | tee -a "$GITHUB_STEP_SUMMARY"
           curl --fail --location --silent --show-error \
             "https://raw.githubusercontent.com/${script_repo}/${mihomo_commit}/${script_path}" \
             --output "${RUNNER_TEMP}/mihomoScript.js"
