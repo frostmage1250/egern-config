@@ -121,6 +121,7 @@
       "cn"
     ],
     "hosts_exclude_suffixes": [
+      "doh.pub",
       "mcdn.bilivideo.com",
       "mcdn.bilivideo.cn",
       "edge.mountaintoys.cn",

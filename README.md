@@ -73,6 +73,13 @@ No additional consolidated media selector is inserted.
 
 ### DNS and real-IP exceptions
 
+- Extract only the source DNS fields used by the Egern adapter:
+  `default-nameserver`, `nameserver`, `nameserver-policy` and `fake-ip-filter`.
+  Do not inherit Mihomo `proxy-server-nameserver` or
+  `proxy-server-nameserver-policy`; Egern node DNS is defined by the manifest.
+- Exclude the inherited `doh.pub` Hosts mapping through
+  `dns.hosts_exclude_suffixes`. It supports the Mihomo node-DNS default that
+  this Egern profile does not use.
 - Keep separate `dns.private_dns` groups for Doro (one DoH endpoint) and MESL
   (two DoH endpoints). Match the eight server hostnames from the supplied Doro
   subscription exactly, and match MESL server domains under `911-gt2-rs.com`.

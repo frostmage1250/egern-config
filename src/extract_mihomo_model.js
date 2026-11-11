@@ -68,7 +68,9 @@ const exportCode = `
   highRateRegionName: typeof highRateRegionName === "undefined" ? "高倍率节点" : highRateRegionName,
   excludeFilter: {source:excludeFilter.source,flags:excludeFilter.flags},
   options: ruleOptionsEnable,
-  dns: __egernConfig.dns,
+  // Extract only DNS inputs used by the Egern adapter; node DNS is Egern-owned.
+  dns: Object.fromEntries(Object.entries(__egernConfig.dns).filter(([key]) =>
+    ["default-nameserver", "nameserver", "nameserver-policy", "fake-ip-filter"].includes(key))),
   hosts: __egernConfig.hosts
 };
 `;
