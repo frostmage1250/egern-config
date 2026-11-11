@@ -256,8 +256,6 @@ def render_rules(model, files):
             for extra in extras:
                 if parts[1] == extra["after_provider"]:
                     attributes = {"policy": policy_target(extra["policy"])}
-                    if extra.get("no_resolve"):
-                        attributes["no_resolve"] = True
                     result.append(rule_reference(extra["provider"], files, **attributes))
                     inserted.add(extra["provider"])
         elif kind == "MATCH" and len(parts) == 2:
@@ -288,7 +286,7 @@ def render_rules(model, files):
         blocking = rule_reference(placement["provider"], files, policy="REJECT")
         apns = CUSTOM["routing"]["apns"]
         apns_rule = rule_reference(apns["provider"], files,
-                                   policy=policy_target(apns["policy"]), no_resolve=apns["no_resolve"])
+                                   policy=policy_target(apns["policy"]))
         anchor = rule_reference(placement["before_provider"], files)["rule_set"]["match"]
         if result.count(blocking) != 1 or result.count(apns_rule) != 1:
             raise BuildError("MCDN/APNs placement requires one rule each")

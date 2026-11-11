@@ -15,8 +15,7 @@
     "apns": {
       "provider": "apns",
       "policy": "代理",
-      "after_provider": "mcdn屏蔽",
-      "no_resolve": true
+      "after_provider": "mcdn屏蔽"
     },
     "privaterelay": {
       "provider": "privaterelay",

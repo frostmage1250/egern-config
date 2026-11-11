@@ -33,7 +33,9 @@ EHentai. The manifest applies the following Egern-only customizations.
 - Enable close_connections_on_policy_change, include_all_networks and include_apns.
 - Keep the global QUIC block off and omit the source's foreign QUIC blocking rules.
 - Place MCDN blocking immediately before geolocation-cn, followed by APNs through
-  代理 with no_resolve. APNs remains adjacent to MCDN when the block is relocated.
+  代理. Keep `no_resolve: true` inside the APNs rule-set file, without
+  duplicating it on the profile reference. APNs remains adjacent to MCDN when
+  the block is relocated.
 - Route Private Relay through 代理 immediately after the Microsoft domain rules.
 - Restore default_subscription_group: 订阅 and default_proxy_group: 代理.
   Both defaults reference actual output groups.
