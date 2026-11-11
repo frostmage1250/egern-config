@@ -317,6 +317,8 @@ def render_dns_endpoint_rules(model):
     values = list(model["dns"].get("nameserver", []))
     for servers in model["dns"].get("nameserver-policy", {}).values():
         values.extend(servers if isinstance(servers, list) else [servers])
+    for private in CUSTOM.get("dns", {}).get("private_dns", {}).values():
+        values.extend(server + "#DIRECT" for server in private["servers"])
     for value in values:
         server, suffix = split_nameserver_policy(value)
         if not suffix:
@@ -419,6 +421,10 @@ def render_dns_upstreams(model: dict[str, Any]) -> dict[str, list[str]]:
             if group in upstreams and upstreams[group] != servers:
                 raise BuildError(f"Conflicting DNS policy upstream group: {group}")
             upstreams[group] = servers
+    for name, private in CUSTOM.get("dns", {}).get("private_dns", {}).items():
+        if name in upstreams or not private.get("servers"):
+            raise BuildError(f"Invalid or conflicting private DNS group: {name}")
+        upstreams[name] = private["servers"]
     return upstreams
 
 
@@ -477,7 +483,13 @@ def direct_domain_dns_prefix(model, files, rules):
 
 
 def render_dns_forward(model, files, rules):
-    forward = direct_domain_dns_prefix(model, files, rules)
+    # These node-domain matches must precede ordinary traffic DNS policies.
+    forward = []
+    for name, private in CUSTOM.get("dns", {}).get("private_dns", {}).items():
+        for field, kind in (("domains", "domain"), ("domain_suffixes", "domain_suffix")):
+            forward.extend({kind: {"match": match, "value": name}}
+                           for match in private.get(field, []))
+    forward.extend(direct_domain_dns_prefix(model, files, rules))
     seen = {
         (kind, item["match"])
         for wrapper in forward for kind, item in wrapper.items()
@@ -591,6 +603,8 @@ def validate_profile(profile, model):
     if list(profile["rules"][-1]) != ["default"]:
         raise BuildError("Default rule must be last")
     dns = profile["dns"]
+    if CUSTOM.get("dns", {}).get("private_dns") and "proxy_nameservers" in dns:
+        raise BuildError("Private DNS domain policies require proxy_nameservers to be absent")
     if dns["forward"][-1] != {"domain_wildcard": {"match": "*", "value": "Foreign"}}:
         raise BuildError("Foreign DNS fallback must be last")
     seen_dns = set()
@@ -660,7 +674,6 @@ def main():
             "upstreams": render_dns_upstreams(model),
             "forward": render_dns_forward(model, files, rules),
             "hosts": hosts(model),
-            "proxy_nameservers": CUSTOM.get("dns", {}).get("proxy_nameservers", [split_nameserver_policy(value)[0] for value in model["dns"].get("proxy-server-nameserver", [])]),
         },
         "policy_groups": groups,
         "rules": rules,

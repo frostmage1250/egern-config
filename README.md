@@ -71,8 +71,16 @@ No additional consolidated media selector is inserted.
 
 ### DNS and real-IP exceptions
 
-- Replace inherited proxy DNS with the two MESL endpoints in the manifest.
-  This applies to all proxy hostnames, not only MESL subscription nodes.
+- Keep separate `dns.private_dns` groups for Doro (one DoH endpoint) and MESL
+  (two DoH endpoints). Match the eight server hostnames from the supplied Doro
+  subscription exactly, and match MESL server domains under `911-gt2-rs.com`.
+  Put these DNS forwarding rules before the ordinary traffic DNS policies.
+- Omit `proxy_nameservers` so proxy DNS uses the domain-based Forward rules.
+  Force connections to the private DNS endpoints through DIRECT to avoid a
+  dependency on a proxy that still needs its server hostname resolved.
+- These rules match queried domains, not subscription identities, and also apply
+  to ordinary DNS queries for the same names. IP-literal nodes need no DNS.
+  Update the manifest if a subscription introduces different server domains.
 - Restore the three Flower hostname aliases.
 - Exclude MCDN blocking hosts via `dns.hosts_exclude_suffixes`:
   mcdn.bilivideo.com, mcdn.bilivideo.cn, edge.mountaintoys.cn and h2.smtcdns.net,

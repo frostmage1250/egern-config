@@ -110,11 +110,6 @@
     ]
   },
   "dns": {
-    "proxy_nameservers": [
-      "https://zone.rlose.com:39933/api-query",
-      "https://radar.rlose.com/api-query",
-      "https://dns.nianyun.net/dns-query/nyi0d8t-7fujtwi9iao0cem15pwxn101"
-    ],
     "hosts_override": {
       "11612bj3-b76c.aws-agent.biz": "06996bj6-79x5.apt-agent.com",
       "b76c5sh0-fde6.aws-agent.biz": "08233sh6-12d1.apt-agent.com",
@@ -129,7 +124,33 @@
       "mcdn.bilivideo.cn",
       "edge.mountaintoys.cn",
       "h2.smtcdns.net"
-    ]
+    ],
+    "private_dns": {
+      "Doro": {
+        "servers": [
+          "https://dns.nianyun.net/dns-query/nyi0d8t-7fujtwi9iao0cem15pwxn101"
+        ],
+        "domains": [
+          "akile-hinet-ads4323.645781.xyz",
+          "ali.dorocloud.xyz",
+          "aws.dorocloud.xyz",
+          "awsjp.ixiplc.com",
+          "ecs22.ycsh.shop",
+          "gcp.dorocloud.xyz",
+          "hkt.mao2.de",
+          "tengxun.dorocloud.xyz"
+        ]
+      },
+      "MESL": {
+        "servers": [
+          "https://zone.rlose.com:39933/api-query",
+          "https://radar.rlose.com/api-query"
+        ],
+        "domain_suffixes": [
+          "911-gt2-rs.com"
+        ]
+      }
+    }
   },
   "profile": {
     "ipv6": true,
