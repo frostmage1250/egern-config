@@ -18,7 +18,48 @@ dns:
     Policy-douyin:
     - 180.184.1.1
     - 180.184.2.2
+    Doro:
+    - https://dns.nianyun.net/dns-query/nyi0d8t-7fujtwi9iao0cem15pwxn101
+    MESL:
+    - https://zone.rlose.com:39933/api-query
+    - https://radar.rlose.com/api-query
   forward:
+  - domain:
+      match: akile-hinet-ads4323.645781.xyz
+      value: Doro
+  - domain:
+      match: ali.dorocloud.xyz
+      value: Doro
+  - domain:
+      match: aws.dorocloud.xyz
+      value: Doro
+  - domain:
+      match: awsjp.ixiplc.com
+      value: Doro
+  - domain:
+      match: ecs22.ycsh.shop
+      value: Doro
+  - domain:
+      match: gcp.dorocloud.xyz
+      value: Doro
+  - domain:
+      match: hkt.mao2.de
+      value: Doro
+  - domain:
+      match: tengxun.dorocloud.xyz
+      value: Doro
+  - domain_suffix:
+      match: 911-gt2-rs.com
+      value: MESL
+  - domain:
+      match: dns.nianyun.net
+      value: system
+  - domain:
+      match: zone.rlose.com
+      value: system
+  - domain:
+      match: radar.rlose.com
+      value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
       update_interval: 86400
@@ -93,10 +134,6 @@ dns:
     11612bj3-b76c.aws-agent.biz: 06996bj6-79x5.apt-agent.com
     b76c5sh0-fde6.aws-agent.biz: 08233sh6-12d1.apt-agent.com
     fde63gz6-1y61.aws-agent.biz: 09571gz6-86k1.apt-agent.com
-  proxy_nameservers:
-  - https://zone.rlose.com:39933/api-query
-  - https://radar.rlose.com/api-query
-  - https://dns.nianyun.net/dns-query/nyi0d8t-7fujtwi9iao0cem15pwxn101
 policy_groups:
 - select:
     name: GLOBAL
@@ -539,6 +576,15 @@ rules:
 - domain:
     match: dns.google
     policy: 代理
+- domain:
+    match: dns.nianyun.net
+    policy: DIRECT
+- domain:
+    match: zone.rlose.com
+    policy: DIRECT
+- domain:
+    match: radar.rlose.com
+    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
     update_interval: 86400
