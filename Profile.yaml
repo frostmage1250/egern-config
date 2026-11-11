@@ -24,6 +24,12 @@ dns:
     - https://zone.rlose.com:39933/api-query
     - https://radar.rlose.com/api-query
   forward:
+  - domain_suffix:
+      match: aws-agent.biz
+      value: MESL
+  - domain_suffix:
+      match: apt-agent.com
+      value: MESL
   - domain:
       match: akile-hinet-ads4323.645781.xyz
       value: Doro
@@ -51,15 +57,6 @@ dns:
   - domain_suffix:
       match: 911-gt2-rs.com
       value: MESL
-  - domain:
-      match: dns.nianyun.net
-      value: system
-  - domain:
-      match: zone.rlose.com
-      value: system
-  - domain:
-      match: radar.rlose.com
-      value: system
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
       update_interval: 86400
