@@ -44,7 +44,9 @@
     "*-update.xoyocdn.com",
     "*.prod.cloud.netflix.com",
     "appboot.netflix.com",
-    "*-appboot.netflix.com"
+    "*-appboot.netflix.com",
+    "apt-agent.com",
+    "*.apt-agent.com"
   ],
   "groups": {
     "filter_append": {
@@ -149,22 +151,20 @@
         "domain_suffixes": [
           "911-gt2-rs.com"
         ]
-      }
-    },
-    "forward_prepend": [
-      {
-        "domain_suffix": {
-          "match": "aws-agent.biz",
-          "value": "MESL"
-        }
       },
-      {
-        "domain_suffix": {
-          "match": "apt-agent.com",
-          "value": "MESL"
-        }
+      "Flower": {
+        "servers": [
+          "tls://119.29.29.29",
+          "tls://223.5.5.5",
+          "https://dns.pub/dns-query",
+          "https://dns.alidns.com/dns-query"
+        ],
+        "domain_suffixes": [
+          "aws-agent.biz",
+          "apt-agent.com"
+        ]
       }
-    ]
+    }
   },
   "profile": {
     "ipv6": true,

@@ -81,10 +81,13 @@ No additional consolidated media selector is inserted.
 - These rules match queried domains, not subscription identities, and also apply
   to ordinary DNS queries for the same names. IP-literal nodes need no DNS.
   Update the manifest if a subscription introduces different server domains.
-- Restore the three Flower hostname aliases. Route `aws-agent.biz` and
-  `apt-agent.com` through the MESL resolver group using `dns.forward_prepend`,
-  preserving the DNS servers used by Flower before the subscription DNS split.
-  Both the original server names and their alias targets need explicit matches.
+- Restore the three Flower hostname aliases from Flower_Trojan.yaml. Route
+  `aws-agent.biz` and `apt-agent.com` through a separate Flower DNS group with
+  the source subscription\'s four public resolvers: Tencent/AliDNS DoT and DoH.
+  Its `udp://127.0.0.1:7874` proxy-server-nameserver points to Mihomo\'s own DNS
+  listener and must not be copied into the Egern profile.
+- Preserve the Flower `+.apt-agent.com` Fake-IP exception as Egern real-IP
+  entries for `apt-agent.com` and `*.apt-agent.com`.
 - Let Egern Bootstrap resolve encrypted DNS server hostnames; do not synthesize
   `system` Forward entries for those names from the endpoint DIRECT routes.
 - Exclude MCDN blocking hosts via `dns.hosts_exclude_suffixes`:

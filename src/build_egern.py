@@ -487,8 +487,8 @@ def direct_domain_dns_prefix(model, files, rules):
 
 
 def render_dns_forward(model, files, rules):
-    # Preserve explicit node/alias DNS routes before ordinary traffic policies.
-    forward = list(CUSTOM.get("dns", {}).get("forward_prepend", []))
+    # These node-domain matches must precede ordinary traffic DNS policies.
+    forward = []
     for name, private in CUSTOM.get("dns", {}).get("private_dns", {}).items():
         for field, kind in (("domains", "domain"), ("domain_suffixes", "domain_suffix")):
             forward.extend({kind: {"match": match, "value": name}}
