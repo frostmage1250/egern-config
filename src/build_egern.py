@@ -317,8 +317,7 @@ def render_dns_endpoint_rules(model):
     values = list(model["dns"].get("nameserver", []))
     for servers in model["dns"].get("nameserver-policy", {}).values():
         values.extend(servers if isinstance(servers, list) else [servers])
-    for private in CUSTOM.get("dns", {}).get("private_dns", {}).values():
-        values.extend(server + "#DIRECT" for server in private["servers"])
+    # Egern proxy DNS connects directly; private upstreams need no endpoint routes.
     for value in values:
         server, suffix = split_nameserver_policy(value)
         if not suffix:

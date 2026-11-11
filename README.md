@@ -76,8 +76,9 @@ No additional consolidated media selector is inserted.
   subscription exactly, and match MESL server domains under `911-gt2-rs.com`.
   Put these DNS forwarding rules before the ordinary traffic DNS policies.
 - Omit `proxy_nameservers` so proxy DNS uses the domain-based Forward rules.
-  Force connections to the private DNS endpoints through DIRECT to avoid a
-  dependency on a proxy that still needs its server hostname resolved.
+  Egern forces proxy-DNS upstream connections to be direct, so do not add
+  routing rules for the private DNS endpoints. Preserve explicit endpoint
+  policies inherited from the source for ordinary DNS, such as Foreign DNS.
 - These rules match queried domains, not subscription identities, and also apply
   to ordinary DNS queries for the same names. IP-literal nodes need no DNS.
   Update the manifest if a subscription introduces different server domains.
@@ -89,7 +90,7 @@ No additional consolidated media selector is inserted.
 - Preserve the Flower `+.apt-agent.com` Fake-IP exception as Egern real-IP
   entries for `apt-agent.com` and `*.apt-agent.com`.
 - Let Egern Bootstrap resolve encrypted DNS server hostnames; do not synthesize
-  `system` Forward entries for those names from the endpoint DIRECT routes.
+  `system` Forward entries for the private DNS endpoint names.
 - Exclude MCDN blocking hosts via `dns.hosts_exclude_suffixes`:
   mcdn.bilivideo.com, mcdn.bilivideo.cn, edge.mountaintoys.cn and h2.smtcdns.net,
   including their wildcard/subdomain mappings. Apply this exclusion on every
