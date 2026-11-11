@@ -443,8 +443,12 @@ def direct_domain_dns_prefix(model, files, rules):
         f'{RULE_BASE}/{files[CUSTOM["routing"][name]["provider"]][0]}'
         for name in ("apns", "privaterelay")
     )
-    # Exact hosts entries containing only IPs resolve before Forward rules.
-    fixed_hostnames = set()
+    # IP hosts and encrypted DNS server names resolve before Forward rules.
+    fixed_hostnames = {
+        urlsplit(server).hostname
+        for private in CUSTOM.get("dns", {}).get("private_dns", {}).values()
+        for server in private["servers"]
+    }
     for hostname, values in hosts(model).items():
         values = values if isinstance(values, list) else [values]
         try:
@@ -483,8 +487,8 @@ def direct_domain_dns_prefix(model, files, rules):
 
 
 def render_dns_forward(model, files, rules):
-    # These node-domain matches must precede ordinary traffic DNS policies.
-    forward = []
+    # Preserve explicit node/alias DNS routes before ordinary traffic policies.
+    forward = list(CUSTOM.get("dns", {}).get("forward_prepend", []))
     for name, private in CUSTOM.get("dns", {}).get("private_dns", {}).items():
         for field, kind in (("domains", "domain"), ("domain_suffixes", "domain_suffix")):
             forward.extend({kind: {"match": match, "value": name}}

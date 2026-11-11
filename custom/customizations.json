@@ -150,7 +150,21 @@
           "911-gt2-rs.com"
         ]
       }
-    }
+    },
+    "forward_prepend": [
+      {
+        "domain_suffix": {
+          "match": "aws-agent.biz",
+          "value": "MESL"
+        }
+      },
+      {
+        "domain_suffix": {
+          "match": "apt-agent.com",
+          "value": "MESL"
+        }
+      }
+    ]
   },
   "profile": {
     "ipv6": true,

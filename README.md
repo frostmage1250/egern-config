@@ -81,7 +81,12 @@ No additional consolidated media selector is inserted.
 - These rules match queried domains, not subscription identities, and also apply
   to ordinary DNS queries for the same names. IP-literal nodes need no DNS.
   Update the manifest if a subscription introduces different server domains.
-- Restore the three Flower hostname aliases.
+- Restore the three Flower hostname aliases. Route `aws-agent.biz` and
+  `apt-agent.com` through the MESL resolver group using `dns.forward_prepend`,
+  preserving the DNS servers used by Flower before the subscription DNS split.
+  Both the original server names and their alias targets need explicit matches.
+- Let Egern Bootstrap resolve encrypted DNS server hostnames; do not synthesize
+  `system` Forward entries for those names from the endpoint DIRECT routes.
 - Exclude MCDN blocking hosts via `dns.hosts_exclude_suffixes`:
   mcdn.bilivideo.com, mcdn.bilivideo.cn, edge.mountaintoys.cn and h2.smtcdns.net,
   including their wildcard/subdomain mappings. Apply this exclusion on every
