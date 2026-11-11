@@ -103,6 +103,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - YouTube
     - Google
     - AI
@@ -146,6 +147,7 @@ policy_groups:
     - 高倍率节点
     - 家宽节点
     - 其他节点
+    - 订阅3
     flatten: false
 - select:
     name: 订阅
@@ -158,11 +160,17 @@ policy_groups:
     urls: []
     filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
 - select:
+    name: 订阅3
+    policies: []
+    urls: []
+    filter: (?i)^(?!.*(?:群|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|电报|无法|说明|提示|访问|支持|教程|关注|更新|作者|加入|超时|收藏|优惠|福利|邀请|好友|失联|选择|剩余|公益|发布|DIZTNA|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|建议|重置|以下|过滤|⚠️|@|t\.me\/\+|\bexpire\b|\bhttps?:\/\/|\.com|\btraffic\b)).*$
+- select:
     name: YouTube
     policies:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -178,6 +186,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -193,6 +202,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -208,6 +218,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -223,6 +234,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -239,6 +251,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -255,6 +268,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -270,6 +284,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -286,6 +301,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -301,6 +317,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -316,6 +333,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -331,6 +349,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -347,6 +366,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -367,6 +387,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -389,6 +410,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -404,6 +426,7 @@ policy_groups:
     - 代理
     - 订阅
     - 订阅2
+    - 订阅3
     - 香港
     - 日本
     - 美国
@@ -433,6 +456,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong
 - select:
@@ -441,6 +465,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan
 - select:
@@ -449,6 +474,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states
 - select:
@@ -457,6 +483,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore
 - select:
@@ -465,6 +492,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan
 - select:
@@ -473,6 +501,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)^(?!.*(?:剩|期)).*(?:(?<![\d.])0(\.[0-5]|[*×✕✖⨯⨉x倍]))|(?:[*×✕✖⨯⨉x]0)|^(?!.*(?:客户端|软件)).*下载|低倍|免费|(?<![A-Za-z])free(?![A-Za-z])|实验
 - select:
@@ -481,6 +510,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)(?:[*×✕✖⨯⨉x](?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?)|(?:(?<![\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?(?:倍|[*×✕✖⨯⨉x]))
 - select:
@@ -489,6 +519,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)家宽|住宅|原生\s*IP|家庭宽带|\bISP\b|\bRES\b|residential
 - select:
@@ -497,6 +528,7 @@ policy_groups:
     policies:
     - 订阅
     - 订阅2
+    - 订阅3
     flatten: true
     filter: (?i)^(?!.*(?:🇭🇰|香港|(?<![A-Za-z])HKG?(?![A-Za-z])|hong\s*kong|🇯🇵|日本|东京|大阪|京都|(?<![A-Za-z])JPN?(?![A-Za-z])|japan|🇺🇸|美国|纽约|洛杉矶|旧金山|芝加哥|休斯顿|迈阿密|西雅图|波士顿|华盛顿|拉斯维加斯|圣何塞|(?<![A-Za-z])USA?(?![A-Za-z])|america|united\s*states|🇸🇬|新加坡|狮城|(?<![A-Za-z])SGP?(?![A-Za-z])|singapore|🇹🇼|台湾|台北|高雄|(?<![A-Za-z])TWN?(?![A-Za-z])|taiwan)).*$
 rules:
