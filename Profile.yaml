@@ -123,9 +123,6 @@ dns:
       match: '*'
       value: Foreign
   hosts:
-    doh.pub:
-    - 1.12.12.12
-    - 120.53.53.53
     cloudflare-dns.com:
     - 1.1.1.1
     - 1.0.0.1
