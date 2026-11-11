@@ -96,6 +96,7 @@ dns:
   proxy_nameservers:
   - https://zone.rlose.com:39933/api-query
   - https://radar.rlose.com/api-query
+  - https://dns.nianyun.net/dns-query/nyi0d8t-7fujtwi9iao0cem15pwxn101
 policy_groups:
 - select:
     name: GLOBAL
