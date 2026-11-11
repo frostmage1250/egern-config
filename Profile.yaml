@@ -578,27 +578,6 @@ rules:
 - domain:
     match: dns.google
     policy: 代理
-- domain:
-    match: dns.nianyun.net
-    policy: DIRECT
-- domain:
-    match: zone.rlose.com
-    policy: DIRECT
-- domain:
-    match: radar.rlose.com
-    policy: DIRECT
-- ip_cidr:
-    match: 119.29.29.29/32
-    policy: DIRECT
-- ip_cidr:
-    match: 223.5.5.5/32
-    policy: DIRECT
-- domain:
-    match: dns.pub
-    policy: DIRECT
-- domain:
-    match: dns.alidns.com
-    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
     update_interval: 86400
