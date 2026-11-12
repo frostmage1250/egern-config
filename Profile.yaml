@@ -63,6 +63,10 @@ dns:
       match: apt-agent.com
       value: Flower
   - proxy_rule_set:
+      match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/category-ads.yaml
+      update_interval: 86400
+      value: Foreign
+  - proxy_rule_set:
       match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
       update_interval: 86400
       value: system
@@ -575,6 +579,16 @@ rules:
 - domain:
     match: dns.google
     policy: 代理
+- ip_cidr:
+    match: 180.184.1.1/32
+    policy: DIRECT
+- ip_cidr:
+    match: 180.184.2.2/32
+    policy: DIRECT
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/category-ads.yaml
+    update_interval: 86400
+    policy: AdBlock
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private.yaml
     update_interval: 86400
@@ -628,10 +642,6 @@ rules:
 - domain_suffix:
     match: ctaiot.com
     policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/category-ads.yaml
-    update_interval: 86400
-    policy: AdBlock
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/youtube.yaml
     update_interval: 86400
@@ -710,6 +720,14 @@ rules:
     update_interval: 86400
     policy: 代理
 - rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cn-ip.yaml
+    update_interval: 86400
+    policy: DIRECT
+- rule_set:
+    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private-ip.yaml
+    update_interval: 86400
+    policy: DIRECT
+- rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/google-ip.yaml
     update_interval: 86400
     policy: Google
@@ -741,14 +759,6 @@ rules:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/facebook-ip.yaml
     update_interval: 86400
     policy: Meta
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/cn-ip.yaml
-    update_interval: 86400
-    policy: DIRECT
-- rule_set:
-    match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/private-ip.yaml
-    update_interval: 86400
-    policy: DIRECT
 - default:
     policy: 漏网之鱼
 close_connections_on_policy_change: true
