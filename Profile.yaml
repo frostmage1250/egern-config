@@ -54,7 +54,7 @@ dns:
       match: tengxun.dorocloud.xyz
       value: Doro
   - domain_suffix:
-      match: 911-gt2-rs.com
+      match: dirvt.com
       value: MESL
   - domain_suffix:
       match: aws-agent.biz

@@ -82,7 +82,7 @@ No additional consolidated media selector is inserted.
   this Egern profile does not use.
 - Keep separate `dns.private_dns` groups for Doro (one DoH endpoint) and MESL
   (two DoH endpoints). Match the eight server hostnames from the supplied Doro
-  subscription exactly, and match MESL server domains under `911-gt2-rs.com`.
+  subscription exactly, and match MESL server domains under `dirvt.com`.
   Put these DNS forwarding rules before the ordinary traffic DNS policies.
 - Omit `proxy_nameservers` so proxy DNS uses the domain-based Forward rules.
   Egern forces proxy-DNS upstream connections to be direct, so do not add
