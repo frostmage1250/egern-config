@@ -19,7 +19,7 @@ dns:
     - 180.184.1.1
     - 180.184.2.2
     Doro:
-    - https://dns.nianyun.net/dns-query/nyi0d8t-7fujtwi9iao0cem15pwxn101
+    - https://dns.dorocloud.xyz/dns-query
     MESL:
     - https://zone.rlose.com:39933/api-query
     - https://radar.rlose.com/api-query
@@ -52,6 +52,9 @@ dns:
       value: Doro
   - domain:
       match: tengxun.dorocloud.xyz
+      value: Doro
+  - domain:
+      match: wuhan.dorocloud.xyz
       value: Doro
   - domain_suffix:
       match: dirvt.com
