@@ -130,7 +130,7 @@
     "private_dns": {
       "Doro": {
         "servers": [
-          "https://dns.nianyun.net/dns-query/nyi0d8t-7fujtwi9iao0cem15pwxn101"
+          "https://dns.dorocloud.xyz/dns-query"
         ],
         "domains": [
           "akile-hinet-ads4323.645781.xyz",
@@ -140,7 +140,8 @@
           "ecs22.ycsh.shop",
           "gcp.dorocloud.xyz",
           "hkt.mao2.de",
-          "tengxun.dorocloud.xyz"
+          "tengxun.dorocloud.xyz",
+          "wuhan.dorocloud.xyz"
         ]
       },
       "MESL": {
