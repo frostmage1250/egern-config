@@ -582,12 +582,6 @@ rules:
 - domain:
     match: dns.google
     policy: 代理
-- ip_cidr:
-    match: 180.184.1.1/32
-    policy: DIRECT
-- ip_cidr:
-    match: 180.184.2.2/32
-    policy: DIRECT
 - rule_set:
     match: https://raw.githubusercontent.com/frostmage1250/proxy-rules-converter/egern/rules/category-ads.yaml
     update_interval: 86400

@@ -90,6 +90,10 @@ No additional consolidated media selector is inserted.
   Egern forces proxy-DNS upstream connections to be direct, so do not add
   routing rules for the private DNS endpoints. Preserve explicit endpoint
   policies inherited from the source for ordinary DNS, such as Foreign DNS.
+- Set `routing.direct_dns_endpoint_exclusions` to `180.184.1.1` and
+  `180.184.2.2`: omit their synthesized DIRECT endpoint routes because the
+  existing cn-ip rule set already covers them. Keep the Douyin DNS upstreams
+  and forwarding policy unchanged.
 - These rules match queried domains, not subscription identities, and also apply
   to ordinary DNS queries for the same names. IP-literal nodes need no DNS.
   Update the manifest if a subscription introduces different server domains.

@@ -12,6 +12,10 @@
     "update_interval": 86400
   },
   "routing": {
+    "direct_dns_endpoint_exclusions": [
+      "180.184.1.1",
+      "180.184.2.2"
+    ],
     "apns": {
       "provider": "apns",
       "policy": "代理",

@@ -324,6 +324,9 @@ def render_dns_endpoint_rules(model):
         host = urlsplit(server).hostname if "://" in server else server
         if not host or host in {"system", "system://"}:
             continue
+        # These DNS IPs already use DIRECT through the existing cn-ip rule set.
+        if target == "DIRECT" and host in CUSTOM.get("routing", {}).get("direct_dns_endpoint_exclusions", []):
+            continue
         try:
             address = ipaddress.ip_address(host)
         except ValueError:
