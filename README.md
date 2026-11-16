@@ -81,7 +81,9 @@ No additional consolidated media selector is inserted.
   `dns.hosts_exclude_suffixes`. It supports the Mihomo node-DNS default that
   this Egern profile does not use.
 - Keep separate `dns.private_dns` groups for Doro (one DoH endpoint) and MESL
-  (two DoH endpoints). Match the eight server hostnames from the supplied Doro
+  (two DoH endpoints). Use `https://dns.dorocloud.xyz/dns-query` for Doro,
+  without copying the supplied `#h2=true` fragment into Egern. Match the nine
+  server hostnames from the supplied Doro
   subscription exactly, and match MESL server domains under `dirvt.com`.
   Put these DNS forwarding rules before the ordinary traffic DNS policies.
 - Omit `proxy_nameservers` so proxy DNS uses the domain-based Forward rules.
