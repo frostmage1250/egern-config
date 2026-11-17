@@ -237,7 +237,10 @@ def rule_reference(provider, files, **attributes):
 
 
 def render_rules(model, files):
-    result = render_dns_endpoint_rules(model)
+    result = []
+    if CUSTOM["routing"].get("block_stun", False):
+        result.append({"protocol": {"match": "stun", "policy": "REJECT"}})
+    result.extend(render_dns_endpoint_rules(model))
     extras = [CUSTOM["routing"][name] for name in ("apns", "privaterelay")]
     inserted = set()
     omitted = set(model.get("quic_rules", [])) if CUSTOM["routing"].get("omit_foreign_quic") else set()
