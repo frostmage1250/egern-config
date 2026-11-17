@@ -26,7 +26,7 @@
       "policy": "代理",
       "after_provider": "microsoft"
     },
-    "block_stun": true,
+    "block_stun": false,
     "omit_foreign_quic": true,
     "mcdn": {
       "provider": "mcdn屏蔽",
