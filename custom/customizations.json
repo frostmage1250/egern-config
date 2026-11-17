@@ -134,7 +134,7 @@
     "private_dns": {
       "Doro": {
         "servers": [
-          "https://dns.dorocloud.xyz/dns-query"
+          "https://dns.dorocloud.cn/dns-query"
         ],
         "domains": [
           "akile-hinet-ads4323.645781.xyz",
