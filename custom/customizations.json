@@ -135,18 +135,23 @@
     "private_dns": {
       "Doro": {
         "servers": [
-          "https://dns.dorocloud.cn/dns-query"
+          "https://dns.dorocloud.xyz/dns-query"
         ],
         "domains": [
           "akile-hinet-ads4323.645781.xyz",
-          "ali.dorocloud.xyz",
           "aws.dorocloud.xyz",
           "awsjp.ixiplc.com",
           "ecs22.ycsh.shop",
-          "gcp.dorocloud.xyz",
-          "hkt.mao2.de",
-          "tengxun.dorocloud.xyz",
-          "wuhan.dorocloud.xyz"
+          "gcp.dorocloud.xyz"
+        ]
+      },
+      "Doro-HKT": {
+        "servers": [
+          "223.5.5.5",
+          "119.29.29.29"
+        ],
+        "domains": [
+          "hkt.mao2.de"
         ]
       },
       "MESL": {
