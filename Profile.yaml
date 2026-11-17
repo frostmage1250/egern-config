@@ -19,7 +19,10 @@ dns:
     - 180.184.1.1
     - 180.184.2.2
     Doro:
-    - https://dns.dorocloud.cn/dns-query
+    - https://dns.dorocloud.xyz/dns-query
+    Doro-HKT:
+    - 223.5.5.5
+    - 119.29.29.29
     MESL:
     - https://zone.rlose.com:39933/api-query
     - https://radar.rlose.com/api-query
@@ -31,9 +34,6 @@ dns:
   forward:
   - domain:
       match: akile-hinet-ads4323.645781.xyz
-      value: Doro
-  - domain:
-      match: ali.dorocloud.xyz
       value: Doro
   - domain:
       match: aws.dorocloud.xyz
@@ -49,13 +49,7 @@ dns:
       value: Doro
   - domain:
       match: hkt.mao2.de
-      value: Doro
-  - domain:
-      match: tengxun.dorocloud.xyz
-      value: Doro
-  - domain:
-      match: wuhan.dorocloud.xyz
-      value: Doro
+      value: Doro-HKT
   - domain_suffix:
       match: dirvt.com
       value: MESL
