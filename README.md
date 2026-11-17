@@ -80,12 +80,19 @@ No additional consolidated media selector is inserted.
 - Exclude the inherited `doh.pub` Hosts mapping through
   `dns.hosts_exclude_suffixes`. It supports the Mihomo node-DNS default that
   this Egern profile does not use.
-- Keep separate `dns.private_dns` groups for Doro (one DoH endpoint) and MESL
-  (two DoH endpoints). Use `https://dns.dorocloud.xyz/dns-query` for Doro,
-  without copying the supplied `#h2=true` fragment into Egern. Match the nine
-  server hostnames from the supplied Doro
-  subscription exactly, and match MESL server domains under `dirvt.com`.
+- Keep separate `dns.private_dns` groups for Doro (one DoH endpoint),
+  Doro-HKT (two public UDP resolvers), and MESL (two DoH endpoints).
+  Use `https://dns.dorocloud.xyz/dns-query` for the five Doro server hostnames:
+  `akile-hinet-ads4323.645781.xyz`, `aws.dorocloud.xyz`, `awsjp.ixiplc.com`,
+  `ecs22.ycsh.shop`, and `gcp.dorocloud.xyz`. Match `hkt.mao2.de` separately
+  through Doro-HKT using `223.5.5.5` and `119.29.29.29`, as specified by the
+  latest supplied subscription's proxy-server-nameserver-policy. Remove the
+  obsolete Doro matches for `ali.dorocloud.xyz`, `tengxun.dorocloud.xyz`, and
+  `wuhan.dorocloud.xyz`. Match MESL server domains under `dirvt.com`.
   Put these DNS forwarding rules before the ordinary traffic DNS policies.
+  Do not copy the supplied `#Doro-DNS` suffix or the earlier `#h2=true` fragment
+  into Egern upstream URLs. The supplied Mihomo DNS proxy-group detour is not
+  reproduced; Egern proxy-DNS connections retain their native direct behavior.
 - Omit `proxy_nameservers` so proxy DNS uses the domain-based Forward rules.
   Egern forces proxy-DNS upstream connections to be direct, so do not add
   routing rules for the private DNS endpoints. Preserve explicit endpoint
