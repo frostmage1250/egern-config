@@ -133,25 +133,19 @@
       "h2.smtcdns.net"
     ],
     "private_dns": {
-      "Doro": {
-        "servers": [
-          "https://dns.dorocloud.xyz/dns-query"
-        ],
-        "domains": [
-          "akile-hinet-ads4323.645781.xyz",
-          "aws.dorocloud.xyz",
-          "awsjp.ixiplc.com",
-          "ecs22.ycsh.shop",
-          "gcp.dorocloud.xyz"
-        ]
-      },
       "Doro-HKT": {
         "servers": [
           "223.5.5.5",
           "119.29.29.29"
         ],
         "domains": [
-          "hkt.mao2.de"
+          "hkt.mao2.de",
+          "akile-hinet-ads4323.645781.xyz",
+          "aws.dorocloud.xyz",
+          "awsjp.ixiplc.com",
+          "cdt.dorocloud.xyz",
+          "ecs22.ycsh.shop",
+          "shenzhenali.dorocloud.xyz"
         ]
       },
       "MESL": {
