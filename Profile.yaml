@@ -18,8 +18,6 @@ dns:
     Policy-douyin:
     - 180.184.1.1
     - 180.184.2.2
-    Doro:
-    - https://dns.dorocloud.xyz/dns-query
     Doro-HKT:
     - 223.5.5.5
     - 119.29.29.29
@@ -33,22 +31,25 @@ dns:
     - https://dns.alidns.com/dns-query
   forward:
   - domain:
+      match: hkt.mao2.de
+      value: Doro-HKT
+  - domain:
       match: akile-hinet-ads4323.645781.xyz
-      value: Doro
+      value: Doro-HKT
   - domain:
       match: aws.dorocloud.xyz
-      value: Doro
+      value: Doro-HKT
   - domain:
       match: awsjp.ixiplc.com
-      value: Doro
+      value: Doro-HKT
+  - domain:
+      match: cdt.dorocloud.xyz
+      value: Doro-HKT
   - domain:
       match: ecs22.ycsh.shop
-      value: Doro
+      value: Doro-HKT
   - domain:
-      match: gcp.dorocloud.xyz
-      value: Doro
-  - domain:
-      match: hkt.mao2.de
+      match: shenzhenali.dorocloud.xyz
       value: Doro-HKT
   - domain_suffix:
       match: dirvt.com
